@@ -691,6 +691,7 @@ func _face_and_hair() -> void:
 			else:
 				_hair_cache[hk] = _hair_clumps(hd[2], skull_c, skull_r)
 				_hair_dyn[hk] = _clump_dangle(_hair_cache[hk])
+		_hair_touch(hk)
 		var cm = ShaderMaterial.new()
 		cm.shader = load("res://shaders/toon.gdshader")
 		cm.set_shader_parameter("tint", look["hair"])
@@ -7439,6 +7440,30 @@ static var _hair_job_res: Array = []
 static var _radial_cache := {}
 static var _hair_vs_cache := {}   # saç anahtarı -> köşe dizisi (GPU'dan her NPC'de geri okunmasın)
 var _hair_borrow: Array = []
+
+
+## Saç önbelleği sınırı: her saç ~2 MB köşe tamponu (+ sallanma paketi) ekran kartında durur. Sınırsızken gezdikçe
+## (stil × cinsiyet × yüz × yaş × bant) yüzlerce saç birikiyordu -> 4 GB kartta VkResult -2 çökmesi (2026-11-11 ölçüm:
+## Konoha↔Suna iki turda 475 MB). En uzun süredir kullanılmayan atılır; sahnedeki modeller kendi mesh'ini tutmaya devam eder.
+const HAIR_CAP := 56
+static var _hair_use := {}
+
+
+static func _hair_touch(hk: String) -> void:
+	_hair_use[hk] = Time.get_ticks_msec()
+	if _hair_cache.size() <= HAIR_CAP:
+		return
+	var ks = _hair_cache.keys()
+	ks.sort_custom(func(a, b): return int(_hair_use.get(a, 0)) < int(_hair_use.get(b, 0)))
+	for k in ks:
+		if _hair_cache.size() <= HAIR_CAP:
+			break
+		if k == hk or k == _hair_job_key:
+			continue
+		_hair_cache.erase(k)
+		_hair_dyn.erase(k)
+		_hair_vs_cache.erase(k)
+		_hair_use.erase(k)
 
 
 static func _hair_job_run(args: Array) -> void:

@@ -322,9 +322,19 @@ func _begin(a: String, dur: float) -> void:
 		"roar":
 			d = maxf(d, 1.6); rig.play_action("roar", d)
 		"elem":
-			d = 1.6; rig.play_action("charge" if id in ["kokuo", "chomei", "isobu", "matatabi"] else "roar", d)
+			# teknik başta seçilir: hareketi ona göre (şaha kalkma / nefes / fırlatma / siper / kuyruk kamçısı), etkisi hareketin vuruş anında
+			var pl0 = _foe()
+			elem_key = BijuuArts.pick_key(id, (pl0.global_position - global_position).length(), clampf(height / 14.0, 2.0, 3.5)) if pl0 != null else ""
+			if elem_key != "":
+				var an: Array = BijuuArts.anim(elem_key)
+				d = float(an[1]) + 0.3
+				elem_rel = float(an[1]) * float(an[2]) / d
+				rig.play_action(String(an[0]), float(an[1]))
+			else:
+				elem_rel = 0.5
+				d = 1.6; rig.play_action("charge" if id in ["kokuo", "chomei", "isobu", "matatabi"] else "roar", d)
 		"ball":
-			d = 3.4; rig.play_action("ball", d)
+			d = 4.2; rig.play_action("bijudama", d)
 			_ball_start()
 		"minions":
 			d = 1.6; rig.play_action("roar", d)
@@ -419,7 +429,7 @@ func _run_attack(_dt: float) -> void:
 				if Game.world:
 					Game.world.env.add_shake(1.2)
 		"elem":
-			if k > 0.5 and not atk_hit:
+			if k > maxf(0.05, elem_rel) and not atk_hit:
 				atk_hit = true
 				_element_attack()
 		"ball":
@@ -467,7 +477,8 @@ func _element_attack() -> void:
 	var dist = (pl.global_position - global_position).length()
 	# teknik ölçeği: dev ama oyuncunun ekranını kaplamayacak kadar (alan teknikleri oyuncunun çevresine iner)
 	var ts = clampf(height / 14.0, 2.0, 3.5)
-	var key = BijuuArts.pick_key(id, dist, ts)
+	var key = elem_key if elem_key != "" else BijuuArts.pick_key(id, dist, ts)
+	elem_key = ""
 	if key != "":
 		var td = BijuuArts.tech(id, key)
 		BijuuArts.use(self, id, key, {"s": ts, "dmg": _dmg(30.0), "from": rig.mouth_pos(), "aim": pl.global_position + Vector3.UP, "tgt": pl, "col": info["chakra"]})
@@ -580,29 +591,25 @@ func _field(c: Vector3, r: float, col: Color, dur: float, dps: float, el: String
 
 
 # ------------------------------------------------------------------ Kuyruklu Canavar Topu
+var elem_key := ""        # bu element saldırısında kullanılacak teknik (hareket ona göre seçilir)
+var elem_rel := 0.5       # tekniğin çıktığı an (saldırı süresine oranla)
+
+
+## Anime Bijūdama: top ağzın önünde başı kadar büyür, canavar yutar, fırlatır
 func _ball_start() -> void:
-	ball = Node3D.new()
-	rig.mouth.add_child(ball)
-	ball.add_child(BijudamaFX.ball(3.0))
-	ball.scale = Vector3.ONE * 0.05
-	Combat.popup_text(rig.mouth_pos() + Vector3.UP * 4.0, "Kuyruklu Canavar Topu!", Color(0.8, 0.5, 1.0))
-	BijudamaFX.gather(rig.mouth_pos(), height * 0.07, 0.8)   # mavi + kırmızı chakra küreleri ağız önünde sıkışır
+	Combat.popup_text(rig.mouth_pos() + Vector3.UP * 4.0, "Bijūdama!", Color(0.8, 0.5, 1.0))
+	BijudamaFX.charge(rig.mouth, height * 0.34, 4.2 * 0.86)
 
 
 func _ball_tick(k: float) -> void:
-	if ball and is_instance_valid(ball):
-		var s = minf(1.0, k / 0.8) * height * 0.04
-		ball.scale = Vector3.ONE * maxf(0.05, s)
-	if k > 0.8 and not atk_hit:
+	if k > 0.86 and not atk_hit:
 		atk_hit = true
-		if ball and is_instance_valid(ball):
-			ball.queue_free()
 		var pl = _foe()
 		if pl == null:
 			return
-		var from = rig.mouth_pos()
+		var from = BijudamaFX.muzzle(rig.mouth, height * 0.34 * 0.4)
 		var aim = (pl.global_position + Vector3.UP - from).normalized()
-		TailedBeasts.fire_ball(self, from, aim, height * 0.07, info["chakra"], _dmg(110.0), 75.0)
+		TailedBeasts.fire_ball(self, from, aim, height * 0.17, info["chakra"], _dmg(110.0), 75.0)
 
 
 func _minions() -> void:

@@ -40,7 +40,7 @@ var compass: Control
 var compass_lbl: Label
 var compass_dir = Vector2.UP
 var beam: MeshInstance3D
-const SLOT_COUNT := 6
+const SLOT_COUNT := 9
 var slot_state: Array = []
 var portrait: Control
 var portrait_hp = 1.0

@@ -895,7 +895,7 @@ func _life_event() -> void:
 		var rank = int(f.get("rank", 0))
 		var fam: Array = f.get("family", [])
 		var spouse = fam.any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"])
-		var defect_p = 0.03 + (0.1 if b < 0 else 0.0) + (0.08 if f.get("grief", false) else 0.0) - (0.025 if b >= 60 else 0.0)
+		var defect_p = 0.008 + (0.04 if b < 0 else 0.0) + (0.03 if f.get("grief", false) else 0.0) - (0.008 if b >= 60 else 0.0)
 		var r = randf()
 		_ensure_persona(f)
 		var teacher = String(f.get("role", "")) == "teacher"
@@ -979,7 +979,7 @@ func _life_event() -> void:
 				f["news"] = "%s... bir görevden dönmedi. Bu köy için savaştı. Ben de öyle yapacağım... sanırım." % m["name"]
 				Hud.msg("Haber: %s'in %s bir görevde hayatını kaybetti." % [f["name"], String(m["rel"]).to_lower().trim_suffix("ı").trim_suffix("i")], Color(0.8, 0.8, 0.9), 5.0)
 	# köyden kimi zaman tanımadığın ninjalar da kaçar (Bingo Kitabı'na girer)
-	if randf() < 0.12 and not WorldPeople.bingo_from_world(Progress.home()).is_empty():
+	if randf() < 0.03 and not WorldPeople.bingo_from_world(Progress.home()).is_empty():
 		pass   # dünyadan gerçek biri kaçtı (haber WorldPeople.defect'te)
 	elif randf() < 0.12:
 		var e: Dictionary = Missions._bb_new(["C", "B", "B", "A"].pick_random())

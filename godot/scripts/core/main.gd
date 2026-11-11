@@ -108,7 +108,7 @@ func _setup_input() -> void:
 		"forward": [KEY_W], "back": [KEY_S], "left": [KEY_A], "right": [KEY_D],
 		"jump": [KEY_SPACE], "leap": [KEY_CTRL], "dash": [KEY_SHIFT], "substitute": [KEY_Q], "charge": [KEY_C],
 		"throw": [KEY_R], "tool_next": [KEY_T], "interact": [KEY_F], "lock": [KEY_E], "menu": [KEY_TAB], "salve": [KEY_H], "pill": [KEY_Y],
-		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4], "slot5": [KEY_5], "slot6": [KEY_6],
+		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4], "slot5": [KEY_5], "slot6": [KEY_6], "slot7": [KEY_7], "slot8": [KEY_8], "slot9": [KEY_9],
 		"inventory": [KEY_I], "skills": [KEY_K], "map": [KEY_M], "pause": [KEY_ESCAPE], "dojutsu": [KEY_V],
 		"walk": [KEY_CAPSLOCK], "sage": [KEY_Z], "beast": [KEY_X], "gates": [KEY_B], "seal_mode": [KEY_G], "weapon_draw": [KEY_N], "summon_cmd": [KEY_J], "summon_special": [KEY_U], "pill_next": [KEY_O], "track_next": [KEY_L],
 	}
@@ -337,7 +337,7 @@ func _begin_game(pos: Vector3) -> void:
 	Missions._story_cache.clear()
 	# eski kayıtlar 4 slotluydu: 6'ya tamamla
 	var sl: Array = Game.profile.get("slots", [])
-	while sl.size() < 6:
+	while sl.size() < 9:
 		sl.append("")
 	Game.profile["slots"] = sl
 	Gear.ensure(Game.profile)
@@ -580,7 +580,27 @@ func fast_travel(vid: String) -> void:
 	Hud.banner(v["name"], "Hızlı seyahat", Color(0.8, 0.95, 1.0))
 
 
+var _vram_t := -100.0
+
+
+## Loga dakikada bir ekran belleği satırı (çöküş loglarında "kart doldu mu, ne zaman" görülsün)
+func _vram_log(dt: float) -> void:
+	_vram_t -= dt
+	if _vram_t > 0.0:
+		return
+	var first = _vram_t < -50.0
+	_vram_t = 60.0 if not first else 20.0
+	var mb = 1048576.0
+	if first:
+		print("Sürüm %s (%s) | %s" % [Game.version, Game.build_tag, RenderingServer.get_video_adapter_name()])
+	print("VRAM %d dk: toplam %.0f MB, doku %.0f, tampon %.0f" % [int(Time.get_ticks_msec() / 60000.0),
+		RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED) / mb,
+		RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TEXTURE_MEM_USED) / mb,
+		RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_BUFFER_MEM_USED) / mb])
+
+
 func _process(dt: float) -> void:
+	_vram_log(dt)
 	if mode == "menu" and menu_cam:
 		menu_t += dt * 0.05
 		var v = Game.village("konoha")

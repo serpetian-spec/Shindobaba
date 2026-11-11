@@ -140,7 +140,7 @@ static func explode(pos: Vector3, R: float) -> void:
 	tw.tween_interval(0.14)
 	tw.tween_callback(func(): flash.visible = true)
 	tw.tween_property(flash, "scale", Vector3.ONE * R * 2.0, 0.22).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.tween_interval(0.25)
+	tw.tween_interval(0.6)   # kubbe bir an asılı kalır (anime: patlama küresi büyüyüp durur)
 	tw.tween_property(flash, "scale", Vector3.ONE * R * 2.3, 0.45)
 	tw.parallel().tween_property(flash, "transparency", 1.0, 0.45)
 	tw.tween_callback(flash.queue_free)
@@ -163,7 +163,59 @@ static func explode(pos: Vector3, R: float) -> void:
 		VFX.cracks(g, R * 1.3, Color(0.08, 0.03, 0.08, 0.95), 10.0)
 		VFX.debris(g + Vector3.UP * 0.5, Color(0.42, 0.36, 0.3), 26, R * 1.6, maxf(0.3, R * 0.08))
 		VFX.debris(g + Vector3.UP * 0.5, Color(0.25, 0.22, 0.2), 14, R * 2.4, maxf(0.2, R * 0.05))   # hızlı küçük kıymıklar (ref: dağılan keskin parçalar)
+	# ref (anime): patlamadan göğe yükselen ışık sütunu + gecikmeli ikinci/üçüncü basınç dalgası
+	var pil = MeshInstance3D.new()
+	pil.mesh = VFX._sphere(0.5, 20, 10)
+	pil.material_override = _mat(true, 0.8)
+	pil.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	VFX.scene().add_child(pil)
+	pil.global_position = pos + Vector3.UP * R * 1.5
+	pil.scale = Vector3(R * 0.5, R * 0.6, R * 0.5)
+	var tp = pil.create_tween()
+	tp.tween_property(pil, "scale", Vector3(R * 0.9, R * 7.0, R * 0.9), 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tp.tween_interval(0.4)
+	tp.tween_property(pil, "scale", Vector3(R * 0.1, R * 9.0, R * 0.1), 0.6)
+	tp.parallel().tween_property(pil, "transparency", 1.0, 0.6)
+	tp.tween_callback(pil.queue_free)
+	if near_ground:
+		for k2 in 2:
+			tree.create_timer(0.4 + k2 * 0.3).timeout.connect(func():
+				VFX.shockwave(g + Vector3.UP * 0.2, Color(0.9, 0.85, 1.0), R * (4.8 + k2 * 1.6), 1.0, true)
+				VFX.debris(g + Vector3.UP * 0.5, Color(0.36, 0.3, 0.27), 12, R * (2.0 + k2), maxf(0.25, R * 0.06)))
 	Sfx.play("boom", pos, 0.4)
 	if Game.world:
 		Game.world.env.screen_flash(0.35)
 		Game.world.env.add_shake(clampf(R * 0.15, 0.6, 2.5))
+
+
+## Ağız önü: topun toplandığı / fırladığı nokta (çap kadar önde, hafif yukarıda)
+static func muzzle(mouth: Node3D, diam: float) -> Vector3:
+	var b = mouth.global_transform.basis
+	return mouth.global_position - b.z.normalized() * diam * 0.6 + Vector3.UP * diam * 0.1
+
+
+## Epik şarj (anime): ağız önünde koyu top büyür (mavi + kırmızı chakra küreleri dalga dalga akar, zemin çöker), sonda
+## canavar topu YUTAR (top küçülüp ağza çekilir) — ardından fire_ball ile fırlatılır. diam = tam boy çap, dur = toplam süre.
+static func charge(mouth: Node3D, diam: float, dur: float) -> void:
+	if not is_instance_valid(mouth):
+		return
+	var root = Node3D.new()
+	VFX.scene().add_child(root)
+	root.add_child(ball(1.0))
+	root.global_position = muzzle(mouth, diam)
+	root.scale = Vector3.ONE * diam * 0.05
+	var tw = root.create_tween()
+	tw.tween_method(func(u: float):
+		if not is_instance_valid(mouth) or not is_instance_valid(root):
+			return
+		var grow = pow(clampf(u / 0.82, 0.0, 1.0), 0.7)
+		var gulp = smoothstep(0.86, 1.0, u)
+		root.scale = Vector3.ONE * diam * lerpf(0.05, 1.0, grow) * lerpf(1.0, 0.4, gulp) * (1.0 + sin(u * 60.0) * 0.03)
+		root.global_position = muzzle(mouth, diam * lerpf(1.0, 0.35, gulp)), 0.0, 1.0, dur)
+	tw.tween_callback(root.queue_free)
+	var tree = VFX.tree()
+	for w in 3:
+		tree.create_timer(dur * 0.22 * w).timeout.connect(func():
+			if is_instance_valid(mouth):
+				gather(muzzle(mouth, diam), diam, dur * 0.4))
+	FX.light(muzzle(mouth, diam), Color(0.6, 0.4, 0.95), 8.0, diam * 5.0, dur)

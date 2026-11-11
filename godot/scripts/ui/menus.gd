@@ -1139,7 +1139,7 @@ static func controls(main: Node) -> void:
 	var rows = [["WASD", "Hareket"], ["Fare", "Kamera"], ["Space", "Zıpla / çift zıplama"], ["Ctrl (basılı)", "Süper zıplama (Shinobi Striker)"],
 		["Shift", "Ninja koşusu (5 sn: tam hız), havada dash"], ["Duvara koş", "Duvarda koşu"], ["Duvarda Ctrl", "Duvar atılımı (chakra)"], ["Havada Q", "İpli kunai: nişangâha tutun"], ["Sol tık", "Kombo / dalış tekmesi"], ["Sağ tık", "Blok (tam zamanında: mükemmel blok)"],
 		["Q", "Kawarimi (genjutsu'dayken: Kai)"], ["C (basılı)", "Chakra şarjı"], ["R / T", "Alet fırlat / değiştir"], ["N", "Silahı çek / kınına sok"], ["E / orta tık", "Hedefe kilitlen"],
-		["1-6", "Jutsu slotları"], ["F", "Etkileşim"], ["Caps Lock", "Yürüyüş (aç/kapa)"], ["H / Y", "Merhem / Asker hapı"], ["G + 1-9,0,-,=", "Mühür ör"],
+		["1-9", "Jutsu slotları"], ["F", "Etkileşim"], ["Caps Lock", "Yürüyüş (aç/kapa)"], ["H / Y", "Merhem / Asker hapı"], ["G + 1-9,0,-,=", "Mühür ör"],
 		["V", "Dōjutsu: gözleri aç / kapat (basılı: Susanoo)"], ["Z / X", "Sağ / sol göz tekniği (gözler açıkken)"], ["B", "Sekiz Kapı"], ["Tab", "Ninja menüsü"],
 		["K", "Jutsular"], ["M", "Harita"], ["Esc", "Menü"]]
 	var grid = GridContainer.new()
@@ -2173,7 +2173,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 		(func(): ninja_menu(main, "jutsu", picked)).call_deferred()
 	# i: hedef slot, jid: bırakılan jutsu, from: kaynak slot (-1 = kitaptan)
 	var assign = func(i: int, jid: String, from: int) -> void:
-		while pr["slots"].size() < 6:
+		while pr["slots"].size() < 9:
 			pr["slots"].append("")
 		if from >= 0 and from != i:
 			var other = pr["slots"][i]
@@ -2188,7 +2188,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 		refresh_j.call()
 	var accepts = func(_at, data) -> bool:
 		return data is Dictionary and data.has("jutsu") and String(data["jutsu"]) in learned
-	for i in 6:
+	for i in 9:
 		var cur = pr["slots"][i] if i < pr["slots"].size() else ""
 		var j: Dictionary = Data.jutsu.get(cur, {}) if cur != null and cur != "" else {}
 		var el = String(j.get("element", ""))

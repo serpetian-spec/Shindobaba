@@ -2,7 +2,7 @@ class_name PlayerCombat
 extends Node
 ## Oyuncunun Storm tarzı dövüşü.
 ## Sol tık: kombo | Sağ tık (basılı): blok | Q: Kawarimi | C (basılı): chakra şarjı | R: kunai
-## E/orta tık: hedefe kilitlen | Kilitliyken Shift: chakra dash | 1-6: jutsu slotları
+## E/orta tık: hedefe kilitlen | Kilitliyken Shift: chakra dash | 1-9: jutsu slotları
 
 const KEYED = preload("res://scripts/combat/keyed_combos.gd")   # elle yapılmış silah komboları (yapay zekâ da kullanır)
 const COMBO := [
@@ -103,7 +103,7 @@ func _unhandled_input(e: InputEvent) -> void:
 		Summon.order_special(p)
 	elif e.is_action_pressed("dash") and lock_target and p.grounded and action == "":
 		chakra_dash()
-	for i in 6:
+	for i in 9:
 		if e.is_action_pressed("slot%d" % (i + 1)):
 			var slots: Array = Game.profile.get("slots", [])
 			if i < slots.size() and slots[i] != null and slots[i] != "":

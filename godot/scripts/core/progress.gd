@@ -141,7 +141,7 @@ func new_profile(opts: Dictionary) -> Dictionary:
 		"slot": opts.get("slot", 1), "name": opts.get("name", "İsimsiz"), "gender": opts.get("gender", "m"),
 		"clan": opts.get("clan", "none"), "soy": opts.get("soy", ""), "elements": [opts.get("element", "katon")], "element_known": false,
 		"look": opts.get("look", {}), "level": 1, "xp": 0, "rank": 0, "ryo": 150, "sp": 0, "skills": [],
-		"learned": [], "slots": ["", "", "", "", "", ""], "inventory": {"kunai": 12, "shuriken": 6, "salve": 2},
+		"learned": [], "slots": ["", "", "", "", "", "", "", "", ""], "inventory": {"kunai": 12, "shuriken": 6, "salve": 2},
 		"throw_sel": "kunai", "summon": "kurbağa", "story": 0, "seed": randi(), "journal": [], "goals": [], "flags": {}, "missions_done": {"D": 0, "C": 0, "B": 0, "A": 0, "S": 0},
 		"active_mission": {}, "visited": ["konoha", "suna", "kiri", "kumo", "iwa"], "stats": {"kills": 0}, "time": 0.32,
 		"village": opts.get("village", "konoha"), "rep": {}, "bingo": {"list": [], "next": 1, "refresh": 900.0},

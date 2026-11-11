@@ -387,8 +387,10 @@ func _bomb() -> void:
 	bomb_cd = 8.0 - level * 0.6
 	var from: Vector3
 	var size: float
+	var epic = level == 6 and is_instance_valid(rig) and beast_id() != "gyuki"
 	if level == 6 and is_instance_valid(rig):
-		rig.play_action("ball", 1.2)
+		if not epic:
+			rig.play_action("ball", 1.2)
 		from = rig.mouth_pos()
 		size = rig.height_m * 0.07
 	else:
@@ -400,6 +402,22 @@ func _bomb() -> void:
 		aim_b = lt.global_position + Vector3.UP * float(lt.height) * 0.5   # kilitliyse hedefe (teknikler gibi)
 	var dir = (aim_b - from).normalized()
 	var dmg = (40.0 + level * 15.0) * Stats.jutsu_mult(Game.profile)
+	if epic:
+		# anime Bijūdama: yere basar, top ağzının önünde başı kadar büyür, yutar, fırlatır — dev patlama
+		var D = rig.height_m * 0.34
+		var T = 2.4 * 0.86
+		rig.play_action("bijudama", 2.4)
+		bomb_cd = 10.0
+		BijudamaFX.charge(rig.mouth, D, T)
+		get_tree().create_timer(T).timeout.connect(func():
+			if not is_instance_valid(rig) or level != 6 or p.is_dead():
+				return
+			var f2 = BijudamaFX.muzzle(rig.mouth, D * 0.4)
+			var a2 = p.aim_point()
+			if lt and is_instance_valid(lt) and not lt.is_dead():
+				a2 = lt.global_position + Vector3.UP * float(lt.height) * 0.5
+			TailedBeasts.fire_ball(p, f2, (a2 - f2).normalized(), D * 0.5, chakra_col(), dmg * 2.2, 85.0))
+		return
 	var delay = 0.9 if level == 6 else 0.4
 	if beast_id() == "gyuki":
 		# Gyūki: Renzoku Bijūdama — art arda dört küçük top
@@ -443,6 +461,10 @@ func _tech(i: int) -> void:
 		Hud.msg("%s için en az: %s" % [tdef["name"], level_name(tech_need(i, beast_tails(beast_id())))], chakra_col())
 		return
 	var key: String = tdef["key"]
+	# kanon (Naruto): Bijūdama Rasengan, Rasenshuriken'in şekil dönüşümünü çözmüş olanın işi
+	if key == "bijudama_rasengan" and not (Game.profile.get("learned", []) as Array).any(func(j): return "rasenshuriken" in String(j) or "rasenrenshuriken" in String(j)):
+		Hud.msg("Bijūdama Rasengan için önce Rasenshuriken'i öğrenmelisin.", chakra_col())
+		return
 	if float(tech_cd.get(key, 0.0)) > 0.0:
 		Hud.msg("%s hazırlanıyor (%.1f)" % [tdef["name"], float(tech_cd[key])], chakra_col())
 		return
@@ -459,13 +481,12 @@ func _tech(i: int) -> void:
 	var v = aim - p.global_position
 	p.facing = atan2(-v.x, -v.z)
 	var giant = level == 6 and is_instance_valid(rig)
+	var an: Array = BijuuArts.anim(key)   # [hareket, süre, etkinin çıktığı an]
 	var s = _scale()
 	var from = rig.mouth_pos() if giant else p.global_position + Vector3.UP * 1.4 + p.face_dir() * 1.0
 	if giant:
 		rig.rotation.y = p.facing
-		rig.play_action({"neko_pounce": "charge", "shell_roll": "charge", "horn_ram": "charge", "kaen_breath": "roar", "sumi": "roar", "biju_hoko": "roar",
-			"renkudan": "ball", "bijudama_rasengan": "ball", "renkudan_rensha": "ball", "bijudama_rendan": "ball", "kazan_u": "roar", "sumi_nami": "roar",
-			"futton_mojo": "roar", "rinpun_kosen": "roar", "ryusa_soso": "roar", "bakeneko_rengeki": "charge", "gokaku_totsugeki": "charge"}.get(key, ["swipe_l", "swipe_r"].pick_random()), 1.0)
+		rig.play_action(String(an[0]), float(an[1]))
 	else:
 		p.model.play("throw", 0.05, 1.6, true)
 	var dmg = (30.0 + level * 8.0) * Stats.jutsu_mult(Game.profile) * (1.3 if giant else 1.0)
@@ -473,6 +494,17 @@ func _tech(i: int) -> void:
 	if giant:
 		ctx["base_h"] = rig.height_m * 0.45
 		ctx["from_fn"] = func() -> Vector3: return rig.mouth_pos() if is_instance_valid(rig) else p.global_position + Vector3.UP * 2.0
+	var wait = float(an[1]) * float(an[2]) if giant else 0.0
+	if wait > 0.02:
+		# dev canavar: teknik, hareketin vuruş anında çıkar (şaha kalkıp yere çakınca, başını öne atınca...)
+		get_tree().create_timer(wait).timeout.connect(func():
+			if not is_instance_valid(rig) or level != 6 or p.is_dead():
+				return
+			ctx["from"] = rig.mouth_pos()
+			BijuuArts.use(p, beast_id(), key, ctx)
+			if Game.world:
+				Game.world.env.add_shake(0.55))
+		return
 	BijuuArts.use(p, beast_id(), key, ctx)
 	if Game.world:
 		Game.world.env.add_shake(0.15 + (0.4 if giant else 0.0))

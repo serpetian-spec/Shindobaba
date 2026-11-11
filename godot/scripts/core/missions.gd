@@ -2888,7 +2888,8 @@ func _bingo_tick(dt: float) -> void:
 		if float(bb["refresh"]) <= 0.0:
 			bb["refresh"] = 900.0
 		if alive.size() < 8:
-			var we = WorldPeople.bingo_from_world() if randf() < 0.8 else {}   # çoğu yeni ad dünyadan gerçek biri (kaçışı yaşanmış)
+			# önce zaten kaçmış gerçek kişiler; liste boşaldı diye köylü ZORLA kaçırılmaz (eskiden her eksikte biri kaçıyordu: kaçış seli)
+			var we = WorldPeople.bingo_from_world("", false)
 			if we.is_empty():
 				lst.append(_bb_new())
 	if Game.player == null or Game.paused:

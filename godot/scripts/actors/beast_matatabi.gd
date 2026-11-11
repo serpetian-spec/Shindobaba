@@ -94,65 +94,90 @@ static func build(r: BeastRig, root: Node3D) -> void:
 	_fringe(mc, cs, 0.35, 0.9, -PI * 0.5, 5, 1.1, 0.32, Vector3(0, -0.5, 0.8), 64)   # göğüs altı
 	r._mesh(r.chest, mc)
 	r._collider(r.chest, Vector3(0, 0.2, -1.6), Vector3(3.8, 4.2, 4.2))
-	# --- baş (anime: geniş, yassı yüzlü kedi başı; kısa küt burun; çatık siyah kaşlar altında öne bakan gözler;
-	#     pembe dudaklı, çepeçevre sivri dişli hırlayan ağız; yana-geriye uzun kulaklar)
+	# --- baş (anime yakın çekim: kama biçimli kurt/kaplan başı — geniş kafatası öne doğru daralıp buruna iner;
+	#     burun köprüsünde V gibi birleşen kalın siyah göz yamaları içinde YUVARLAK düz renk gözler (sağ sarı, sol yeşil);
+	#     alında yukarı çıkan siyah alev darbeleri, yanakta yatay bıyık çizgileri; gri-mor geniş burun;
+	#     ağız kocaman: köşeler yukarı-dışa çekik, aşağı doğru daralır, çepeçevre pembe dudak + sivri dişler; çene altı siyah)
 	var HD = Vector3(0, 6.45, -6.0)
 	r.head = r._pivot(r.chest, HD - CH, "bas")
-	var kp = [Vector3(0, 0.25, 1.1), Vector3(0, 0.4, 0.2), Vector3(0, 0.35, -0.7), Vector3(0, 0.05, -1.3), Vector3(0, -0.05, -1.6)]
-	var kr = [Vector2(1.6, 1.3), Vector2(2.1, 1.5), Vector2(1.95, 1.3), Vector2(1.35, 0.8), Vector2(0.95, 0.5)]
+	# yüz düzlemi öne baksın: baş geometrisi burun aşağı eğik ayrı bir düğümde (r.head dönüşünü rig her kare yazar)
+	var face = r._pivot(r.head, Vector3(0, 0.25, 0), "yuz")
+	face.rotation.x = deg_to_rad(-17)
+	var kp = [Vector3(0, 0.3, 1.1), Vector3(0, 0.5, 0.2), Vector3(0, 0.42, -0.6), Vector3(0, 0.12, -1.3), Vector3(0, -0.08, -1.9), Vector3(0, -0.18, -2.25)]
+	var kr = [Vector2(1.6, 1.3), Vector2(2.0, 1.5), Vector2(1.8, 1.25), Vector2(1.25, 0.82), Vector2(0.98, 0.6), Vector2(0.74, 0.44)]
 	var mh = MB.new()
-	var ks = BeastSurf.tube(mh, kp, kr, C, 28, 6, _body_col, Vector3.UP)
-	ks.swirl_marks(mh, 2, 6, 55, DK, 0.1, 0.3, 0.05, 0.45)
-	ks.flame_marks(mh, 3, 7, 155, DK, 0.07, 0.8, 0.08, 0.6, 0.25, PI - 0.25)   # alında yukarı alev izleri
-	mh.add("sphere", Vector3(0, 0.12, -1.98), Vector3(0.42, 0.26, 0.22), Color(0.2, 0.2, 0.32), Vector3.ZERO, 10)   # burun
+	var ks = BeastSurf.tube(mh, kp, kr, C, 28, 8, func(t: float, _a: float, d: Vector3) -> Color:
+		return C.lerp(HI, 0.4 * (0.5 + 0.5 * sin(t * 21.0 + d.x * 4.0) * sin(d.y * 5.0 + t * 9.0))), Vector3.UP)
+	var top = PI * 0.5
+	# alın: yukarı-geriye çıkan damla biçimli siyah alev darbeleri (ortada uzun, yanlarda kısa)
+	for k in 7:
+		var fa = top + (k - 3.0) * 0.26
+		var fl = 0.3 - absf(k - 3.0) * 0.035
+		var f1 = 0.5 - absf(k - 3.0) * 0.02
+		ks.ribbon(mh, [Vector2(f1, fa), Vector2(f1 - fl * 0.5, fa + 0.04 * (k - 3.0)), Vector2(f1 - fl, fa + 0.1 * (k - 3.0))], func(u: float) -> float: return 0.15 * pow(sin(clampf(u, 0.03, 0.97) * PI), 0.8) * (1.3 - u * 0.6) + 0.01, DK)
+	for k in 4:   # ikinci sıra, daha geride
+		var fa2 = top + (k - 1.5) * 0.42
+		ks.ribbon(mh, [Vector2(0.2, fa2), Vector2(0.12, fa2 + 0.05 * (k - 1.5)), Vector2(0.04, fa2 + 0.1 * (k - 1.5))], func(u: float) -> float: return 0.14 * sin(clampf(u, 0.03, 0.97) * PI) + 0.01, DK)
+	# burun köprüsü kırışıkları
+	for k in 2:
+		ks.ribbon(mh, [Vector2(0.66 + k * 0.05, top - 0.22), Vector2(0.68 + k * 0.05, top), Vector2(0.66 + k * 0.05, top + 0.22)], func(u: float) -> float: return 0.035 * sin(clampf(u, 0.05, 0.95) * PI) + 0.008, DK)
+	# gri-mor geniş burun + dudağa inen çizgi
+	mh.add("sphere", Vector3(0, -0.02, -2.58), Vector3(0.52, 0.28, 0.3), Color(0.42, 0.36, 0.5), Vector3.ZERO, 12)
+	Loft.tube(mh, [Vector3(0, -0.15, -2.72), Vector3(0, -0.4, -2.68), Vector3(0, -0.6, -2.58)], [0.022, 0.022, 0.02], DK, 4, 2)
 	for sx in [-1.0, 1.0]:
-		var top = PI * 0.5
-		# çatık kaş: dıştan yukarıdan burna doğru inen kalın siyah fırça
-		ks.ribbon(mh, [Vector2(0.42, top + 1.2 * sx), Vector2(0.55, top + 0.95 * sx), Vector2(0.68, top + 0.6 * sx), Vector2(0.8, top + 0.3 * sx), Vector2(0.9, top + 0.18 * sx)], func(u: float) -> float: return 0.24 * pow(sin(clampf(u, 0.04, 0.98) * PI), 0.6) + 0.01, DK)
-		# göz altı siyah çizgi
-		ks.ribbon(mh, [Vector2(0.62, top + 1.25 * sx), Vector2(0.74, top + 1.0 * sx), Vector2(0.84, top + 0.7 * sx)], func(u: float) -> float: return 0.1 * sin(clampf(u, 0.05, 0.95) * PI) + 0.01, DK)
-		# geriye-yana uzun sivri kulak, içi siyah
-		var e0 = Vector3(1.3 * sx, 1.3, 0.4)
-		var e1 = Vector3(2.7 * sx, 3.0, 1.3)
-		Loft.tube(mh, [e0, e0.lerp(e1, 0.45) + Vector3(0.1 * sx, 0.2, 0), e1], [Vector2(0.8, 0.3), Vector2(0.55, 0.2), Vector2(0.02, 0.02)], C, 12, 3, true, true, Callable(), Vector3.BACK)
-		var f0 = e0.lerp(e1, 0.15) + Vector3(0, -0.02, -0.26)
-		Loft.tube(mh, [f0, f0.lerp(e1, 0.45) + Vector3(0.08 * sx, 0.12, -0.05), e1.lerp(e0, 0.15) + Vector3(0, 0, -0.1)], [Vector2(0.45, 0.08), Vector2(0.32, 0.07), Vector2(0.02, 0.02)], DK, 10, 3, true, true, Callable(), Vector3.BACK)
-		# yanakta geriye savrulan alev tutamları
-		for k in 5:
-			var cd = ks.at(0.3 + k * 0.03, (PI if sx > 0 else 0.0) + (0.5 - k * 0.3) * sx, -0.08)
-			_tongue(mh, cd[0], Vector3(0.7 * sx, 0.15 - k * 0.14, 1.0), Vector3(sx, 0, 0), 1.7 - k * 0.15, 0.42, HI if k % 2 == 1 else C)
-		# göz: sarı / yeşil, öne bakar, iç köşesi aşağı (çatık)
-		var ea = top + 0.78 * sx
-		var ed = ks.at(0.74, ea, 0.02)
-		var nrm = ((ed[1] as Vector3) + Vector3(0, 0, -1.6)).normalized()
-		var eb = Basis.looking_at(nrm, Vector3.UP) * Basis(Vector3.BACK, deg_to_rad(-24 * sx))
-		var iris = Color(1.0, 0.85, 0.15) if sx < 0 else Color(0.2, 0.9, 0.6)
-		BeastModels._anime_eye(r, r.head, (ed[0] as Vector3) + nrm * 0.04, Vector3(0.36, 0.14, 0.06), iris, iris, DK, eb.get_euler() * 180.0 / PI, "dot")
-		# üst dudak (pembe) + diş sırası; köpek dişi uzun
-		var arc = _arc(Vector3(1.55 * sx, -0.98, -0.1), Vector3(1.35 * sx, -0.85, -1.5), Vector3(0, -0.58, -1.9), 9)
-		Loft.tube(mh, arc, arc.map(func(_q): return 0.1), LIP, 6, 1)
-		for i in range(1, 9):
-			var canine = i == 6
-			BeastRig.claw(mh, arc[i] + Vector3(-0.06 * sx, -0.03, 0.05), Vector3(0, -1, 0.05), 0.7 if canine else 0.3, 0.13 if canine else 0.08, FANG)
-	mh.add("sphere", Vector3(0, -0.72, -0.75), Vector3(2.6, 0.5, 2.2), Color(0.45, 0.12, 0.2), Vector3.ZERO, 12)   # ağız tavanı
-	r._mesh(r.head, mh)
+		# siyah göz yaması: dış üst köşeden gözün üstünden geçip burun köprüsünde ortada birleşir (çatık)
+		ks.ribbon(mh, [Vector2(0.34, top + 1.25 * sx), Vector2(0.46, top + 0.95 * sx), Vector2(0.56, top + 0.6 * sx), Vector2(0.65, top + 0.3 * sx), Vector2(0.71, top + 0.02 * sx)], func(u: float) -> float: return 0.4 * pow(sin(clampf(u * 0.82 + 0.06, 0.0, 1.0) * PI), 0.8) + 0.03, DK)
+		# göz: yuvarlak, düz renk (bebek yok), öne bakar
+		var ed = ks.at(0.55, top + 0.62 * sx, 0.04)
+		var nrm = ((ed[1] as Vector3) + Vector3(0, 0, -1.4)).normalized()
+		var eb = Basis.looking_at(nrm, Vector3.UP)
+		var iris = Color(1.0, 0.86, 0.3) if sx > 0 else Color(0.1, 0.72, 0.6)
+		BeastModels._anime_eye(r, face, (ed[0] as Vector3) + nrm * 0.13, Vector3(0.3, 0.3, 0.07), iris, iris, iris, eb.get_euler() * 180.0 / PI, "none")
+		# yanak bıyık çizgileri: buruna yakın yerden dışa-geriye yatay darbeler
+		for k in 4:
+			var wa = top + (1.28 + k * 0.2) * sx
+			ks.ribbon(mh, [Vector2(0.7 - k * 0.02, wa - 0.1 * sx), Vector2(0.58 - k * 0.02, wa + 0.02 * sx), Vector2(0.44 - k * 0.02, wa + 0.14 * sx)], func(u: float) -> float: return 0.14 * sin(clampf(u, 0.03, 0.97) * PI) * (1.3 - u * 0.6) + 0.008, DK)
+		# uzun sivri kulak: dışa-geriye yatık, içi siyah
+		var e0 = Vector3(1.25 * sx, 1.2, 0.5)
+		var e1 = Vector3(3.1 * sx, 2.7, 2.4)
+		Loft.tube(mh, [e0, e0.lerp(e1, 0.45) + Vector3(0.1 * sx, 0.25, 0), e1], [Vector2(0.78, 0.3), Vector2(0.52, 0.2), Vector2(0.02, 0.02)], C, 12, 4, true, true, Callable(), Vector3.BACK)
+		var f0 = e0.lerp(e1, 0.12) + Vector3(0, -0.02, -0.27)
+		Loft.tube(mh, [f0, f0.lerp(e1, 0.45) + Vector3(0.08 * sx, 0.16, -0.06), e1.lerp(e0, 0.12) + Vector3(0, 0, -0.1)], [Vector2(0.5, 0.08), Vector2(0.34, 0.07), Vector2(0.02, 0.02)], DK, 10, 4, true, true, Callable(), Vector3.BACK)
+		# yanakta dışa-geriye savrulan büyük alev tutamları (yüzü yanlara doğru genişletir)
+		for k in 6:
+			var cd = ks.at(0.3 + k * 0.035, (PI if sx > 0 else 0.0) + (0.6 - k * 0.3) * sx, -0.1)
+			_tongue(mh, cd[0], Vector3(1.0 * sx, 0.2 - k * 0.16, 0.8), Vector3(sx, 0, 0), 2.1 - k * 0.16, 0.5, HI if k % 2 == 1 else C)
+		# üst dudak (pembe): köşe yukarıda-geride, öne doğru aşağı inip burun altında birleşir + diş sırası
+		var arc = _arc(Vector3(1.5 * sx, -0.3, -0.35), Vector3(1.2 * sx, -0.72, -1.7), Vector3(0, -0.62, -2.55), 10)
+		Loft.tube(mh, arc, arc.map(func(_q): return 0.11), LIP, 6, 1)
+		for i in range(1, 10):
+			var canine = i == 8
+			BeastRig.claw(mh, arc[i] + Vector3(-0.06 * sx, -0.04, 0.05), Vector3(0, -1, 0.05), 0.8 if canine else 0.34 + 0.08 * (i % 2), 0.14 if canine else 0.085, FANG)
+	# tepe alevleri: kafanın üstünden geriye-yukarı yalayan diller (alev silueti)
+	for k in 5:
+		var td = ks.at(0.08 + k * 0.08, top + (k % 2 - 0.5) * 0.5, -0.1)
+		_tongue(mh, td[0], Vector3((k % 2 - 0.5) * 0.4, 0.08, 1.0), Vector3(0, 1, 0), 1.1 - k * 0.1, 0.4, HI if k % 2 == 0 else C)
+	mh.add("sphere", Vector3(0, -0.55, -1.1), Vector3(2.3, 0.5, 2.6), Color(0.62, 0.2, 0.3), Vector3.ZERO, 12)   # ağız tavanı
+	mh.add("sphere", Vector3(0, -0.9, -0.1), Vector3(2.5, 1.7, 1.2), Color(0.4, 0.1, 0.18), Vector3.ZERO, 12)   # gırtlak (ağzın dibi koyu)
+	r._mesh(face, mh)
 	r.head.scale = Vector3.ONE * 0.78
-	r._collider(r.head, Vector3(0, 0, -0.4), Vector3(4.2, 3.2, 3.6))
-	# alt çene: arkadan menteşeli (yerel +Z = ileri; pozitif rotation.x indirir); hırlar gibi yarı açık modellenir
-	r.jaw = r._pivot(r.head, Vector3(0, -0.95, 0.2), "cene")
+	r._collider(r.head, Vector3(0, 0, -0.6), Vector3(4.2, 3.2, 4.0))
+	# alt çene: arkadan menteşeli (yerel +Z = ileri; pozitif rotation.x indirir); kükrer gibi AÇIK modellenir, altı siyah
+	r.jaw = r._pivot(face, Vector3(0, -0.45, -0.1), "cene")
 	r.jaw.rotation.y = PI
 	var mj = MB.new()
-	Loft.tube(mj, [Vector3(0, -0.25, 0.0), Vector3(0, -0.42, 0.9), Vector3(0, -0.5, 1.6)], [Vector2(1.5, 0.36), Vector2(1.2, 0.34), Vector2(0.7, 0.26)], DK, 16, 4)
-	mj.add("sphere", Vector3(0, -0.22, 0.85), Vector3(1.4, 0.26, 1.6), Color(0.9, 0.5, 0.55), Vector3.ZERO, 10)   # dil
+	Loft.tube(mj, [Vector3(0, -0.2, 0.0), Vector3(0, -0.65, 1.0), Vector3(0, -1.0, 1.85), Vector3(0, -1.12, 2.25)], [Vector2(1.5, 0.4), Vector2(1.2, 0.38), Vector2(0.82, 0.32), Vector2(0.5, 0.24)], DK, 16, 4)
+	mj.add("sphere", Vector3(0, -0.56, 1.05), Vector3(1.9, 0.3, 2.3), Color(0.86, 0.42, 0.5), Vector3(22, 0, 0), 12)   # dil / ağız tabanı
 	for sx in [-1.0, 1.0]:
-		var arc2 = _arc(Vector3(1.45 * sx, -0.02, 0.2), Vector3(1.25 * sx, -0.18, 1.35), Vector3(0, -0.3, 1.75), 8)
-		Loft.tube(mj, arc2, arc2.map(func(_q): return 0.1), LIP, 6, 1)
-		for i in range(1, 8):
-			var canine = i == 6
-			BeastRig.claw(mj, arc2[i] + Vector3(-0.06 * sx, 0.02, -0.05), Vector3(0, 1, -0.05), 0.55 if canine else 0.26, 0.11 if canine else 0.07, FANG)
-		_tongue(mj, Vector3(0.9 * sx, -0.6, 0.7), Vector3(0.4 * sx, -0.7, -0.5), Vector3(sx, 0, 0), 1.1, 0.3, C)   # çene altı alev tutamı
+		var arc2 = _arc(Vector3(1.48 * sx, 0.12, 0.25), Vector3(1.15 * sx, -0.55, 1.5), Vector3(0, -0.86, 2.3), 9)
+		Loft.tube(mj, arc2, arc2.map(func(_q): return 0.11), LIP, 6, 1)
+		for i in range(1, 9):
+			var canine = i == 7
+			BeastRig.claw(mj, arc2[i] + Vector3(-0.06 * sx, 0.03, -0.05), Vector3(0, 1, -0.25), 0.65 if canine else 0.3 + 0.07 * (i % 2), 0.12 if canine else 0.08, FANG)
+		for k in 2:   # çene altı alev tutamları
+			_tongue(mj, Vector3((0.9 - k * 0.5) * sx, -0.9 - k * 0.35, 0.8 + k * 0.6), Vector3(0.4 * sx, -0.8, -0.5), Vector3(sx, 0, 0), 1.2, 0.34, C)
 	r._mesh(r.jaw, mj)
-	r.mouth = r._pivot(r.head, Vector3(0, -0.9, -2.3), "agiz")
+	r.mouth = r._pivot(face, Vector3(0, -1.1, -2.6), "agiz")
 	# --- bacaklar
 	for sx in [-1.0, 1.0]:
 		# ön: omuz kalın, dirsek hafif geride, uzun düz önkol, büyük pençe

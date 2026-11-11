@@ -302,6 +302,109 @@ func show_weak(on: bool) -> void:
 
 
 # ------------------------------------------------------------------ animasyon
+## Teknik hareketleri (bijudama, breath, rear, cast, guard, tails): eklenecek poz farkları. k = hareketin 0..1 ilerleyişi.
+##  bijudama: yere basar, baş yukarı, ağız açık, kuyruklar başın üstüne kalkar, titrer -> yutar (baş aşağı) -> öne fırlatır, geri teper
+##  breath:   öne eğilir, ağız açık, başı sağa-sola süpürür (nefes / akış teknikleri)
+##  rear:     arka ayakları üstünde şaha kalkar, ön ayaklarını yere çakar (zemin teknikleri)
+##  cast:     geri gerilir, başıyla / koluyla öne fırlatır (mermi teknikleri)
+##  guard:    çöker, kollarını önünde kavuşturur, başını eğer, kuyrukları toplar (kalkan teknikleri)
+##  tails:    kuyrukları geriye gerer, başının üstünden öne kamçılar (kuyruk / kol teknikleri)
+func _ap(k: float) -> Dictionary:
+	var o = {"y": 0.0, "pitch": 0.0, "hx": 0.0, "hy": 0.0, "jaw": -1.0, "arm": false, "arm_rx": 0.0, "arm_rz": 0.0, "arm_side": 0.0,
+		"front_rx": 0.0, "hind_kn": 0.0, "spread": 0.0, "tail_pitch": 0.0, "tail_curl": 0.0, "tail_gather": 0.0, "head": false}
+	match action:
+		"bijudama":
+			var w = smoothstep(0.0, 0.14, k)
+			var c = smoothstep(0.74, 0.83, k)      # yutma
+			var f = smoothstep(0.85, 0.9, k)       # ateş
+			var out = smoothstep(0.93, 1.0, k)
+			var tr = sin(t * 38.0) * 0.012 * w * (1.0 - c)
+			o["y"] = -0.45 * w * (1.0 - out) + tr * 4.0
+			o["pitch"] = -0.16 * w * (1.0 - c) + 0.32 * c * (1.0 - f) - 0.3 * f * (1.0 - out)
+			o["head"] = true
+			o["hx"] = -0.5 * w * (1.0 - c) + 0.4 * c * (1.0 - f) - 0.12 * f * (1.0 - out) + tr
+			o["jaw"] = 0.8 * w * (1.0 - c) + 0.04 * c * (1.0 - f) + 0.9 * f * (1.0 - out)
+			o["arm"] = true
+			o["arm_rx"] = -0.25 * w * (1.0 - f) + 0.5 * f * (1.0 - out)
+			o["arm_rz"] = 0.75 * w * (1.0 - out)
+			o["spread"] = 0.22 * w * (1.0 - out)
+			o["hind_kn"] = 0.35 * w * (1.0 - out)
+			o["tail_pitch"] = -0.75 * w * (1.0 - f) + 0.35 * f * (1.0 - out)
+			o["tail_curl"] = -0.1 * w * (1.0 - f)
+			o["tail_gather"] = 0.45 * w * (1.0 - f)
+		"breath":
+			var ln = sin(minf(1.0, k / 0.18) * PI * 0.5) * (1.0 - smoothstep(0.85, 1.0, k))
+			o["y"] = -0.25 * ln
+			o["pitch"] = 0.16 * ln
+			o["head"] = true
+			o["hx"] = 0.06 * ln - 0.3 * (1.0 - smoothstep(0.0, 0.18, k)) * sin(minf(1.0, k / 0.18) * PI)
+			o["hy"] = sin(k * TAU) * 0.42 * ln
+			o["jaw"] = 0.7 * ln
+			o["arm"] = true
+			o["arm_rx"] = -0.3 * ln
+			o["arm_rz"] = 0.45 * ln
+			o["spread"] = 0.12 * ln
+			o["tail_pitch"] = -0.25 * ln
+		"rear":
+			var up = sin(clampf(k / 0.5, 0.0, 1.0) * PI * 0.5)
+			var dn = smoothstep(0.5, 0.62, k)
+			var rc = 1.0 - smoothstep(0.78, 1.0, k)
+			o["y"] = 0.9 * up * (1.0 - dn) - 0.35 * dn * rc
+			o["pitch"] = -0.5 * up * (1.0 - dn) + 0.3 * dn * rc
+			o["head"] = true
+			o["hx"] = -0.3 * up * (1.0 - dn) + 0.25 * dn * rc
+			o["jaw"] = 0.55 * up * rc
+			o["arm"] = true
+			o["arm_rx"] = 2.4 * up * (1.0 - dn) + 0.45 * dn * rc
+			o["arm_rz"] = 0.25 * up * (1.0 - dn)
+			o["front_rx"] = -1.0 * up * (1.0 - dn) + 0.2 * dn * rc
+			o["hind_kn"] = 0.3 * up * (1.0 - dn)
+			o["tail_pitch"] = 0.3 * up * (1.0 - dn) - 0.3 * dn * rc
+		"cast":
+			var back = sin(clampf(k / 0.3, 0.0, 1.0) * PI * 0.5)
+			var th = smoothstep(0.3, 0.42, k)
+			var rc2 = 1.0 - smoothstep(0.7, 1.0, k)
+			o["y"] = -0.15 * back * rc2
+			o["pitch"] = -0.14 * back * (1.0 - th) + 0.24 * th * rc2
+			o["head"] = true
+			o["hx"] = -0.3 * back * (1.0 - th) + 0.22 * th * rc2
+			o["jaw"] = 0.25 * back * (1.0 - th) + 0.75 * th * rc2
+			o["arm"] = true
+			o["arm_side"] = 1.0
+			o["arm_rx"] = -0.5 * back * (1.0 - th) + 1.9 * th * rc2
+			o["arm_rz"] = 0.2 * back * rc2
+			o["front_rx"] = 0.0
+			o["tail_pitch"] = -0.2 * th * rc2
+		"guard":
+			var g = sin(minf(1.0, k / 0.2) * PI * 0.5) * (1.0 - smoothstep(0.85, 1.0, k))
+			o["y"] = -0.6 * g
+			o["pitch"] = 0.18 * g
+			o["head"] = true
+			o["hx"] = 0.32 * g
+			o["jaw"] = 0.03
+			o["arm"] = true
+			o["arm_rx"] = 1.05 * g
+			o["arm_rz"] = -0.5 * g
+			o["hind_kn"] = 0.4 * g
+			o["tail_pitch"] = 0.25 * g
+			o["tail_gather"] = 0.7 * g
+			o["tail_curl"] = 0.05 * g
+		"tails":
+			var wb = sin(clampf(k / 0.38, 0.0, 1.0) * PI * 0.5)
+			var wh = smoothstep(0.38, 0.52, k)
+			var rc3 = 1.0 - smoothstep(0.75, 1.0, k)
+			o["y"] = -0.3 * wh * rc3
+			o["pitch"] = -0.1 * wb * (1.0 - wh) + 0.26 * wh * rc3
+			o["head"] = true
+			o["hx"] = -0.15 * wb * (1.0 - wh) + 0.2 * wh * rc3
+			o["jaw"] = 0.5 * wh * rc3
+			o["spread"] = 0.15 * wh * rc3
+			o["tail_pitch"] = 0.35 * wb * (1.0 - wh) - 1.15 * wh * rc3
+			o["tail_curl"] = -0.2 * wh * rc3
+			o["tail_gather"] = 0.5 * wh * rc3
+	return o
+
+
 func _process(dt: float) -> void:
 	t += dt
 	if action != "":
@@ -310,6 +413,7 @@ func _process(dt: float) -> void:
 			action = ""
 	var k = action_k()
 	var s = sin(k * PI)               # 0 → 1 → 0
+	var ap = _ap(k)
 	var walk: float = move_speed
 	run = move_toward(run, run_target, dt * 2.5)
 	stance = move_toward(stance, 1.0 if aggro else 0.0, dt * 1.5)
@@ -413,6 +517,8 @@ func _process(dt: float) -> void:
 		elif action in ["swipe_l", "swipe_r"]:
 			roll += (0.12 if action == "swipe_l" else -0.12) * s
 			pitch += (-0.12 * sin(minf(1.0, k / 0.4) * PI)) if k < 0.4 else 0.3 * sin(clampf((k - 0.4) / 0.6, 0.0, 1.0) * PI)   # geri gerin, sonra yumrukla birlikte öne çök
+		y += float(ap["y"])
+		pitch += float(ap["pitch"])
 		if action == "tail":
 			hips.rotation.y = sin(k * TAU) * 1.2
 		if action != "tail":
@@ -469,8 +575,11 @@ func _process(dt: float) -> void:
 			hx = (-0.35 * sin(k / 0.35 * PI * 0.5)) if k < 0.35 else 0.4 * s
 		elif action == "leap":
 			hx = -0.2 * air
+		if ap["head"]:
+			hx = float(ap["hx"])
+			hy = float(ap["hy"])
 		head.rotation.x = lerp_angle(head.rotation.x, -hx, minf(1.0, dt * 6.0))   # hx < 0 = baş yukarı
-		head.rotation.y = lerp_angle(head.rotation.y, hy, minf(1.0, dt * 3.0))
+		head.rotation.y = lerp_angle(head.rotation.y, hy, minf(1.0, dt * (9.0 if ap["head"] else 3.0)))
 		if action == "bite" and head.has_meta("rest_z") == false:
 			head.set_meta("rest_z", head.position.z)
 		if head.has_meta("rest_z"):
@@ -491,6 +600,8 @@ func _process(dt: float) -> void:
 			open = 0.25 * s
 		elif action == "bite":
 			open = 0.7 if k < 0.45 else 0.05
+		if float(ap["jaw"]) >= 0.0:
+			open = float(ap["jaw"])
 		jaw.rotation.x = lerp_angle(jaw.rotation.x, open, minf(1.0, dt * 12.0))
 	# --- kollar (dört ayaklılarda ön bacak): yürüyüş/dörtnal + pençe + yere çakma
 	for a in arms:
@@ -542,6 +653,9 @@ func _process(dt: float) -> void:
 			rx = 0.4
 		elif action == "leap" or air_s > 0.3:
 			rx = lerpf(rx, 0.9 if (k < 0.84 or action == "") else 0.3, maxf(air, 0.6 if (k >= 0.84 and action == "leap") else 0.0))   # havada öne uzanır, inişte yere çakar
+		if ap["arm"] and (float(ap["arm_side"]) == 0.0 or float(ap["arm_side"]) == side):
+			rx = float(ap["arm_rx"])
+			rz = float(ap["arm_rz"]) * side
 		sh.rotation.x = lerp_angle(sh.rotation.x, rx, minf(1.0, dt * (22.0 if action in ["swipe_l", "swipe_r", "slam"] else 10.0)))
 		sh.rotation.z = lerp_angle(sh.rotation.z, rz, minf(1.0, dt * 10.0))
 		if a.has("el"):
@@ -575,19 +689,25 @@ func _process(dt: float) -> void:
 		if not l.has("rz0"):
 			l["rz0"] = hp.rotation.z
 		var par_roll = hips.rotation.z + (chest.rotation.z if (front and chest and quadruped) else 0.0) if hips else 0.0
-		hp.rotation.z = lerp_angle(hp.rotation.z, float(l["rz0"]) - par_roll * idle, minf(1.0, dt * 8.0))
+		hp.rotation.z = lerp_angle(hp.rotation.z, float(l["rz0"]) - par_roll * idle + float(ap["spread"]) * float(l["side"]), minf(1.0, dt * 8.0))
 		if action == "stomp" and l["side"] > 0 and not front:
 			rx2 = -1.0 * sin(minf(1.0, k * 1.7) * PI)
 		elif action == "kneel":
 			rx2 = 0.5
 		elif action == "leap" or airborne:
 			rx2 = lerpf(rx2, (0.6 if not front else -0.7), air)   # havada arka bacak geriye, ön bacak öne
+		if front:
+			rx2 += float(ap["front_rx"])
+			if quadruped and action == "cast" and float(l["side"]) > 0.0:
+				rx2 -= 0.7 * sin(clampf(k / 0.42, 0.0, 1.0) * PI) - 0.25 * smoothstep(0.42, 0.55, k) * (1.0 - smoothstep(0.7, 1.0, k))
 		hp.rotation.x = lerp_angle(hp.rotation.x, rx2, minf(1.0, dt * 10.0))
 		if l.has("kn"):
 			var kn: Node3D = l["kn"]
 			var kx = maxf(0.0, -sin(wt + phase)) * (0.6 + 0.5 * run) * walk + (0.9 if action == "kneel" else 0.0) + stance * 0.3 + air * 0.6 + fkn
 			if action == "leap" and k < 0.22:
 				kx += 0.7 * (k / 0.22)
+			if not front:
+				kx += float(ap["hind_kn"])
 			if l.has("slide"):
 				kx *= 0.25
 			kn.rotation.x = lerp_angle(kn.rotation.x, kx, minf(1.0, dt * 10.0))
@@ -602,11 +722,13 @@ func _process(dt: float) -> void:
 		var spd = 1.0 + stance * 0.8 + run * 0.6
 		var root: Node3D = cfg["root"]
 		root.rotation.y = cfg["yaw"] + sin(t * 0.7 * spd + cfg["phase"]) * (0.12 + stance * 0.08) + sweep + idle * sin(t * 0.33 + cfg["phase"] * 0.7) * 0.1 - sin(wt) * 0.1 * walk
-		root.rotation.x = cfg["pitch"] + sin(t * 0.9 * spd + cfg["phase"]) * 0.06 - (0.4 if action == "roar" else 0.0) * s - stance * 0.15 + run * 0.25 + air * 0.3
+		root.rotation.y = lerpf(root.rotation.y, 0.0, float(ap["tail_gather"]))
+		root.rotation.x = cfg["pitch"] + sin(t * 0.9 * spd + cfg["phase"]) * 0.06 - (0.4 if action == "roar" else 0.0) * s - stance * 0.15 + run * 0.25 + air * 0.3 + float(ap["tail_pitch"])
 		for j in range(1, segs.size()):
 			var sg: Node3D = segs[j]
 			sg.rotation.y = sin(t * 1.4 * spd - j * 0.55 + cfg["phase"]) * amp + sweep * 0.25
 			sg.rotation.x = sin(t * 1.1 * spd - j * 0.45 + cfg["phase"] * 1.3) * amp * 0.7 + tail_curl + sin(wt * 2.0 - j * 0.6) * 0.05 * walk * (1.0 + run)
+			sg.rotation.x += float(ap["tail_curl"])
 			if cfg.has("s_amp"):   # akan kuyruk: dipte yukarı kalkar, uca doğru aşağı döner (S kavisi) + yana açılma
 				sg.rotation.x -= float(cfg["s_amp"]) * cos(PI * float(j) / maxf(1.0, segs.size() - 1.0))
 				sg.rotation.y += float(cfg.get("s_yaw", 0.0)) * sin(PI * float(j) / maxf(1.0, segs.size() - 1.0))

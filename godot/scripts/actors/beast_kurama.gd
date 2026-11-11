@@ -54,22 +54,22 @@ static func _hand(mb: MB, at: Vector3, s: float, n: int, spread: float, flen: fl
 static func build(r: BeastRig, root: Node3D) -> void:
 	r.quadruped = true
 	r.upright = false
-	var HP = Vector3(0, 5.0, 2.6)
+	var HP = Vector3(0, 6.1, 4.8)
 	r.hips = r._pivot(root, HP, "kalca_kok")
 	# --- arka gövde: sağrı -> ince bel
 	var mh0 = MB.new()
-	var hs0 = BeastSurf.tube(mh0, [Vector3(0, 4.8, 4.3) - HP, Vector3(0, 5.2, 3.0) - HP, Vector3(0, 5.0, 1.0) - HP, Vector3(0, 5.1, -0.6) - HP],
-		[Vector2(1.5, 1.5), Vector2(2.2, 2.1), Vector2(1.8, 1.7), Vector2(2.2, 2.1)], C, 34, 8, _col, Vector3.UP)
+	var hs0 = BeastSurf.tube(mh0, [Vector3(0, 5.8, 6.9) - HP, Vector3(0, 6.3, 5.4) - HP, Vector3(0, 6.05, 2.4) - HP, Vector3(0, 6.3, -0.6) - HP],
+		[Vector2(1.4, 1.4), Vector2(2.0, 1.95), Vector2(1.5, 1.5), Vector2(2.1, 2.0)], C, 34, 8, _col, Vector3.UP)
 	for i in 5:   # sırt çizgisi kürkü
 		var d = hs0.at(0.1 + i * 0.19, PI * 0.5, -0.08)
 		_tuft(mh0, d[0], Vector3(0, 0.7, 1.0), 1.0, 0.4, CD if i % 2 == 0 else C)
 	r._mesh(r.hips, mh0)
-	r._collider(r.hips, Vector3(0, 0, -0.6), Vector3(4.0, 3.8, 5.6))
+	r._collider(r.hips, Vector3(0, 0, -1.8), Vector3(4.0, 3.8, 7.8))
 	# --- ön gövde: geniş omuzlu derin göğüs + kalın boyun
-	var CH = Vector3(0, 5.4, -1.0)
+	var CH = Vector3(0, 6.6, -1.0)
 	r.chest = r._pivot(r.hips, CH - HP, "gogus")
 	var mc = MB.new()
-	var cs = BeastSurf.tube(mc, [Vector3(0, 5.1, -0.3) - CH, Vector3(0, 5.4, -1.8) - CH, Vector3(0, 5.9, -3.2) - CH, Vector3(0, 6.3, -4.3) - CH, Vector3(0, 6.5, -5.0) - CH],
+	var cs = BeastSurf.tube(mc, [Vector3(0, 6.3, -0.3) - CH, Vector3(0, 6.6, -1.8) - CH, Vector3(0, 7.2, -3.3) - CH, Vector3(0, 7.8, -4.6) - CH, Vector3(0, 8.1, -5.4) - CH],
 		[Vector2(2.1, 2.0), Vector2(2.6, 2.35), Vector2(2.4, 2.1), Vector2(1.7, 1.6), Vector2(1.45, 1.35)], C, 34, 8, _col, Vector3.UP)
 	for i in 7:   # ense yelesi
 		var d = cs.at(0.2 + i * 0.11, PI * 0.5, -0.08)
@@ -79,13 +79,15 @@ static func build(r: BeastRig, root: Node3D) -> void:
 	r._mesh(r.chest, mc)
 	r._collider(r.chest, Vector3(0, 0.3, -1.8), Vector3(5.6, 4.8, 4.6))
 	# --- baş
-	var HD = Vector3(0, 6.5, -5.6)
+	var HD = Vector3(0, 8.1, -6.0)
 	r.head = r._pivot(r.chest, HD - CH, "bas")
-	var kp = [Vector3(0, 0.3, 1.1), Vector3(0, 0.5, 0.2), Vector3(0, 0.35, -0.6), Vector3(0, -0.05, -1.3), Vector3(0, -0.3, -1.9), Vector3(0, -0.4, -2.3)]
-	var kr = [Vector2(1.5, 1.2), Vector2(2.05, 1.4), Vector2(1.75, 1.15), Vector2(1.0, 0.7), Vector2(0.68, 0.48), Vector2(0.45, 0.32)]
+	var face = r._pivot(r.head, Vector3(0, 0.2, 0), "yuz")   # yüz düzlemi öne baksın (r.head dönüşünü rig yazar)
+	face.rotation.x = deg_to_rad(-15)
+	var kp = [Vector3(0, 0.3, 1.1), Vector3(0, 0.55, 0.2), Vector3(0, 0.4, -0.6), Vector3(0, 0.0, -1.2), Vector3(0, -0.25, -1.7), Vector3(0, -0.35, -2.0)]
+	var kr = [Vector2(1.5, 1.25), Vector2(2.1, 1.5), Vector2(1.8, 1.2), Vector2(1.08, 0.72), Vector2(0.74, 0.5), Vector2(0.5, 0.34)]
 	var mh = MB.new()
 	var ks = BeastSurf.tube(mh, kp, kr, C, 28, 8, _col, Vector3.UP)
-	mh.add("sphere", Vector3(0, -0.3, -2.58), Vector3(0.36, 0.26, 0.26), BLK, Vector3.ZERO, 10)   # burun
+	mh.add("sphere", Vector3(0, -0.28, -2.28), Vector3(0.36, 0.26, 0.26), BLK, Vector3.ZERO, 10)   # burun
 	for k in 3:   # burun sırtı kırışıkları (hırlama)
 		Loft.tube(mh, [Vector3(-0.45, 0.2 - k * 0.07, -1.45 - k * 0.24), Vector3(0, 0.36 - k * 0.08, -1.55 - k * 0.24), Vector3(0.45, 0.2 - k * 0.07, -1.45 - k * 0.24)], [0.02, 0.04, 0.02], CD, 4, 3)
 	for sx in [-1.0, 1.0]:
@@ -96,46 +98,47 @@ static func build(r: BeastRig, root: Node3D) -> void:
 		var ed = ks.at(0.45, top + 0.9 * sx, 0.04)
 		var nrm = ((ed[1] as Vector3) + Vector3(0, 0, -1.2)).normalized()
 		var eb = Basis.looking_at(nrm, Vector3.UP) * Basis(Vector3.BACK, deg_to_rad(-22 * sx))
-		BeastModels._anime_eye(r, r.head, (ed[0] as Vector3) + nrm * 0.05, Vector3(0.6, 0.2, 0.08), Color(0.8, 0.07, 0.07), Color(1.0, 0.22, 0.15), BLK, eb.get_euler() * 180.0 / PI, "slit")
+		BeastModels._anime_eye(r, face, (ed[0] as Vector3) + nrm * 0.05, Vector3(0.68, 0.24, 0.08), Color(0.8, 0.07, 0.07), Color(1.0, 0.22, 0.15), BLK, eb.get_euler() * 180.0 / PI, "slit")
 		# çok uzun kulak: dik, geriye yatık; içi siyah
 		var e0 = Vector3(1.05 * sx, 1.1, 0.5)
-		var e1 = Vector3(2.7 * sx, 5.6, 2.2)
+		var e1 = Vector3(2.9 * sx, 6.4, 2.2)
 		Loft.tube(mh, [e0, e0.lerp(e1, 0.45) + Vector3(0.25 * sx, 0.2, -0.1), e1], [Vector2(0.6, 0.26), Vector2(0.5, 0.2), Vector2(0.03, 0.03)], C, 12, 4, true, true, Callable(), Vector3.BACK)
 		var f0 = e0.lerp(e1, 0.08) + Vector3(0, 0, -0.27)
-		Loft.tube(mh, [f0, f0.lerp(e1, 0.45) + Vector3(0.22 * sx, 0.15, -0.12), e1.lerp(e0, 0.12) + Vector3(0, 0, -0.1)], [Vector2(0.42, 0.08), Vector2(0.34, 0.07), Vector2(0.03, 0.03)], BLK, 10, 4, true, true, Callable(), Vector3.BACK)
+		Loft.tube(mh, [f0, f0.lerp(e1, 0.45) + Vector3(0.22 * sx, 0.15, -0.12), e1.lerp(e0, 0.12) + Vector3(0, 0, -0.1)], [Vector2(0.5, 0.08), Vector2(0.42, 0.07), Vector2(0.03, 0.03)], BLK, 10, 4, true, true, Callable(), Vector3.BACK)
 		# yanak kürkü: geriye-dışa sivri tutamlar
 		for k in 5:
 			var cd = ks.at(0.26 + k * 0.03, (PI if sx > 0 else 0.0) + (0.35 - k * 0.3) * sx, -0.08)
 			_tuft(mh, cd[0], Vector3(0.75 * sx, 0.1 - k * 0.16, 1.0), 1.9 - k * 0.18, 0.5, C if k % 2 == 0 else CD)
 		# üst dudak (koyu) + diş sırası
-		var arc = _arc(Vector3(1.5 * sx, -0.75, -0.2), Vector3(1.0 * sx, -0.72, -1.5), Vector3(0, -0.66, -2.4), 11)
+		var arc = _arc(Vector3(1.6 * sx, -0.55, 0.0), Vector3(1.1 * sx, -0.75, -1.4), Vector3(0, -0.66, -2.12), 11)
 		Loft.tube(mh, arc, arc.map(func(_q): return 0.09), LIP, 6, 1)
 		for i in range(1, 11):
 			var canine = i == 8
 			BeastRig.claw(mh, arc[i] + Vector3(-0.05 * sx, -0.02, 0.04), Vector3(0, -1, 0.05), 0.75 if canine else 0.3, 0.13 if canine else 0.075, FANG)
 	mh.add("sphere", Vector3(0, -0.62, -1.1), Vector3(2.2, 0.4, 2.4), Color(0.5, 0.1, 0.12), Vector3.ZERO, 12)   # ağız tavanı
-	r._mesh(r.head, mh)
+	r._mesh(face, mh)
+	r.head.scale = Vector3.ONE * 1.2
 	r._collider(r.head, Vector3(0, 0.2, -0.8), Vector3(3.6, 3.0, 4.6))
-	r.jaw = r._pivot(r.head, Vector3(0, -0.8, 0.0), "cene")
+	r.jaw = r._pivot(face, Vector3(0, -0.8, 0.0), "cene")
 	r.jaw.rotation.y = PI
 	var mj = MB.new()
-	Loft.tube(mj, [Vector3(0, -0.2, 0.0), Vector3(0, -0.4, 1.0), Vector3(0, -0.45, 1.75), Vector3(0, -0.4, 2.2)], [Vector2(1.4, 0.36), Vector2(0.95, 0.34), Vector2(0.6, 0.26), Vector2(0.36, 0.18)], C, 16, 4, true, true, _col)
+	Loft.tube(mj, [Vector3(0, -0.2, 0.0), Vector3(0, -0.4, 0.9), Vector3(0, -0.45, 1.55), Vector3(0, -0.4, 1.95)], [Vector2(1.5, 0.36), Vector2(0.95, 0.34), Vector2(0.6, 0.26), Vector2(0.36, 0.18)], C, 16, 4, true, true, _col)
 	mj.add("sphere", Vector3(0, -0.2, 1.0), Vector3(1.1, 0.24, 1.8), Color(0.85, 0.4, 0.42), Vector3.ZERO, 10)   # dil
 	for sx in [-1.0, 1.0]:
-		var arc2 = _arc(Vector3(1.35 * sx, 0.0, 0.3), Vector3(0.9 * sx, -0.12, 1.4), Vector3(0, -0.2, 2.15), 10)
+		var arc2 = _arc(Vector3(1.45 * sx, 0.1, 0.1), Vector3(0.95 * sx, -0.12, 1.3), Vector3(0, -0.2, 1.9), 10)
 		Loft.tube(mj, arc2, arc2.map(func(_q): return 0.09), LIP, 6, 1)
 		for i in range(1, 10):
 			var canine = i == 7
 			BeastRig.claw(mj, arc2[i] + Vector3(-0.05 * sx, 0.02, -0.04), Vector3(0, 1, -0.05), 0.6 if canine else 0.26, 0.11 if canine else 0.07, FANG)
 		_tuft(mj, Vector3(0.7 * sx, -0.5, 0.6), Vector3(0.4 * sx, -0.6, -0.6), 1.0, 0.34, CD)
 	r._mesh(r.jaw, mj)
-	r.mouth = r._pivot(r.head, Vector3(0, -0.8, -2.8), "agiz")
+	r.mouth = r._pivot(face, Vector3(0, -0.8, -2.5), "agiz")
 	# --- uzuvlar
 	for sx in [-1.0, 1.0]:
 		# ön: insan gibi kaslı kol, el yerde
-		var S = Vector3(2.7 * sx, 5.9, -2.6)
-		var E = Vector3(4.4 * sx, 3.7, -1.9)
-		var W = Vector3(4.0 * sx, 1.0, -3.7)
+		var S = Vector3(2.7 * sx, 7.1, -2.6)
+		var E = Vector3(4.5 * sx, 4.3, -1.8)
+		var W = Vector3(4.1 * sx, 1.0, -3.9)
 		var sh = r._pivot(r.chest, S - CH, "kalca")
 		var m1 = MB.new()
 		m1.add("sphere", Vector3(-0.3 * sx, 0.3, 0.1), Vector3(2.3, 2.2, 2.3), C, Vector3.ZERO, 14)   # omuz kütlesi
@@ -151,10 +154,10 @@ static func build(r: BeastRig, root: Node3D) -> void:
 		r._mesh(el, m2)
 		r.legs.append({"hip": sh, "kn": el, "side": sx, "front": true})
 		# arka: büyük but, diz önde, topuk geride yukarıda, uzun ayak
-		var H = Vector3(1.9 * sx, 5.0, 3.0)
-		var K = Vector3(2.7 * sx, 3.2, 1.6)
-		var HK = Vector3(2.5 * sx, 2.1, 3.7)
-		var A = Vector3(2.5 * sx, 0.9, 2.9)
+		var H = Vector3(1.9 * sx, 6.1, 5.4)
+		var K = Vector3(2.8 * sx, 3.7, 3.5)
+		var HK = Vector3(2.6 * sx, 2.4, 6.2)
+		var A = Vector3(2.6 * sx, 0.9, 5.2)
 		var hi_ = r._pivot(r.hips, H - HP, "kalca")
 		var m3 = MB.new()
 		BeastSurf.tube(m3, [Vector3(-0.3 * sx, 0.5, 0.3), (K - H) * 0.5 + Vector3(0, 0, 0.2), K - H], [1.6, 1.35, 0.85], C, 20, 6, _col)
@@ -167,7 +170,7 @@ static func build(r: BeastRig, root: Node3D) -> void:
 		_hand(m4, A - K + Vector3(0, -0.45, -0.4), 1.15, 4, 0.6, 1.3)
 		r._mesh(kn, m4)
 		r.legs.append({"hip": hi_, "kn": kn, "side": sx, "front": false})
-	_tails(r, Vector3(0, 5.2, 4.4) - HP)
+	_tails(r, Vector3(0, 6.3, 7.0) - HP)
 	r._weak(r.head, Vector3(0, 1.4, -0.3))
 	r._weak(r.chest, Vector3(0, 1.8, 0.4))
 	r._weak(r.hips, Vector3(0, 1.4, 1.4))
@@ -182,8 +185,8 @@ static func _tails(r: BeastRig, base_pos: Vector3) -> void:
 	r.tail_curl = 0.0
 	for ti in 9:
 		var yaw = lerpf(-66.0, 66.0, ti / 8.0)
-		var pitch = -48.0 + absf(ti - 4.0) * 9.0 + 6.0 * (ti % 2)
-		var length = 18.0 - absf(ti - 4.0) * 0.5
+		var pitch = -60.0 + absf(ti - 4.0) * 11.0 + 6.0 * (ti % 2)
+		var length = 21.0 - absf(ti - 4.0) * 0.5
 		var seg_len = length / n
 		var troot = r._pivot(base, Vector3((ti - 4.0) * 0.22, 0, 0), "tail")
 		troot.rotation = Vector3(deg_to_rad(pitch), deg_to_rad(yaw), 0)

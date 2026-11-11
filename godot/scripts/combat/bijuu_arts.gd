@@ -66,7 +66,7 @@ const TECHS := {
 	"kurama": [
 		{"key": "chakra_kaina", "name": "Chakra Kolu", "desc": "Dev chakra eli uzanır, yakalar, çekip ezer", "cd": 6.0, "cost": 18.0},
 		{"key": "biju_hoko", "name": "Bijū Hōkō: Kükreme", "desc": "Koni şok dalgası: savurur, sersemletir, ağaçları yatırır", "cd": 9.0, "cost": 20.0},
-		{"key": "bijudama_rasengan", "name": "Bijūdama Rasengan", "desc": "Dönen canavar topu: dev kubbe patlaması, çoklu vuruş", "cd": 14.0, "cost": 36.0},
+		{"key": "bijudama_rasengan", "name": "Bijūdama Rasengan", "desc": "Dönen canavar topu: dev kubbe patlaması, çoklu vuruş (Rasenshuriken bilmek gerekir)", "cd": 14.0, "cost": 36.0},
 		{"key": "kyubi_biso", "name": "Kyūbi Bisō", "desc": "Dokuz kuyruk sırayla yeri döver: önündeki her şey savrulur", "cd": 18.0, "cost": 55.0, "epic": true},
 		{"key": "bijudama_rendan", "name": "Bijūdama Rendan", "desc": "Art arda üç dev Kuyruklu Canavar Topu", "cd": 28.0, "cost": 90.0, "epic": true},
 	],
@@ -85,6 +85,30 @@ const SAND := Color(0.86, 0.72, 0.48)
 const MAX_FIELDS := 14
 static var _fields := 0
 static var _epic_t := {}   # canavar türü -> son epik teknik zamanı (ms)
+
+
+## Tekniğin canavar hareketi: [rig hareketi, süre sn, etkinin çıktığı an (0..1)] — tam dönüşümdeki oyuncu ve dünya canavarı aynı tabloyu kullanır
+const ANIM := {
+	"renkudan": ["cast", 1.0, 0.36], "aobi_dama": ["cast", 1.0, 0.36], "slime": ["cast", 1.0, 0.36], "sumi": ["cast", 1.0, 0.36],
+	"bijudama_rasengan": ["cast", 1.1, 0.36], "mushi_swarm": ["cast", 1.0, 0.36], "fukuso": ["cast", 1.0, 0.36],
+	"renkudan_rensha": ["cast", 1.4, 0.3], "bijudama_rendan": ["cast", 1.4, 0.3],
+	"kaen_breath": ["breath", 1.8, 0.18], "futton_boil": ["breath", 1.6, 0.18], "steam_burst": ["breath", 1.4, 0.2], "acid_mist": ["breath", 1.6, 0.18],
+	"rinpun": ["breath", 1.6, 0.18], "rinpun_kosen": ["breath", 1.8, 0.18], "sumi_nami": ["breath", 1.8, 0.18], "futton_mojo": ["breath", 1.8, 0.18],
+	"kiri_genjutsu": ["breath", 1.8, 0.18], "fukuso_arashi": ["breath", 1.8, 0.18], "mushi_arashi": ["breath", 1.8, 0.18], "nenko_shinshoku": ["breath", 1.8, 0.18],
+	"biju_hoko": ["roar", 1.4, 0.3],
+	"sabaku_taiso": ["rear", 1.4, 0.58], "ryusa_soso": ["rear", 1.5, 0.58], "sango": ["rear", 1.3, 0.58], "sango_mori": ["rear", 1.5, 0.58],
+	"funkatsu": ["rear", 1.4, 0.58], "kazan_u": ["rear", 1.5, 0.58], "yoton_funka": ["rear", 1.5, 0.58], "suiro_kyudan": ["rear", 1.4, 0.58],
+	"aobi_rinkaku": ["rear", 1.4, 0.58],
+	"suna_tate": ["guard", 1.3, 0.25], "yoton_yoroi": ["guard", 1.3, 0.25], "tako_bunshin": ["guard", 1.3, 0.25],
+	"neko_pounce": ["charge", 1.0, 0.0], "bakeneko_rengeki": ["charge", 1.0, 0.0], "shell_roll": ["charge", 1.0, 0.0], "horn_ram": ["charge", 1.0, 0.0],
+	"gokaku_totsugeki": ["charge", 1.0, 0.0], "hane_flight": ["charge", 1.0, 0.0],
+	"kyubi_biso": ["tails", 1.2, 0.45], "hachi_ude": ["tails", 1.2, 0.45], "tako_ude": ["tails", 1.2, 0.45], "chakra_kaina": ["tails", 1.2, 0.45],
+	"kakogan": ["slam", 1.1, 0.5],
+}
+
+
+static func anim(key: String) -> Array:
+	return ANIM.get(key, ["cast", 1.0, 0.36])
 
 
 static func techs(id: String) -> Array:

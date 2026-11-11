@@ -295,7 +295,8 @@ static func _make_look_keep(p: Dictionary) -> Dictionary:
 
 
 static func _defect_p(p: Dictionary) -> float:
-	var x = 0.012 + (0.05 if p.get("grief", false) else 0.0) + (0.03 if int(p.get("loyalty", 50)) < 35 else 0.0)
+	# kaçış nadirdir (kanon: nukenin azınlık). Eski değerler (0.012 / 0.05 / 0.03) saatte 3-4 kaçış veriyordu: 10 saatte nüfusun dörtte biri
+	var x = 0.0015 + (0.01 if p.get("grief", false) else 0.0) + (0.006 if int(p.get("loyalty", 50)) < 35 else 0.0)
 	return x
 
 
@@ -532,7 +533,7 @@ static func bingo_of(p: Dictionary) -> Dictionary:
 
 ## Bingo Kitabı yeni bir ad istediğinde: kalıp kaçak yerine dünyadan gerçek biri. Henüz listede olmayan bir kaçak varsa o;
 ## yoksa köyünden kaçmaya en yatkın kişi (yaslı, sadakatsiz) şimdi kaçar. Kimse yoksa {} (eski kalıp devreye girer).
-static func bingo_from_world(vid := "") -> Dictionary:
+static func bingo_from_world(vid := "", force := true) -> Dictionary:
 	if not data().get("init", false):
 		return {}
 	for id in all():
@@ -541,6 +542,8 @@ static func bingo_from_world(vid := "") -> Dictionary:
 			var e = make_bingo(p)
 			Missions._bingo()["list"].append(e)
 			return e
+	if not force:
+		return {}   # liste doldurmak için kimse zorla kaçırılmaz: yalnız zaten kaçmış olanlar
 	var cands = all().values().filter(func(p): return alive(p) and not is_rogue(p) and int(p["rank"]) >= 1 and (vid == "" or String(p["village"]) == vid))
 	if cands.is_empty():
 		return {}
