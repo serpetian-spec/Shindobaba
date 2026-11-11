@@ -545,7 +545,7 @@ func _ground_air_move(dt: float) -> void:
 			break
 	# dik arazi (uçurum) = duvar: üstüne ışınlanma yok; içine doğru koşuyorsan duvar koşusuna geç
 	var steep_n = _steep_block(pre_pos)
-	if steep_n != Vector3.ZERO and wall_cd <= 0.0 and not swimming and wish.dot(-steep_n) > 0.35:
+	if steep_n != Vector3.ZERO and wall_cd <= 0.0 and not swimming and not cam_giant and wish.dot(-steep_n) > 0.35:
 		_enter_wall(steep_n, true)
 		return
 	# arazi + su yüzeyi
@@ -601,7 +601,7 @@ func _ground_air_move(dt: float) -> void:
 			flip_t = -1.0
 		leaping = false
 	# duvar koşusuna geç
-	if is_on_wall() and wall_cd <= 0.0 and not swimming:
+	if is_on_wall() and wall_cd <= 0.0 and not swimming and not cam_giant:   # dev canavar ağaca/eve duvar koşusu yapmaz (gövde havada asılı kalıyordu)
 		var n = get_wall_normal()
 		n.y = 0.0
 		if n.length() > 0.5:

@@ -554,7 +554,8 @@ func _process(dt: float) -> void:
 		rig.run_target = clampf((hs - 16.0) / 14.0, 0.0, 1.0)   # koşarken dörtnal / iri adım
 		var was_air = rig.airborne
 		# engebeli zeminde is_on_floor anlık kopar: ancak 0.3 sn kesintisiz havadaysa havada say (yoksa yürürken uçar gibi görünür)
-		if p.is_on_floor():
+		# arazi çarpışma gövdesi değil yükseklik fonksiyonu: is_on_floor çimende HEP false → oyuncunun kendi grounded bayrağı
+		if p.grounded or p.is_on_floor() or p.swimming:
 			set_meta("air_t", 0.0)
 		else:
 			set_meta("air_t", float(get_meta("air_t", 0.0)) + get_process_delta_time())

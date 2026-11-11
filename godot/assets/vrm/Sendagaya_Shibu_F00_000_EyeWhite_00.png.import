@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dtjp5uklyinic"
-path="res://.godot/imported/Sendagaya_Shibu_F00_000_EyeWhite_00.png-8b5f752003cc13917c748853239c34d7.ctex"
+path.s3tc="res://.godot/imported/Sendagaya_Shibu_F00_000_EyeWhite_00.png-8b5f752003cc13917c748853239c34d7.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ed8aa1fa2fe8b398769265915684928a"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sendagaya_Shibu_F00_000_EyeWhite_00.png"
-dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_000_EyeWhite_00.png-8b5f752003cc13917c748853239c34d7.ctex"]
+dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_000_EyeWhite_00.png-8b5f752003cc13917c748853239c34d7.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

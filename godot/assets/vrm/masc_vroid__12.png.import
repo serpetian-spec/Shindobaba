@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dl36gejyjsi45"
-path="res://.godot/imported/masc_vroid__12.png-37de8e639712ac355e379f30c6b40131.ctex"
+path.s3tc="res://.godot/imported/masc_vroid__12.png-37de8e639712ac355e379f30c6b40131.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0b1467e8b7c1ae214dc5ccc16db94424"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/masc_vroid__12.png"
-dest_files=["res://.godot/imported/masc_vroid__12.png-37de8e639712ac355e379f30c6b40131.ctex"]
+dest_files=["res://.godot/imported/masc_vroid__12.png-37de8e639712ac355e379f30c6b40131.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0nqiink0vfoe"
-path="res://.godot/imported/Sendagaya_Shibu_F00_001_Bottoms_01.png-27b08cc845012dede11e29271a8fb9fe.ctex"
+path.s3tc="res://.godot/imported/Sendagaya_Shibu_F00_001_Bottoms_01.png-27b08cc845012dede11e29271a8fb9fe.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e1c334751d0939912ddf7e3843a4de5c"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sendagaya_Shibu_F00_001_Bottoms_01.png"
-dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_001_Bottoms_01.png-27b08cc845012dede11e29271a8fb9fe.ctex"]
+dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_001_Bottoms_01.png-27b08cc845012dede11e29271a8fb9fe.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

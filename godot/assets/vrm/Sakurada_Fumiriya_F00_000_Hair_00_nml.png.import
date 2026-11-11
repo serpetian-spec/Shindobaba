@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bpb445bkna1rp"
-path="res://.godot/imported/Sakurada_Fumiriya_F00_000_Hair_00_nml.png-afd6fc72420794e3e3cb540213609614.ctex"
+path.s3tc="res://.godot/imported/Sakurada_Fumiriya_F00_000_Hair_00_nml.png-afd6fc72420794e3e3cb540213609614.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "8111e8cc3ec012e1c66f8be268be2e25"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sakurada_Fumiriya_F00_000_Hair_00_nml.png"
-dest_files=["res://.godot/imported/Sakurada_Fumiriya_F00_000_Hair_00_nml.png-afd6fc72420794e3e3cb540213609614.ctex"]
+dest_files=["res://.godot/imported/Sakurada_Fumiriya_F00_000_Hair_00_nml.png-afd6fc72420794e3e3cb540213609614.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

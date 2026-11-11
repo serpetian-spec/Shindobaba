@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://caj0pktfeuffn"
-path="res://.godot/imported/fem_vroid_N00_000_00_HairBack_00_nml.png-0fa98e88f395bc926baff7c4cb3024f5.ctex"
+path.s3tc="res://.godot/imported/fem_vroid_N00_000_00_HairBack_00_nml.png-0fa98e88f395bc926baff7c4cb3024f5.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "5f366b2835dec753ed637b3c97ca72a9"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/fem_vroid_N00_000_00_HairBack_00_nml.png"
-dest_files=["res://.godot/imported/fem_vroid_N00_000_00_HairBack_00_nml.png-0fa98e88f395bc926baff7c4cb3024f5.ctex"]
+dest_files=["res://.godot/imported/fem_vroid_N00_000_00_HairBack_00_nml.png-0fa98e88f395bc926baff7c4cb3024f5.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

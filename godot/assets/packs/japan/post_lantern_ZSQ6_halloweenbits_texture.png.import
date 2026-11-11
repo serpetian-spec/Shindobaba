@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://clahm44wsvd2w"
-path="res://.godot/imported/post_lantern_ZSQ6_halloweenbits_texture.png-44f9d69f94621c097905d7924ed146b1.ctex"
+path.s3tc="res://.godot/imported/post_lantern_ZSQ6_halloweenbits_texture.png-44f9d69f94621c097905d7924ed146b1.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "94c3e80ad69f5bfb7f65efb28b034df6"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/packs/japan/post_lantern_ZSQ6_halloweenbits_texture.png"
-dest_files=["res://.godot/imported/post_lantern_ZSQ6_halloweenbits_texture.png-44f9d69f94621c097905d7924ed146b1.ctex"]
+dest_files=["res://.godot/imported/post_lantern_ZSQ6_halloweenbits_texture.png-44f9d69f94621c097905d7924ed146b1.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

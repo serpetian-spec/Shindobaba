@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dyk1edd8o1xqi"
-path="res://.godot/imported/Sendagaya_Shibu_F00_001_Shoes_01.png-5f301d2461d4ea02cb624caca8859c26.ctex"
+path.s3tc="res://.godot/imported/Sendagaya_Shibu_F00_001_Shoes_01.png-5f301d2461d4ea02cb624caca8859c26.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6364ac294f61d3ff210a0d730cf1e0d3"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sendagaya_Shibu_F00_001_Shoes_01.png"
-dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_001_Shoes_01.png-5f301d2461d4ea02cb624caca8859c26.ctex"]
+dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_001_Shoes_01.png-5f301d2461d4ea02cb624caca8859c26.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

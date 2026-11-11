@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://doxy1d6i4pe86"
-path="res://.godot/imported/AvatarSample_C_M00_008_03_Tops_01.png-a2a633594f8492e310f08f5b0d2a6e37.ctex"
+path.s3tc="res://.godot/imported/AvatarSample_C_M00_008_03_Tops_01.png-a2a633594f8492e310f08f5b0d2a6e37.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "dd2040fe4b9efad4dcc442150777dfad"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_C_M00_008_03_Tops_01.png"
-dest_files=["res://.godot/imported/AvatarSample_C_M00_008_03_Tops_01.png-a2a633594f8492e310f08f5b0d2a6e37.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_C_M00_008_03_Tops_01.png-a2a633594f8492e310f08f5b0d2a6e37.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

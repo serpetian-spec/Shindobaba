@@ -51,6 +51,58 @@ static func _arch(mb: MB, z: float, cy: float, rx: float, ry: float, half_w: flo
 		_spike(mb, Vector3(sin(a) * rx, cy + cos(a) * ry, z) + nr * thick * 0.6, nr + Vector3(0, 0, 0.25), sp_len * (1.0 if i % 2 == 0 else 0.7), sp_len * 0.3)
 
 
+## Kabuk Yuvarlanışı topu: Isobu'nun kendi kabuğu (aynı kemerler, pul dikişleri, diken sıraları, açık kenar çerçevesi)
+## top halinde kapanmış. Yarıçap R (metre), ileri = -Z, yuvarlanma ekseni X.
+static func shell_ball(R: float) -> Node3D:
+	var root = Node3D.new()
+	var mb = MB.new()
+	var Q = 5.2
+	var nz = 28
+	var kf = func(z: float) -> float:
+		return maxf(0.1, sqrt(maxf(0.0, 1.0 - pow(z / (Q + 0.25), 2.0))))
+	for i in nz + 1:
+		var z = lerpf(Q, -Q, float(i) / nz)
+		var k: float = kf.call(z)
+		_arch(mb, z, 0.0, Q * k, Q * k, 0.5, 0.34, PI, 0, 0.0, SH)
+		if i % 5 == 2:
+			_arch(mb, z, 0.0, Q * k + 0.06, Q * k + 0.06, 0.07, 0.34, PI, 0, 0.0, SH_D)
+	for li in 14:
+		var a = TAU * li / 14.0
+		var seam = []
+		for i in nz + 1:
+			var z = lerpf(Q, -Q, float(i) / nz)
+			var k: float = kf.call(z)
+			var pt = Vector3(sin(a) * (Q * k + 0.3), cos(a) * (Q * k + 0.3), z)
+			seam.append(pt)
+			var nr = Vector3(sin(a) * k, cos(a) * k, z / Q).normalized()
+			if i % 5 == 0 and li % 2 == 0:
+				_spike(mb, pt, nr, 1.5 * maxf(k, 0.6), 0.42)
+			elif i % 5 == 2 and li % 2 == 1:
+				_spike(mb, pt, nr, 1.0 * maxf(k, 0.6), 0.32)
+		if li % 2 == 1:
+			Loft.tube(mb, seam, seam.map(func(_q): return 0.09), SH_D, 5, 1)
+	# kabuk kenarı çerçevesi: iki yanda kalın açık renk kuşak + kenar dikenleri
+	for sx in [-1.0, 1.0]:
+		var rim = []
+		for i in 25:
+			var ra = TAU * i / 24.0
+			rim.append(Vector3(sx * 0.9, cos(ra) * (Q + 0.15) * 0.985, sin(ra) * (Q + 0.15) * 0.985))
+			if i % 3 == 0 and i < 24:
+				_spike(mb, rim[i], Vector3(sx * 0.5, cos(ra), sin(ra)), 1.2, 0.36)
+		Loft.tube(mb, rim, rim.map(func(_q): return 0.42), SH_L, 8, 1)
+	# iki yanda kabuk açıklığından görünen kırmızı kas (çizgili)
+	mb.add("sphere", Vector3(0, 0, 0), Vector3(1.5, (Q + 0.42) * 2.0, (Q + 0.42) * 2.0), MUS, Vector3.ZERO, 24)
+	for i in 16:
+		var ra = TAU * i / 16.0
+		var c0 = Vector3(0, cos(ra), sin(ra)) * (Q + 0.44)
+		Loft.tube(mb, [c0 + Vector3(-0.7, 0, 0), c0 * 1.004, c0 + Vector3(0.7, 0, 0)], [0.05, 0.08, 0.05], MUS_D, 4, 2)
+	var mi = MeshInstance3D.new()
+	mi.mesh = mb.build(Props.toon())
+	mi.scale = Vector3.ONE * (R / (Q + 0.6))
+	root.add_child(mi)
+	return root
+
+
 static func build(r: BeastRig, root: Node3D) -> void:
 	r.quadruped = true
 	r.upright = false

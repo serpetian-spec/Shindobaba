@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dmcmlubp3feok"
-path="res://.godot/imported/AvatarSample_B_F00_006_01_Shoes_01.png-8e3ac7b0a820cfdef659dbf28aac4145.ctex"
+path.s3tc="res://.godot/imported/AvatarSample_B_F00_006_01_Shoes_01.png-8e3ac7b0a820cfdef659dbf28aac4145.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "11c130aa9d0d37bec80faa608ac26c83"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_B_F00_006_01_Shoes_01.png"
-dest_files=["res://.godot/imported/AvatarSample_B_F00_006_01_Shoes_01.png-8e3ac7b0a820cfdef659dbf28aac4145.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_B_F00_006_01_Shoes_01.png-8e3ac7b0a820cfdef659dbf28aac4145.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://fkt82tvgkf6m"
-path="res://.godot/imported/HairSample_Female_Matcap_RimHair.png-e89da041b79f13386a1a49cc83c534d3.ctex"
+path.s3tc="res://.godot/imported/HairSample_Female_Matcap_RimHair.png-e89da041b79f13386a1a49cc83c534d3.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6e2c450de67a626e70b97f58b9991e8f"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/HairSample_Female_Matcap_RimHair.png"
-dest_files=["res://.godot/imported/HairSample_Female_Matcap_RimHair.png-e89da041b79f13386a1a49cc83c534d3.ctex"]
+dest_files=["res://.godot/imported/HairSample_Female_Matcap_RimHair.png-e89da041b79f13386a1a49cc83c534d3.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

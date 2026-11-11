@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8qvh2us4caa2"
-path="res://.godot/imported/Sakurada_Fumiriya_M00_001_Body_00.png-fa603e88335a1dcb6099ea242be99ad5.ctex"
+path.s3tc="res://.godot/imported/Sakurada_Fumiriya_M00_001_Body_00.png-fa603e88335a1dcb6099ea242be99ad5.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "ac7238651a94b3c5348e5743023312e3"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sakurada_Fumiriya_M00_001_Body_00.png"
-dest_files=["res://.godot/imported/Sakurada_Fumiriya_M00_001_Body_00.png-fa603e88335a1dcb6099ea242be99ad5.ctex"]
+dest_files=["res://.godot/imported/Sakurada_Fumiriya_M00_001_Body_00.png-fa603e88335a1dcb6099ea242be99ad5.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2f411xj5yyaq"
-path="res://.godot/imported/HairSample_Male_Shader_NoneNormal.png-c73f83a940b20dcdd1ddc4c9a16f39e4.ctex"
+path.s3tc="res://.godot/imported/HairSample_Male_Shader_NoneNormal.png-c73f83a940b20dcdd1ddc4c9a16f39e4.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1e284464c6ae70a0f2f39ec7ba908f90"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/HairSample_Male_Shader_NoneNormal.png"
-dest_files=["res://.godot/imported/HairSample_Male_Shader_NoneNormal.png-c73f83a940b20dcdd1ddc4c9a16f39e4.ctex"]
+dest_files=["res://.godot/imported/HairSample_Male_Shader_NoneNormal.png-c73f83a940b20dcdd1ddc4c9a16f39e4.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

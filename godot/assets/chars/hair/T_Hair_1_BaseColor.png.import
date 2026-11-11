@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://db35jjx26w55q"
-path="res://.godot/imported/T_Hair_1_BaseColor.png-73e5d2bff5049e222737a92563ffb03f.ctex"
+path.s3tc="res://.godot/imported/T_Hair_1_BaseColor.png-73e5d2bff5049e222737a92563ffb03f.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/chars/hair/T_Hair_1_BaseColor.png"
-dest_files=["res://.godot/imported/T_Hair_1_BaseColor.png-73e5d2bff5049e222737a92563ffb03f.ctex"]
+dest_files=["res://.godot/imported/T_Hair_1_BaseColor.png-73e5d2bff5049e222737a92563ffb03f.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

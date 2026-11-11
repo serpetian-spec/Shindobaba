@@ -607,6 +607,9 @@ func _process(dt: float) -> void:
 			var sg: Node3D = segs[j]
 			sg.rotation.y = sin(t * 1.4 * spd - j * 0.55 + cfg["phase"]) * amp + sweep * 0.25
 			sg.rotation.x = sin(t * 1.1 * spd - j * 0.45 + cfg["phase"] * 1.3) * amp * 0.7 + tail_curl + sin(wt * 2.0 - j * 0.6) * 0.05 * walk * (1.0 + run)
+			if cfg.has("s_amp"):   # akan kuyruk: dipte yukarı kalkar, uca doğru aşağı döner (S kavisi) + yana açılma
+				sg.rotation.x -= float(cfg["s_amp"]) * cos(PI * float(j) / maxf(1.0, segs.size() - 1.0))
+				sg.rotation.y += float(cfg.get("s_yaw", 0.0)) * sin(PI * float(j) / maxf(1.0, segs.size() - 1.0))
 		if cfg["style"] == "wing" and segs.size() > 0:
 			var buzz = 14.0 if (action == "charge" or walk > 0.05 or air > 0.0) else 3.0
 			segs[0].rotation.z = sin(t * buzz + cfg["phase"]) * amp

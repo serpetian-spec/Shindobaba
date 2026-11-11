@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bj4y6p345ca13"
-path="res://.godot/imported/AvatarSample_B_F00_000_00_FaceEyeline_00.png-53cc4ac3f28303447fc0c595b1186814.ctex"
+path.s3tc="res://.godot/imported/AvatarSample_B_F00_000_00_FaceEyeline_00.png-53cc4ac3f28303447fc0c595b1186814.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "fcee9fe3683c3eb8e2e1206ceee3f863"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_B_F00_000_00_FaceEyeline_00.png"
-dest_files=["res://.godot/imported/AvatarSample_B_F00_000_00_FaceEyeline_00.png-53cc4ac3f28303447fc0c595b1186814.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_B_F00_000_00_FaceEyeline_00.png-53cc4ac3f28303447fc0c595b1186814.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

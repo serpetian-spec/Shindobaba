@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8ldtbslabion"
-path="res://.godot/imported/Sendagaya_Shibu_Matcap_RimHair.png-d40aab5022d08195f8cd8ff6fbb0b2da.ctex"
+path.s3tc="res://.godot/imported/Sendagaya_Shibu_Matcap_RimHair.png-d40aab5022d08195f8cd8ff6fbb0b2da.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "efa80dd546045ee3dccf34ca10bbcbf1"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sendagaya_Shibu_Matcap_RimHair.png"
-dest_files=["res://.godot/imported/Sendagaya_Shibu_Matcap_RimHair.png-d40aab5022d08195f8cd8ff6fbb0b2da.ctex"]
+dest_files=["res://.godot/imported/Sendagaya_Shibu_Matcap_RimHair.png-d40aab5022d08195f8cd8ff6fbb0b2da.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

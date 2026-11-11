@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvqt12vhjfv5f"
-path="res://.godot/imported/river1.png-5b906d9f637d7476c0fd8725cc897b7a.ctex"
+path.s3tc="res://.godot/imported/river1.png-5b906d9f637d7476c0fd8725cc897b7a.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/sketchfab/valley_of_end/textures/river1.png"
-dest_files=["res://.godot/imported/river1.png-5b906d9f637d7476c0fd8725cc897b7a.ctex"]
+dest_files=["res://.godot/imported/river1.png-5b906d9f637d7476c0fd8725cc897b7a.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

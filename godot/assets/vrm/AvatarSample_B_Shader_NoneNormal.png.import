@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cu7qv6cgkes27"
-path="res://.godot/imported/AvatarSample_B_Shader_NoneNormal.png-1390695e9cc49bfc094cb6f772baa830.ctex"
+path.s3tc="res://.godot/imported/AvatarSample_B_Shader_NoneNormal.png-1390695e9cc49bfc094cb6f772baa830.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1e284464c6ae70a0f2f39ec7ba908f90"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_B_Shader_NoneNormal.png"
-dest_files=["res://.godot/imported/AvatarSample_B_Shader_NoneNormal.png-1390695e9cc49bfc094cb6f772baa830.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_B_Shader_NoneNormal.png-1390695e9cc49bfc094cb6f772baa830.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ce4ppgc07k2of"
-path="res://.godot/imported/Darkness_Shibu_F00_000_FaceEyelash_00.png-1812b65869763844a16fd69b297756ed.ctex"
+path.s3tc="res://.godot/imported/Darkness_Shibu_F00_000_FaceEyelash_00.png-1812b65869763844a16fd69b297756ed.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "a9fb58b0d40b2f65177649f306f36640"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Darkness_Shibu_F00_000_FaceEyelash_00.png"
-dest_files=["res://.godot/imported/Darkness_Shibu_F00_000_FaceEyelash_00.png-1812b65869763844a16fd69b297756ed.ctex"]
+dest_files=["res://.godot/imported/Darkness_Shibu_F00_000_FaceEyelash_00.png-1812b65869763844a16fd69b297756ed.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

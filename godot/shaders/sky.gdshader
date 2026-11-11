@@ -57,7 +57,8 @@ void sky() {
 			stars += on * (1.0 - smoothstep(size * 0.3, size, r)) * tw * (L == 0 ? 0.55 : 1.0);
 		}
 		// samanyolu: hafif, eğik bir ışık kuşağı
-		float band = exp(-pow(dot(d, normalize(vec3(0.5, 0.3, 0.8))) / 0.22, 2.0)) * (0.5 + 0.5 * fbm(d.xz * 6.0 / (abs(d.y) + 0.3)));
+		float bd = dot(d, normalize(vec3(0.5, 0.3, 0.8))) / 0.22;   // pow(eksi, 2.0) bazı kartlarda NaN: elle kare
+		float band = exp(-bd * bd) * (0.5 + 0.5 * fbm(d.xz * 6.0 / (abs(d.y) + 0.3)));
 		col += (vec3(0.85, 0.9, 1.0) * stars + vec3(0.25, 0.28, 0.4) * band * 0.35) * night * smoothstep(-0.02, 0.18, d.y) * (1.0 - overcast);
 	}
 	if (d.y > 0.0) {

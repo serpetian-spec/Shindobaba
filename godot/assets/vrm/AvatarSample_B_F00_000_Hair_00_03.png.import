@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cx7h5ecv0p3aw"
-path="res://.godot/imported/AvatarSample_B_F00_000_Hair_00_03.png-407945f4c54d724847083dbf512695f8.ctex"
+path.s3tc="res://.godot/imported/AvatarSample_B_F00_000_Hair_00_03.png-407945f4c54d724847083dbf512695f8.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "592b2bfad25465e6422b5d1637948948"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_B_F00_000_Hair_00_03.png"
-dest_files=["res://.godot/imported/AvatarSample_B_F00_000_Hair_00_03.png-407945f4c54d724847083dbf512695f8.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_B_F00_000_Hair_00_03.png-407945f4c54d724847083dbf512695f8.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

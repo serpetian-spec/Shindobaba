@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgyh1vcw63e0l"
-path="res://.godot/imported/torii_gate_7SyX_Sushi_Atlas.png-3ffd7f684c9dac9dbba8951905955d22.ctex"
+path.s3tc="res://.godot/imported/torii_gate_7SyX_Sushi_Atlas.png-3ffd7f684c9dac9dbba8951905955d22.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "deb4136320a09128a91dae0c35c66c97"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/packs/japan/torii_gate_7SyX_Sushi_Atlas.png"
-dest_files=["res://.godot/imported/torii_gate_7SyX_Sushi_Atlas.png-3ffd7f684c9dac9dbba8951905955d22.ctex"]
+dest_files=["res://.godot/imported/torii_gate_7SyX_Sushi_Atlas.png-3ffd7f684c9dac9dbba8951905955d22.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

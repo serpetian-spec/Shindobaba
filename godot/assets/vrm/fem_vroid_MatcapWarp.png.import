@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cgqgn2jibln3j"
-path="res://.godot/imported/fem_vroid_MatcapWarp.png-bfe8f460dc88eda246e3f2ef42ab91af.ctex"
+path.s3tc="res://.godot/imported/fem_vroid_MatcapWarp.png-bfe8f460dc88eda246e3f2ef42ab91af.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e3609de1022a164fe240a562c69367de"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/fem_vroid_MatcapWarp.png"
-dest_files=["res://.godot/imported/fem_vroid_MatcapWarp.png-bfe8f460dc88eda246e3f2ef42ab91af.ctex"]
+dest_files=["res://.godot/imported/fem_vroid_MatcapWarp.png-bfe8f460dc88eda246e3f2ef42ab91af.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

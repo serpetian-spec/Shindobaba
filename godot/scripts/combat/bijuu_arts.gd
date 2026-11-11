@@ -927,7 +927,9 @@ static func _shell_roll(user: Node3D, c: Dictionary) -> void:
 	if rig != null:
 		R = maxf(R, float(rig.height_m) * 0.42)
 		rig.visible = false
-	var shell = _spike_shell(VFX.scene(), R, Color(0.58, 0.63, 0.72))
+	var shell: Node3D = BeastIsobu.shell_ball(R)   # Isobu'nun kendi kabuğu (model ile aynı)
+	VFX.scene().add_child(shell)
+	shell.rotation.y = atan2(-d.x, -d.z)
 	var hitlist: Array = [user]
 	Sfx.play("whoosh", user.global_position, 0.5)
 	var st = {"n": 0}

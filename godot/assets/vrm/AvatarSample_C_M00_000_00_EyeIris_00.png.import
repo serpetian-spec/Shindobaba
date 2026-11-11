@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vey672dwgcx1"
-path="res://.godot/imported/AvatarSample_C_M00_000_00_EyeIris_00.png-21eca0515bee290c932bd4c6caf49419.ctex"
+path.s3tc="res://.godot/imported/AvatarSample_C_M00_000_00_EyeIris_00.png-21eca0515bee290c932bd4c6caf49419.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1cffdee649862065e2052bc319d72378"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_C_M00_000_00_EyeIris_00.png"
-dest_files=["res://.godot/imported/AvatarSample_C_M00_000_00_EyeIris_00.png-21eca0515bee290c932bd4c6caf49419.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_C_M00_000_00_EyeIris_00.png-21eca0515bee290c932bd4c6caf49419.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

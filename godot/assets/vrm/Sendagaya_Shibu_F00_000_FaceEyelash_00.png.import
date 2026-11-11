@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://calvavmh0lvao"
-path="res://.godot/imported/Sendagaya_Shibu_F00_000_FaceEyelash_00.png-2e6dd249da2f1494f00c2530186cfc30.ctex"
+path.s3tc="res://.godot/imported/Sendagaya_Shibu_F00_000_FaceEyelash_00.png-2e6dd249da2f1494f00c2530186cfc30.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "a77ca68626f6f026bd2596c408442fea"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/Sendagaya_Shibu_F00_000_FaceEyelash_00.png"
-dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_000_FaceEyelash_00.png-2e6dd249da2f1494f00c2530186cfc30.ctex"]
+dest_files=["res://.godot/imported/Sendagaya_Shibu_F00_000_FaceEyelash_00.png-2e6dd249da2f1494f00c2530186cfc30.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

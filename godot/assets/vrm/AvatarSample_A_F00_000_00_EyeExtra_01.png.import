@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cb71677y60ky4"
-path="res://.godot/imported/AvatarSample_A_F00_000_00_EyeExtra_01.png-e42cbe3b5282c3c6131f8763994ee40d.ctex"
+path.s3tc="res://.godot/imported/AvatarSample_A_F00_000_00_EyeExtra_01.png-e42cbe3b5282c3c6131f8763994ee40d.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "422fa6358619676b832976e38ff8d92f"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/vrm/AvatarSample_A_F00_000_00_EyeExtra_01.png"
-dest_files=["res://.godot/imported/AvatarSample_A_F00_000_00_EyeExtra_01.png-e42cbe3b5282c3c6131f8763994ee40d.ctex"]
+dest_files=["res://.godot/imported/AvatarSample_A_F00_000_00_EyeExtra_01.png-e42cbe3b5282c3c6131f8763994ee40d.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
