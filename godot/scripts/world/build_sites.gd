@@ -307,6 +307,32 @@ static func _shop_row(b: Builder, style: String, rng: RandomNumberGenerator, inn
 		b.kanji(Vector3(q.x + so.x * 1.01, g + 4.3, q.y + so.y * 1.01), String(sh[4]), 0.8, Color(0.12, 0.1, 0.1), yaw)
 		var door = q + fd * (hd * 0.5 + 1.4)
 		b.interact(Vector3(door.x, g, door.y), 3.0, "enter", String(sh[1]), {"room": sh[0], "alias": sh[3], "vid": v["id"], "out": b.w(Vector3(door.x, g, door.y))})
+	# bu köyde doğanların evi (Konoha'nınki kendi kurulumunda): kapı yalnız köyün kendi ninjasına açılır
+	if String(v["id"]) != "konoha" and r >= 700.0:
+		var hr = RandomNumberGenerator.new()
+		hr.seed = hash(String(v["id"]) + "_ev")
+		var hang = ga + 150.0
+		var hdir = Vector2(sin(deg_to_rad(hang)), cos(deg_to_rad(hang)))
+		var hnrm = Vector2(-hdir.y, hdir.x)
+		var hq = hdir * (d0 + spread * 0.6) + hnrm * 16.0
+		for tries in 10:
+			var wq2 = b.w(Vector3(hq.x, 0, hq.y))
+			if b.area_free(Vector2(wq2.x, wq2.z), 10.0):
+				break
+			hq += hdir * 18.0
+		var hfd = -hnrm
+		var hyaw = rad_to_deg(atan2(-hfd.x, -hfd.y))
+		b.shift_off_road = true
+		b.house(hq.x, hq.y, 10.0, 9.0, 2, hyaw, style, hr)
+		b.shift_off_road = false
+		hq = b.placed_xn
+		var hhd = float(b.last_house.get("d", 9.0))
+		var hfront = hq + hfd * (hhd * 0.5 + 0.2)
+		var hg = b._ground_off(hfront.x, hfront.y, 2.0).y
+		var hso = Builder.rot(0, -hhd * 0.5 - 0.12, hyaw)
+		b.box(Vector3(hq.x + hso.x, hg + 2.6, hq.y + hso.y), Vector3(1.6, 0.5, 0.1), Color(0.9, 0.85, 0.7), hyaw, false)   # kapı üstü isim levhası
+		var hdoor = hq + hfd * (hhd * 0.5 + 1.2)
+		b.interact(Vector3(hdoor.x, hg, hdoor.y), 2.6, "enter", "[F] Evine gir (uyu, kaydet)", {"room": "home_player", "home_of": v["id"], "vid": v["id"], "out": b.w(Vector3(hdoor.x, hg, hdoor.y))})
 
 
 static func _fill(b: Builder, r: float, inner: float, spacing: float, style: String, rng: RandomNumberGenerator, keep_clear: Array = [], max_houses := 420, big := 1.0) -> void:

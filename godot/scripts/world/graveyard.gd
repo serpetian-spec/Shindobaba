@@ -122,7 +122,9 @@ static func talk(it: Dictionary) -> void:
 	var txt = "Burada %s köyünün düşmüş ninjaları yatıyor." % Game.village(v_id).get("name", v_id)
 	if not lines.is_empty():
 		txt += "\n" + "\n".join(lines.slice(-6))
-	Hud.dialog("Mezarlık", txt, [{"label": "Tütsü yak ve dua et", "cb": func():
+	var gopts = KinDrama.grave_opts(v_id)
+	gopts.append({"label": "Tütsü yak ve dua et", "cb": func():
 		Hud.msg("Tütsünün dumanı göğe yükseliyor... İçin biraz hafifledi.", Color(0.85, 0.85, 0.95), 4.0)
 		if Game.player:
-			FX.smoke_puff(Game.player.global_position + Game.player.face_dir() * 1.2 + Vector3.UP * 0.6, 0.4, 6)}])
+			FX.smoke_puff(Game.player.global_position + Game.player.face_dir() * 1.2 + Vector3.UP * 0.6, 0.4, 6)})
+	Hud.dialog("Mezarlık", txt, gopts)

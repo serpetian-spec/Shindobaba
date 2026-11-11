@@ -1350,6 +1350,7 @@ func _hospital() -> void:
 	person("nurse", 0.5, 7.0, 90.0, "Tıbbi Ninja", ["Chakra dolaşımın düzgün.", "Dinlenmen lazım."], {"wander_r": 3.0})
 	act(-3.5, 1.9, 2.2, "hospital", "[F] Hastane: iyileş (ücretsiz)")
 	act(0.5, 6.0, 1.8, "trainer", "[F] Tıbbi ninja: tıbbi jutsu öğren", {"kinds": ["hospital"], "title": "Tıbbi Ninja Eğitmeni"})
+	KinDrama.ward(self)   # yaralı yakının bu hastanede yatıyorsa yatağında
 
 
 func _home(player_home: bool) -> void:
@@ -1377,23 +1378,24 @@ func _home(player_home: bool) -> void:
 	lamp(0, H - 0.8, D * 0.5, Color(1.0, 0.82, 0.55), 1.2, 9.0)
 	if player_home:
 		# futon yatak + çalışma masası + bitki (oyuncunun evi)
-		bx(W * 0.5 - 1.2, 0.1, 3.4, 1.1, 0.2, 2.1, Color(0.95, 0.95, 0.98), true)
-		bx(W * 0.5 - 1.2, 0.22, 3.0, 1.12, 0.06, 1.4, Color(0.25, 0.4, 0.7))
-		bx(W * 0.5 - 1.2, 0.24, 4.2, 0.6, 0.12, 0.35, Color(1, 1, 1))
+		bx(W * 0.5 - 1.2, 0.1, 3.0, 1.1, 0.2, 2.1, Color(0.95, 0.95, 0.98), true)
+		bx(W * 0.5 - 1.2, 0.22, 2.6, 1.12, 0.06, 1.4, Color(0.25, 0.4, 0.7))
+		bx(W * 0.5 - 1.2, 0.24, 3.8, 0.6, 0.12, 0.35, Color(1, 1, 1))
 		low_table(-W * 0.5 + 1.2, D - 2.4, 1.0, 0.6)
 		bx(-W * 0.5 + 1.2, 0.42, D - 2.4, 0.4, 0.04, 0.3, Color(0.95, 0.93, 0.85))
 		plant(W * 0.5 - 0.5, D - 0.6)
-		act(W * 0.5 - 1.2, 3.4, 1.6, "bed", "[F] Uyu (sabaha kadar, kaydet)")
+		act(W * 0.5 - 1.2, 3.0, 1.6, "bed", "[F] Uyu (sabaha kadar, kaydet)")
+		HomeLife.furnish(self, W, D, H)   # eş + ev hayatı sahneleri (mutfak, çift yatak, çocuk futonları)
 		act(-W * 0.5 + 1.2, D - 2.4, 1.4, "home_note", "[F] Masadaki notlara bak")
 		# akademiye başlamamış çocukların evde yaşar (mezun olunca dost kaydına geçip köyde gezerler)
 		var ki = 0
 		for kid in Game.profile.get("children", []):
-			if kid.get("grad", false):
-				continue
+			if kid.get("grad", false) or KidLife.stage(kid) == "bebek" or KidLife.at_school(kid):
+				continue   # bebek beşikte; akademi öğrencisi gündüz okulda
 			var fem = String(kid.get("gender", "m")) == "f"
 			person("kid", -1.4 + ki * 1.1, 3.2 + (ki % 2) * 0.8, 0.0, String(kid["name"]),
 				["%s! Bugün ne yaptın? Bana da shuriken atmayı öğret!" % ("Anne" if String(Game.profile.get("gender", "m")) == "f" else "Baba"),
-				"Büyüyünce senin gibi ninja olacağım!", "Akademiye ne zaman başlayacağım?" if not fem else "Saçımı senin gibi yapar mısın?"], {"wander_r": 1.2})
+				"Büyüyünce senin gibi ninja olacağım!", "Akademiye ne zaman başlayacağım?" if not fem else "Saçımı senin gibi yapar mısın?"], {"wander_r": 1.2, "look_extra": KidLife.look(kid, "child")})
 			ki += 1
 	else:
 		var fam = rng.randi_range(1, 3)

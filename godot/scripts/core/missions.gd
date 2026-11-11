@@ -3039,6 +3039,7 @@ func _bingo_killed(boss: Node) -> void:
 			e["tracked"] = false
 			Hud.banner("ARANAN ETKİSİZ", "«%s» %s — %d Ryō ödül" % [e["alias"], e["name"], int(e["bounty"])], Color(1, 0.8, 0.3))
 			WorldPeople.on_bingo_killed(e)
+			KinDrama.on_bingo_killed(e)   # yakınının katiliyse: intikam
 			if e.has("mist_sword"):   # kılıç ustası yenildi: kılıç oyuncuya geçer
 				Swordsmen.claim(String(e["mist_sword"]))
 			if e.has("legend_weapon"):   # efsane silah sahibi yenildi: silah düşer

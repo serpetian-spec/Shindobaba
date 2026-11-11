@@ -285,6 +285,8 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	var phd = float(b.last_house.get("d", 9.0))
 	b.box(Vector3(-150, _gy(b, -150, 110) + 2.6, 110 - phd * 0.5 - 0.1), Vector3(1.6, 0.5, 0.1), Color(0.9, 0.85, 0.7), 0, false)
 	_door(b, -150, 110 - phd * 0.5 - 1.0, 2.6, "home_player", "[F] Evine gir (uyu, kaydet)")
+	Interact.items[-1]["home_of"] = "konoha"
+	Interact.items[-1]["vid"] = "konoha"
 	occupied.append([-150, 110, 8, 7])
 	var cx0 = 520.0; var cn0 = -620.0
 	var cg = _gy(b, cx0, cn0)

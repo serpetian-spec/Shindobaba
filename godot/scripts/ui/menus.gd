@@ -851,7 +851,7 @@ static func _tab_relations(main: Node, body: Control) -> void:
 	# senin ailen: eş + çocuklar
 	var pr = Game.profile
 	var kids: Array = pr.get("children", [])
-	if Friends.spouse_id() != "" or not kids.is_empty():
+	if Friends.spouse_id() != "" or not kids.is_empty() or not Kin.rows().is_empty():
 		var ac = UI.card(Color(1, 0.6, 0.75))
 		right.add_child(ac)
 		var av = UI.vbox(6)
@@ -860,6 +860,12 @@ static func _tab_relations(main: Node, body: Control) -> void:
 		# her aile üyesi tıklanır: dost kaydı olanlar (eş, mezun çocuk) arkadaş kartında açılır + haritada işaretlenir;
 		# küçük çocuklar evinde yaşar, evin işaretlenir
 		var fids = fs.keys()
+		for kr in Kin.rows():
+			var kid_id = String(kr[1])
+			av.add_child(_family_row("%s  —  %s" % [kr[0], Friends.where_text(kid_id)], func():
+				_friend_i = fids.find(kid_id)
+				Friends.show_on_map(kid_id)
+				ninja_menu(main, "relations")))
 		var sid = Friends.spouse_id()
 		if sid != "" and fs.has(sid):
 			av.add_child(_family_row("Eşin: %s  —  %s" % [fs[sid]["name"], Friends.where_text(sid)], func():
@@ -882,8 +888,14 @@ static func _tab_relations(main: Node, body: Control) -> void:
 					Friends.show_on_map(kfid)
 					ninja_menu(main, "relations")))
 			else:
-				av.add_child(_family_row("%s: %s%s  —  evinde (akademi yaşına gelmedi)" % [rel, kname, mix], func():
-					_mark_home()
+				av.add_child(_family_row("%s: %s%s  —  %s" % [rel, kname, mix, KidLife.stage_text(k)], func():
+					if KidLife.at_school(k) and SchoolVisit.yard() != Vector3.INF:
+						var yp = SchoolVisit.yard()
+						Game.profile["waypoint"] = [yp.x, yp.y, yp.z, "Akademi (%s)" % kname.split(" ")[-1]]
+						Game.profile["track"] = "waypoint"
+						Hud.msg("Akademi işaretlendi: avluda talim yapıyor.", Color(1, 0.8, 0.88))
+					else:
+						_mark_home()
 					main.resume()))
 		if float(pr.get("baby_due", 0.0)) > 0.0:
 			av.add_child(UI.label("Bir bebek yolda ♥", 13, Color(1, 0.75, 0.8)))

@@ -198,6 +198,10 @@ static func options_for(v: Node) -> Array:
 		return _teacher_opts()
 	if v.has_meta("kage_vid") and String(v.get_meta("kage_vid")) == Progress.home():
 		return _kage_teach_opts()
+	if v.has_meta("school_kid"):
+		return SchoolVisit.opts(v)   # akademi avlusundaki çocuğun
+	if String(v.role) == "kid" and v.interior:
+		return HomeLife.kid_opts(v)   # kendi çocuğun: dersler, oyun
 	if not is_ninja(v):
 		return []   # sıradan köylüler, çocuklar, özel kişiler (Kage, hocalar) dost/takım olmaz
 	return [{"label": "Kendini tanıt", "cb": func(): _meet(v)}]
@@ -413,6 +417,8 @@ static func rank_ok(f: Dictionary) -> bool:
 
 static func _friend_opts(id: String, v: Node) -> Array:
 	var f: Dictionary = all()[id]
+	if v != null and (v.get_meta("bedside", false) or v.get_meta("captive", false)):
+		return KinDrama.opts(id, v)   # hastanede yatan / bağlı tutulan yakın: gündelik seçenekler çıkmaz
 	_ensure_persona(f)
 	var b = int(f["bond"])
 	var opts = []
@@ -420,6 +426,11 @@ static func _friend_opts(id: String, v: Node) -> Array:
 	var can_talk = now - float(f.get("last_talk", 0.0)) >= TALK_CD
 	if f.get("rogue", false) and String(f.get("status", "")) == "kaçak":
 		opts.append_array(RogueBonds.options(id))   # kaçak dostun kendi işleri (kamp ateşi, sake, ortak iş, geçmişi, sonlar)
+	opts.append_array(Kin.opts(id, v))   # baban / annen / kardeşin
+	opts.append_array(KinDrama.opts(id, v))   # hastanede yatan yakın: başucu
+	opts.append_array(Legacy.opts(id, v))   # mezun çocuğun: yolunu ona bırak
+	if f.get("child", false) and String(f.get("status", "")) == "":
+		opts.append({"label": "Sana bir teknik öğreteyim... (Güç %d)" % int(f.get("pupil_lv", 6)), "cb": func(): PupilSquad._teach_menu(id)})
 	opts.append_array(PupilSquad.options(id))   # öğrencin: göreve götür / teknik öğret / gelişimi
 	opts.append_array(FriendPlots.option(id))
 	if String(f.get("squad_key", "")) == "sensei" and String(f.get("status", "")) == "" and int(pr().get("rank", 0)) == 1:
@@ -546,6 +557,8 @@ static func _romance_opts(id: String) -> Array:
 	var f: Dictionary = all()[id]
 	var b = int(f["bond"])
 	var opts = []
+	if f.has("kin"):
+		return opts   # kendi ailen
 	if String(f["look"].get("gender", "m")) == player_gender() or not available(f):
 		return opts
 	if f.get("pupil", false) or int(f.get("rank", 0)) == 0:
@@ -617,7 +630,10 @@ static func _romance_opts(id: String) -> Array:
 			need2.append("birlikte %d dk daha" % int((1800.0 - dating) / 60.0))
 		if spouse_id() != "":
 			need2.append("zaten evlisin")
-		if need2.is_empty():
+		if Wedding.pending():
+			if String(pr()["wedding"].get("id", "")) == id:
+				opts.append({"label": "Tören alanını haritada göster 💍", "cb": func(): Wedding.mark()})
+		elif need2.is_empty():
 			opts.append({"label": "Evlenme teklif et 💍", "cb": func(): _marry(id)})
 		else:
 			opts.append({"label": "Evlilik (henüz değil: %s)" % ", ".join(need2), "cb": func():
@@ -631,6 +647,7 @@ static func _romance_opts(id: String) -> Array:
 			Hud.dialog(String(f["name"]), "...Anlıyorum. Yolun açık olsun.", [])
 			add_bond(id, -40)})
 	elif rm == "eş":
+		opts.append_array(HomeLife.spouse_opts(id))
 		var due = float(pr().get("baby_due", 0.0))
 		if due <= 0.0:
 			opts.append({"label": "Çocuk sahibi olalım", "cb": func():
@@ -640,6 +657,7 @@ static func _romance_opts(id: String) -> Array:
 			f["romance"] = ""
 			pr()["spouse"] = ""
 			pr()["baby_due"] = 0.0
+			pr()["birth_wait"] = 0.0
 			log_event(f, "Senden boşandı")
 			add_bond(id, -60)})
 	return opts
@@ -658,21 +676,65 @@ static func _marry(id: String) -> void:
 	if randf() > clampf((int(f.get("love", 0)) - 70) / 25.0, 0.4, 0.97):
 		Hud.dialog(String(f["name"]), "Bu çok büyük bir adım... Biraz daha düşünmem lazım.", [])
 		return
+	if Wedding.plan(id):
+		# gerçek tören: konuklar toplanır, nikâhı Kage / klan büyüğü kıyar (evlilik törenin sonunda kesinleşir)
+		log_event(f, "Evlenme teklifini kabul etti")
+		Hud.dialog(String(f["name"]), "...Evet! Evet, tabii ki! Herkese haber salıyorum; tören alanında buluşalım. Gelinliğimi... yani, hazırlanmam lazım!" if String(f.get("look", {}).get("gender", "m")) == "f" else "...Evet. Seninle bir ömür. Herkese haber salıyorum; tören alanında buluşalım.", [])
+		return
+	wed_done(id)   # kaçak hayatı: tören yok
+	Hud.banner("DÜĞÜN", "%s ile evlendiniz ♥" % f["name"], Color(1, 0.6, 0.75))
+
+
+## Evlilik kesinleşir (törenin sonunda)
+static func wed_done(id: String) -> void:
+	if not all().has(id):
+		return
+	var f: Dictionary = all()[id]
 	f["romance"] = "eş"
 	f["party"] = f.get("party", false)
 	pr()["spouse"] = id
+	pr().erase("wedding")
+	pr()["home_away"] = 0.0
 	log_event(f, "Seninle evlendi")
 	f["news"] = "Evliliğimizin ilk günü! Köyde herkes bizden bahsediyor."
-	Hud.banner("DÜĞÜN", "%s ile evlendiniz! Köy halkı tören için toplandı ♥" % f["name"], Color(1, 0.6, 0.75))
 	add_bond(id, 15, true)
 
 
-## Oyuncunun çocuğu doğar: eşinin klanıyla melez olabilir
+## Doğum vakti: haber gelir, eve koşarsın; sahne evde oynanır (HomeLife._birth_scene). 10 dk gelmezsen sensiz doğar.
 static func _baby_tick() -> void:
 	var due = float(pr().get("baby_due", 0.0))
-	if due <= 0.0 or Time.get_unix_time_from_system() < due or spouse_id() == "" or not all().has(spouse_id()):
+	if due <= 0.0 or spouse_id() == "" or not all().has(spouse_id()):
 		return
+	var now = Time.get_unix_time_from_system()
+	if now < due:
+		return
+	var sp: Dictionary = all()[spouse_id()]
+	var wait = float(pr().get("birth_wait", 0.0))
+	if wait <= 0.0:
+		var door = HomeLife.door_pos()
+		if door == Vector3.INF or Orgs.is_rogue() or not available(sp):
+			var k0 = birth()   # ev yok / kaçak hayatı: sahnesiz
+			if not k0.is_empty():
+				Hud.banner("BİR %s OLDU!" % ("KIZINIZ" if k0["gender"] == "f" else "OĞLUNUZ"), "%s dünyaya geldi ♥" % k0["name"], Color(1, 0.75, 0.8))
+			return
+		pr()["birth_wait"] = now
+		pr()["waypoint"] = [door.x, door.y, door.z, "Evin (doğum!)"]
+		pr()["track"] = "waypoint"
+		Hud.banner("DOĞUM BAŞLADI", "%s sancılandı, ebe evde. Eve koş!" % sp["name"], Color(1, 0.75, 0.8))
+		return
+	if now - wait > 600.0 and not is_instance_valid(HomeLife.cur):
+		var k1 = birth()
+		if not k1.is_empty():
+			Hud.msg("%s sensiz doğdu. %s evde seni bekliyor." % [String(k1["name"]).split(" ")[-1], sp["name"]], Color(1, 0.8, 0.85), 7.0)
+			add_bond(spouse_id(), -4, true)
+
+
+## Çocuk kaydı oluşur (kalıtımla). Doğum beklenmiyorsa boş döner.
+static func birth() -> Dictionary:
+	if float(pr().get("baby_due", 0.0)) <= 0.0 or spouse_id() == "" or not all().has(spouse_id()):
+		return {}
 	pr()["baby_due"] = 0.0
+	pr()["birth_wait"] = 0.0
 	var sp: Dictionary = all()[spouse_id()]
 	var fem = randf() < 0.5
 	var my_clan = String(pr().get("clan", "none"))
@@ -682,10 +744,10 @@ static func _baby_tick() -> void:
 		"clans": [my_clan, sp_clan].filter(func(c): return c != "" and c != "none"), "born": Time.get_unix_time_from_system()}
 	if not pr().has("children"):
 		pr()["children"] = []
+	KidLife.ensure(kid)   # kalıtım: saç / ten / göz / klan / doğa iki ebeveynden
 	pr()["children"].append(kid)
-	var mix = " (%s melezi)" % " × ".join(kid["clans"].map(func(c): return ClanWorld.clan_name(c))) if (kid["clans"] as Array).size() >= 2 and kid["clans"][0] != kid["clans"][1] else ""
 	log_event(sp, "%s adında bir %s oldu (seninle)" % [kid["name"], "kızınız" if fem else "oğlunuz"])
-	Hud.banner("BİR %s OLDU!" % ("KIZINIZ" if fem else "OĞLUNUZ"), "%s%s dünyaya geldi ♥" % [kid["name"], mix], Color(1, 0.75, 0.8))
+	return kid
 
 
 static func _family(clan: String, female: bool, rank: int) -> Array:
@@ -899,7 +961,8 @@ func _life_event() -> void:
 		var r = randf()
 		_ensure_persona(f)
 		var teacher = String(f.get("role", "")) == "teacher"
-		if teacher:
+		var close = KinDrama.is_family(id)   # yakınların: sessiz haberle kaçmaz / ölmez (aile dramı sahneleri yönetir)
+		if teacher or close:
 			defect_p = 0.0   # takım hocası köyünü bırakıp kaçmaz
 		if Orgs.is_rogue() and not is_rogue(f):
 			defect_p = 0.0   # sen kaçınca köydeki tanıdıkların da birer birer kaçmasın (kullanıcı: "buna hiç gerek yok")
@@ -918,7 +981,7 @@ func _life_event() -> void:
 				log_event(f, "%s oldu" % RANKS[rank + 1])
 				f["news"] = "Duydun mu? Artık %s oldum! Yeleği giyince insan bir tuhaf oluyor." % RANKS[rank + 1]
 				Hud.msg("Haber: %s %s oldu!" % [f["name"], RANKS[rank + 1]], Color(0.6, 1.0, 0.75), 5.0)
-		elif r < defect_p + 0.33 and randf() < 0.4 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f):   # evlilik: arada bir (eskiden olayların %12si)
+		elif r < defect_p + 0.33 and randf() < 0.4 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f) and not String(f.get("kin", "")) in ["baba", "anne"]:   # evlilik: arada bir (eskiden olayların %12si)
 			var fem = String(f["look"].get("gender", "m")) == "f"
 			# kimi zaman tanıdığın başka bir dostla evlenir (ikisi de bekâr, karşı cins, aynı köy, sana gönlü olmayan)
 			var mates = fs.keys().filter(func(k): return k != id and String(fs[k].get("status", "")) == "" and int(fs[k].get("rank", 0)) >= 1 				and String(fs[k]["look"].get("gender", "m")) != String(f["look"].get("gender", "m")) and String(fs[k].get("village", "")) == String(f.get("village", "")) 				and romance_of(k) == "" and not likes_you(fs[k]) and not (fs[k].get("family", []) as Array).any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"]))
@@ -959,12 +1022,14 @@ func _life_event() -> void:
 			log_event(f, "Uzun bir göreve çıktı")
 			f["news"] = "Görevden yeni döndüm. Sınırda işler karışık, haberin olsun."
 			Hud.msg("Haber: %s uzun bir göreve çıktı." % f["name"], Color(0.7, 0.85, 1.0))
+		elif r < defect_p + 0.8 and close:
+			injure(id, "Görevde yaralandı")   # hastanede yatar: başucuna gidebilirsin
 		elif r < defect_p + 0.8:
 			f["away"] = now + 300.0
 			log_event(f, "Görevde yaralandı, hastanede")
 			f["news"] = "Hastaneden çıktım. Bir dahaki sefere kimseye sırtımı dönmeyeceğim."
 			Hud.msg("Haber: %s görevde yaralandı, hastanede yatıyor." % f["name"], Color(1, 0.75, 0.5))
-		elif r < defect_p + 0.81:
+		elif r < defect_p + 0.81 and not close:
 			f["status"] = "öldü"
 			f["party"] = false
 			log_event(f, "Bir görevde öldü")
@@ -1201,6 +1266,10 @@ static func where(id: String) -> Vector3:
 		return Vector3.INF
 	if String(f.get("kage", "")) != "" or String(f.get("status", "")) != "":
 		return Vector3.INF
+	if id == HomeLife.host_id() and HomeLife.host_home():   # eşin / annen evde: kapının önü işaretlenir (kendisi içeride)
+		var hd = HomeLife.door_pos()
+		if hd != Vector3.INF:
+			return hd
 	return _job_pos(f)   # işine göre: kapıda nöbet, antrenman alanı, evi; görevdeyse köy dışında (bilinmez)
 
 
@@ -1254,6 +1323,10 @@ static func where_text(id: String) -> String:
 		return "hapiste"
 	if f.get("party", false):
 		return "takımında, yanında"
+	if f.get("abducted", false):
+		return "kaçırıldı"
+	if Orgs.is_rogue() and st == "" and KinDrama.is_family(id):
+		return "köyde — gece gizlice evine uğrayabilirsin"
 	if not available(f):
 		return "hastanede" if f.has("injury") else "köy dışında (görev)"
 	return String(JOB_NAMES.get(job_of(f), "Evde")).to_lower() + "  (tıkla: haritada göster)"
@@ -1366,6 +1439,10 @@ func _world_tick(dt: float) -> void:
 		var p = where(id)
 		if p == Vector3.INF or p.distance_to(pp) > 70.0:
 			continue
+		if id == HomeLife.host_id() and HomeLife.host_home():
+			continue   # evin içinde
+		if is_instance_valid(Wedding.cur) and Wedding.cur.sid == id:
+			continue   # tören alanında
 		var here = false
 		for n in get_tree().get_nodes_in_group("talkers"):
 			if String(n.get_meta("friend_id", "")) == id:
@@ -1986,6 +2063,7 @@ func _spar_end(won: bool) -> void:
 	add_bond(id, 3 if TRAITS.get(String(f.get("trait", "")), {}).get("like", []).has("antrenman") else 2)
 	log_event(f, "Antrenman alanında idman yaptınız (%s)" % ("sen kazandın" if won else "o kazandı"))
 	PupilSquad.on_spar(id, won)
+	Kin.on_spar(id, won)
 	act["stage"] = "done"
 	await get_tree().create_timer(4.0).timeout
 	_act_end("")
@@ -2035,6 +2113,8 @@ static func listed() -> Dictionary:
 
 
 func _funeral_tick() -> void:
+	if Game.player.get("scene_hold"):
+		return   # bir sahne sürüyor (son sözler...): ulak sonra gelir
 	var now = Time.get_unix_time_from_system()
 	var pp = Game.player.global_position
 	for id in all():
@@ -2313,12 +2393,17 @@ func graduation() -> void:
 			kid["grad"] = true
 			var fem = String(kid.get("gender", "m")) == "f"
 			var cl: Array = kid.get("clans", [])
-			var lk = ClanWorld.clan_look(String(cl[0]) if not cl.is_empty() else "", "genin", vid, fem, "teen")
-			if randf() < 0.5:
-				lk["hair"] = pr().get("look", {}).get("hair", lk["hair"])
+			var lk = KidLife.look(kid, "teen")   # büyümüş hâli: aynı saç / ten / göz, klanının genin kıyafeti
+			cl = kid.get("clans", [])
 			var id = _make_friend(String(kid["name"]), String(cl[0]) if not cl.is_empty() else "", lk, 80, "Senin %s" % ("kızın" if fem else "oğlun"))
+			KidLife.graduate_into(kid, all()[id])   # doğası, verdiğin derslerle kazandığı Güç, klan gözü
 			all()[id]["loyalty"] = 95
 			all()[id]["family"] = [{"rel": "Ebeveyni", "name": "%s (sen)" % pr().get("name", ""), "alive": true}]
+			if kid.get("sib", false):   # miras sonrası: evdeki küçük kardeşin mezun oldu
+				all()[id].erase("child")
+				all()[id]["kin"] = "kardeş"
+				all()[id]["title"] = "Kardeşin"
+				all()[id]["family"] = [{"rel": "Kardeşi", "name": "%s (sen)" % pr().get("name", ""), "alive": true}]
 			log_event(all()[id], "Akademiden mezun oldu! Alın koruyucusunu sana gösterdi")
 			names.append("%s (senin %s)" % [kid["name"], "kızın" if fem else "oğlun"])
 	for id in all():
@@ -2521,8 +2606,16 @@ func _process(dt: float) -> void:
 	if _active():
 		_grad_tick(dt)
 		_act_tick(dt)
+	if _active() and not pr().is_empty():
+		Kin.ensure()
+		Kin.tick(dt)
+		KinDrama.tick(dt)
+		RogueKin.tick(dt)
 	if _active() and not all().is_empty():
 		_baby_tick()
+		HomeLife.tick(dt)
+		Wedding.tick(dt)
+		SchoolVisit.tick()
 		_world_tick(dt)
 		life_t -= dt
 		if life_t <= 0.0:

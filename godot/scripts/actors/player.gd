@@ -65,6 +65,7 @@ var on_water = false
 var swimming = false
 var land_t = 0.0
 var input_locked = 0.0
+var scene_hold := false   # ev sahneleri (HomeLife): kilitliyken duruş/animasyon sahneye bırakılır
 var combat: Node = null  # Combat bileşeni (dövüş)
 
 var team = "player"
@@ -571,7 +572,7 @@ func _ground_air_move(dt: float) -> void:
 			swimming = false
 	# yokuş aşağı: yerdeyken arazi hızla alçalıyorsa havaya kalkma, zemine yapış
 	var snap = maxf(0.3, Vector2(velocity.x, velocity.z).length() * dt * 1.6)
-	if was_grounded and velocity.y <= 0.0 and p.y > ground and p.y - ground < snap and not swimming:
+	if was_grounded and velocity.y <= 0.0 and p.y > ground and p.y - ground < snap and not swimming and not is_on_floor():   # alçak bir yapının (basamak, rampa) üstündeyken araziye çekilmez
 		p.y = ground
 	if p.y <= ground + 0.02 and velocity.y <= 0.0:
 		p.y = ground
@@ -1135,6 +1136,8 @@ func _footstep(_sp: float, sprint: bool) -> void:
 func _animate(sp: float, sprint: bool) -> void:
 	_footstep(sp, sprint)
 	var ov = model.overlay
+	if scene_hold and input_locked > 0.0:
+		return
 	if model.current == "sit" and input_locked > 0.0:
 		return   # tezgâhta/salıncakta otururken ayağa kalkmasın
 	if swimming:

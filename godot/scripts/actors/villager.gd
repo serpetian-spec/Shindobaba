@@ -204,7 +204,7 @@ func talk() -> void:
 	var extra = []
 	if has_meta("jinchuriki_of"):   # köyün jinchūriki'si: saldırılabilir; yenilince canavar bedeninden fışkırır (mühürle / salıver)
 		extra.append({"label": "Saldır! (içindeki canavarı al — köyde suç)", "cb": func(): TailedBeasts.attack_host(self)})
-	Hud.dialog(display, line, Friends.options_for(self) + (Friends.small_talk(self) if fid == "" else []) + extra + ([] if has_meta("jinchuriki_of") else Crime.attack_option(self)))
+	Hud.dialog(display, line, Friends.options_for(self) + (Friends.small_talk(self) if fid == "" else []) + extra + ([] if has_meta("jinchuriki_of") or not HomeLife.kid_of(self).is_empty() else Crime.attack_option(self)))
 
 
 ## Kafanın üstünde kısa konuşma balonu

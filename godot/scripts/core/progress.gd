@@ -803,7 +803,11 @@ func interact(it: Dictionary) -> void:
 		"exit":
 			if Interiors.inst:
 				Interiors.inst.exit()
+		"cradle":
+			HomeLife.on_cradle()
 		"bed":
+			if HomeLife.on_bed():
+				return
 			_sleep(0, "Futonuna uzanıp gözlerini kapattın... Sabah oldu. (Oyun kaydedildi)")
 		"inn_sleep", "inn":
 			Hud.dialog(it.get("title", "Han Sahibi"), "Hoş geldin yolcu! Sıcak yemek de var, yumuşak futon da.", [
@@ -835,7 +839,7 @@ func interact(it: Dictionary) -> void:
 		"home_note":
 			var lv = int(pr["level"])
 			Hud.dialog("Notlar", "Kendi el yazınla: \"%s\"\nGüç %d • %s • %d Ryō\nGörevler: D%d C%d B%d A%d S%d" % [_note_line(), lv, Data.RANKS[int(pr["rank"])], int(pr["ryo"]),
-				pr["missions_done"]["D"], pr["missions_done"]["C"], pr["missions_done"]["B"], pr["missions_done"]["A"], pr["missions_done"]["S"]], [])
+				pr["missions_done"]["D"], pr["missions_done"]["C"], pr["missions_done"]["B"], pr["missions_done"]["A"], pr["missions_done"]["S"]] + HomeLife.note_text() + KidLife.note_text(), [])
 		"bbq":
 			_eat(80, "Yakiniku! Can ve chakra doldu, 60sn boyunca +%20 güç.", "Garson")
 			Buffs.add("bbq", 60.0, {"melee": 1.2})

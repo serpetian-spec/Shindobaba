@@ -116,7 +116,7 @@ static func _teach_menu(id: String) -> void:
 ## İdman maçı bitti (Friends._spar_end): öğrenci gelişir
 static func on_spar(id: String, player_won: bool) -> void:
 	var f: Dictionary = Friends.all().get(id, {})
-	if not f.get("pupil", false):
+	if not f.get("pupil", false) and not f.get("child", false):
 		return
 	_grow(f, SPAR_GAIN + (0.2 if not player_won else 0.0))
 
@@ -129,8 +129,8 @@ static func _grow(f: Dictionary, amt: float) -> void:
 		Hud.msg("%s gelişti — Güç %d" % [f["name"], int(nv)], Color(0.7, 0.95, 0.7))
 	if before < CHUNIN_LV and nv >= CHUNIN_LV and int(f.get("rank", 0)) < 1:
 		f["rank"] = 1
-		f["title"] = "Öğrencin (Chūnin)"
-		Hud.banner("%s CHŪNİN OLDU" % String(f["name"]).to_upper(), "Senin öğrencin Chūnin yeleğini giydi.", Color(0.7, 0.95, 0.7))
+		f["title"] = "Öğrencin (Chūnin)" if not f.get("child", false) else String(f.get("title", "")) + " (Chūnin)"
+		Hud.banner("%s CHŪNİN OLDU" % String(f["name"]).to_upper(), "Senin öğrencin Chūnin yeleğini giydi." if not f.get("child", false) else "Çocuğun Chūnin yeleğini giydi.", Color(0.7, 0.95, 0.7))
 		Journal.add("Öğrencim %s Chūnin oldu." % f["name"], "milestone")
 
 

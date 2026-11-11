@@ -13,6 +13,8 @@ func nearest(p: Vector3) -> Dictionary:
 	var bd = 1e9
 	for it in items:
 		var d: float = p.distance_to(it["pos"])
+		if it.has("home_of") and String(it["home_of"]) != Progress.home():
+			continue   # başka köydeki boş ev: senin evin değil
 		if d < float(it["radius"]) and d < bd:
 			bd = d
 			best = it
@@ -37,7 +39,7 @@ const LANDMARKS := {
 func landmarks(center: Vector3, radius: float) -> Array:
 	var out = []
 	for it in items:
-		if it.get("interior", false):
+		if it.get("interior", false) or (it.has("home_of") and String(it["home_of"]) != Progress.home()):
 			continue
 		var key = String(it.get("room", "")) if it.get("kind", "") == "enter" else String(it.get("kind", ""))
 		if not LANDMARKS.has(key):
