@@ -38,8 +38,12 @@ func _ready() -> void:
 	var L = maxf(ab.size.x, maxf(ab.size.y, ab.size.z))
 	var ctr = ab.get_center()
 	var shots = [
-		["front", hp + fwd * h * 1.25 + Vector3.UP * h * 0.05, hp + Vector3.UP * h * 0.08 - fwd * h * 0.3],
+		["front", r.global_position + fwd * h * 1.7 + Vector3.UP * h * 0.3, r.global_position + Vector3.UP * h * 0.6],
 		["face", hp + fwd * h * 0.42 + right * h * 0.2 - Vector3.UP * h * 0.02, hp + Vector3.UP * h * 0.04],
+		["q34", r.global_position + fwd * h * 1.05 - right * h * 0.7 + Vector3.UP * h * 0.3, r.global_position + Vector3.UP * h * 0.6 + Vector3(0, 0, h * 0.35)],
+		["q34b", r.global_position - fwd * h * 1.3 + right * h * 1.3 + Vector3.UP * h * 0.5, r.global_position + Vector3.UP * h * 0.75 + Vector3(0, 0, h * 0.3)],
+		["yuz", hp + fwd * h * 0.36 + Vector3.UP * h * 0.01, hp],
+		["yan", ctr + right * L * 1.0 + Vector3.UP * L * 0.02, ctr],
 		["side", ctr + right * L * 0.8 + Vector3.UP * L * 0.05, ctr],
 		["back", ctr - fwd * L * 0.7 + right * L * 0.3 + Vector3.UP * L * 0.3, ctr],
 	]
