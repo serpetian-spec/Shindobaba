@@ -118,7 +118,43 @@ static func door_pos() -> Vector3:
 
 
 ## Evden uzak geçen süre: eşin önce köyde seni bulup sitem eder, sonra bağ düşmeye başlar
+static var _was_night := false
+const EVE_MARK := "Evin (ailen bekliyor)"
+
+
+## Akşam olunca: evde bekleyen biri varsa haber verilir ve ev haritada işaretlenir (ailen olduğunu fark etmeden geçip gitme)
+static func _evening_call() -> void:
+	if Game.player == null or pr().is_empty():
+		return
+	var wp = pr().get("waypoint")
+	var marked = wp is Array and wp.size() > 3 and String(wp[3]) == EVE_MARK
+	var n = night()
+	var inside = String(Interiors.inst.inside) if Interiors.inst else ""
+	if marked and (not n or inside.begins_with("home")):
+		pr().erase("waypoint")   # sabah oldu ya da eve girdin
+		if String(pr().get("track", "")) == "waypoint":
+			pr()["track"] = ""
+		Hud.objective_changed()
+	if n and not _was_night and inside == "" and not Orgs.is_rogue() and host_home():
+		var door = door_pos()
+		var v = Game.village(Progress.home())
+		if door != Vector3.INF and not v.is_empty() and Game.to_map(Game.player.global_position).distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.1:
+			var sid = Friends.spouse_id()
+			var who = "Ailen"
+			if sid != "" and Friends.all().has(sid) and spouse_home():
+				who = "Eşin %s" % String(Friends.all()[sid]["name"])
+			elif Kin.alive("anne") and not (Kin.alive("baba") or Kin.alive("kardeş")):
+				who = "Annen"
+			Hud.msg("Akşam oldu. %s seni evde bekliyor; sofra kuruldu." % who, Color(1.0, 0.86, 0.6), 8.0)
+			if Missions.active().is_empty() and not (wp is Array):
+				pr()["waypoint"] = [door.x, door.y, door.z, EVE_MARK]
+				pr()["track"] = "waypoint"
+				Hud.objective_changed()
+	_was_night = n
+
+
 static func tick(dt: float) -> void:
+	_evening_call()
 	var id = Friends.spouse_id()
 	if id == "" or not Friends.all().has(id) or Game.player == null:
 		return

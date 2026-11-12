@@ -330,14 +330,17 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 	var dark = Color(0.3, 0.2, 0.14)
 	var glass = Color(0.55, 0.72, 0.85)   # pencere işareti: gece bazıları yanar (toon)
 	var stone = Color(0.66, 0.62, 0.56)
+	# anime (refs/konoha/Hokage_Residence.png): kırmızı silindir gövde, kiremit etek çatılar (krem gövde kanon değildi)
+	var wall = Color(0.74, 0.22, 0.17)
+	var tile = Color(0.86, 0.52, 0.24)
 	# kaide
 	b.cyl(Vector3(0, 0.3, tn), 82, 1.2, stone, true, 40)
 	b.cyl(Vector3(0, 0.93, tn), 83, 0.08, stone.lightened(0.12), false, 40)
 	# ana gövde + kat bantları
-	b.cyl(Vector3(0, 24.9, tn), 70, 48, cream, true, 40)
+	b.cyl(Vector3(0, 24.9, tn), 70, 48, wall, true, 40)
 	for fl in 4:
 		b.cyl(Vector3(0, 11.0 + fl * 10.0, tn), 70.8, 0.6, dark.lightened(0.15), false, 40)
-	b.cyl(Vector3(0, 1.9, tn), 71.2, 2.0, cream.darkened(0.12), false, 40)
+	b.cyl(Vector3(0, 1.9, tn), 71.2, 2.0, wall.darkened(0.2), false, 40)
 	# pencereler: çerçeve + cam + küçük saçak
 	for k in 16:
 		var a = k * 22.5 + 11.25
@@ -351,9 +354,9 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 			b.box(Vector3(q2.x, y, tn + q2.y), Vector3(3.6, 3.8, 0.3), glass, a, false)
 			b.box(Vector3(q2.x, y, tn + q2.y), Vector3(0.18, 3.8, 0.34), dark, a, false)
 			var q3 = Builder.rot(0, 35.9, a)
-			b.box(Vector3(q3.x, y + 2.55, tn + q3.y), Vector3(4.8, 0.25, 1.4), red, a, false, Vector3(-14, 0, 0))
+			b.box(Vector3(q3.x, y + 2.55, tn + q3.y), Vector3(4.8, 0.25, 1.4), tile, a, false, Vector3(-14, 0, 0))
 	# kırmızı saçak etek + alt kiriş
-	b.cone(Vector3(0, 53.0, tn), 86, 9.0, red, 40)
+	b.cone(Vector3(0, 53.0, tn), 86, 9.0, tile, 40)
 	b.cyl(Vector3(0, 48.6, tn), 85.5, 0.5, dark, false, 40)
 	# balkon zemini + korkuluk (yürünebilir)
 	b.cyl(Vector3(0, 56.8, tn), 66, 0.6, stone.lightened(0.05), true, 40)
@@ -364,7 +367,7 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 		var q2 = Builder.rot(0, 32.6, a + 3.75)
 		b.box(Vector3(q2.x, 58.55, tn + q2.y), Vector3(4.35, 0.16, 0.26), red.darkened(0.2), a + 3.75, false)
 	# üst gövde
-	b.cyl(Vector3(0, 62.0, tn), 52, 11, cream, true, 32)
+	b.cyl(Vector3(0, 62.0, tn), 52, 11, wall, true, 32)
 	for k in 12:
 		var a = k * 30.0 + 15.0
 		var q = Builder.rot(0, 26.1, a)
@@ -376,9 +379,9 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 	b.kanji(Vector3(0, 63.0, tn - 26.75), "火", 7.6, red.darkened(0.05), 0.0)
 	# çatı: kiriş bandı, büyük kırmızı koni, ikinci kademe, tepe süsü
 	b.cyl(Vector3(0, 67.7, tn), 54, 0.8, dark, false, 32)
-	b.cone(Vector3(0, 73.5, tn), 68, 12.0, red, 32, true)
-	b.cyl(Vector3(0, 79.0, tn), 18, 2.2, cream.darkened(0.05), false, 20)
-	b.cone(Vector3(0, 82.6, tn), 24, 5.6, red.darkened(0.05), 20)
+	b.cone(Vector3(0, 73.5, tn), 68, 12.0, tile, 32, true)
+	b.cyl(Vector3(0, 79.0, tn), 18, 2.2, wall, false, 20)
+	b.cone(Vector3(0, 82.6, tn), 24, 5.6, tile.darkened(0.05), 20)
 	b.cyl(Vector3(0, 86.6, tn), 0.6, 3.0, dark, false, 8)
 	b.sphere(Vector3(0, 88.3, tn), Vector3(1.1, 1.1, 1.1), Color(0.85, 0.68, 0.3), 10)
 	# giriş revakı: iki kırmızı sütun, kırmızı çatı, çift kapı, noren, kanji pano

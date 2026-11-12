@@ -1230,12 +1230,26 @@ Y   %s  %s%s" % [("(%d sn)" % ceili(scd)) if scd > 0.0 else "(hazır)", ClanMech
 
 
 func _near_talker(pl: Node3D) -> Node:
+	# baktığın kişi: menzildekiler arasında kameranın baktığı yöndeki öne geçer (eskiden yalnız en yakın: önündekine
+	# bakarken arkandakiyle konuşuyordun)
 	var best: Node = null
-	var bd = 3.4
+	var bs = 1e9
+	var cam = get_viewport().get_camera_3d()
+	var fw = Vector3.ZERO
+	if cam != null:
+		fw = -cam.global_transform.basis.z
+		fw.y = 0.0
+		fw = fw.normalized() if fw.length() > 0.01 else Vector3.ZERO
 	for c in get_tree().get_nodes_in_group("talkers"):
-		var d = c.global_position.distance_to(pl.global_position)
-		if d < bd:
-			bd = d; best = c
+		var to: Vector3 = c.global_position - pl.global_position
+		var d = to.length()
+		if d >= 3.4:
+			continue
+		to.y = 0.0
+		var facing = to.normalized().dot(fw) if to.length() > 0.3 and fw != Vector3.ZERO else 1.0
+		var sc = d - 2.4 * facing
+		if sc < bs:
+			bs = sc; best = c
 	return best
 
 

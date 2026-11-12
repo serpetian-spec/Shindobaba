@@ -83,7 +83,10 @@ static func power(p: Dictionary) -> int:
 
 
 static func refresh_level(p: Dictionary) -> void:
+	var old_lv = int(p.get("level", 1))
 	p["level"] = power(p)
+	if p == Game.profile:
+		FightingStyles.on_power(p, old_lv, int(p["level"]))   # klan / kan soyu tarzı bu güçte uyanır
 	p["xp"] = 0
 
 

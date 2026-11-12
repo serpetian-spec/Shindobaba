@@ -46,7 +46,7 @@ func _ready() -> void:
 	e.queue_free()
 	await get_tree().create_timer(0.5).timeout
 	# (2) saldırganlık: 3 düşman, 10 sn içinde oyuncuya isabet sayısı
-	Enemy.attack_tokens = 0
+	Enemy._tok.clear()
 	var es = []
 	for k in 3:
 		var b = Enemy.archetype("rogue", k)

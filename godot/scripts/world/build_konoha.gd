@@ -110,14 +110,73 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	# ---- Ninja Akademisi (kulenin batısı) + avlu
 	var ax = -540.0; var an = 610.0
 	b.yoff = _gy(b, ax, an)
-	b.box(Vector3(ax, 10, an), Vector3(100, 20, 34), Color(0.88, 0.78, 0.58))
-	b.box(Vector3(ax, 20.8, an), Vector3(103, 1.6, 37), Color(0.72, 0.18, 0.15))
-	b.box(Vector3(ax, 24.5, an), Vector3(28, 7, 18), Color(0.88, 0.78, 0.58))
-	b.box(Vector3(ax, 28.6, an), Vector3(31, 1.4, 21), Color(0.72, 0.18, 0.15))
-	for i in 14:
-		for fl in [5.5, 14.0]:
-			b.box(Vector3(ax - 45 + i * 6.9, fl, an - 17.1), Vector3(3.2, 3, 0.3), Color(0.55, 0.72, 0.85), 0, false)
-	b.box(Vector3(ax, 3.2, an - 17.4), Vector3(7, 6.4, 0.6), Color(0.35, 0.24, 0.16), 0, false)
+	# anime (refs/konoha/Academy.png): turuncu kiremitli alçak ön kanatlar, ortada kırmızı silindir ana bina (iki kat kiremit etek,
+	# tepede üç beyaz boynuz), solunda mavi etekli beyaz sivri kule, çatıda yuvarlak 火 levhası. Düz bej kutu değil.
+	var a_tan = Color(0.84, 0.66, 0.42)
+	var a_tile = Color(0.92, 0.56, 0.2)
+	var a_red = Color(0.74, 0.2, 0.16)
+	var a_white = Color(0.93, 0.93, 0.9)
+	var a_wood = Color(0.38, 0.26, 0.16)
+	# ön kanat (tek kat, sokağa bakan) + arka kanat (iki kat): ikisi de kiremit beşik çatı
+	b.box(Vector3(ax, 4.5, an - 8.5), Vector3(100, 9, 17), a_tan)
+	b.roof(Vector3(ax, 9.0, an - 8.5), Vector3(104, 4.2, 20.5), a_tile)
+	b.box(Vector3(ax, 7.0, an + 8.5), Vector3(100, 14, 17), a_tan.darkened(0.06))
+	b.roof(Vector3(ax, 14.0, an + 8.5), Vector3(104, 5.0, 20.5), a_tile.darkened(0.05))
+	b.box(Vector3(ax, 9.15, an - 17.2), Vector3(104, 0.5, 0.5), a_wood, 0, false)   # saçak kirişi
+	for i in 15:   # ön kanat pencereleri (ahşap çerçeveli) — ortada kapıya yer
+		var wx = ax - 46.0 + i * 6.55
+		if absf(wx - ax) < 7.0:
+			continue
+		b.box(Vector3(wx, 5.0, an - 17.08), Vector3(2.6, 2.2, 0.2), a_wood, 0, false)
+		b.box(Vector3(wx, 5.0, an - 17.16), Vector3(2.1, 1.7, 0.2), Color(0.5, 0.68, 0.82), 0, false)
+		b.box(Vector3(wx, 5.0, an - 17.22), Vector3(0.14, 1.7, 0.2), a_wood, 0, false)
+	for i in 9:   # arka kanat üst kat pencereleri (ön çatının üstünden görünür)
+		b.box(Vector3(ax - 44.0 + i * 11.0, 11.6, an - 0.08), Vector3(2.4, 1.6, 0.2), Color(0.5, 0.68, 0.82), 0, false)
+	# giriş: ahşap kapı, üstünde küçük kiremit saçak ve tabela
+	b.box(Vector3(ax, 3.2, an - 17.4), Vector3(7, 6.4, 0.6), a_wood, 0, false)
+	b.roof(Vector3(ax, 6.9, an - 18.6), Vector3(11, 1.6, 4.0), a_tile)
+	for sx in [-4.8, 4.8]:
+		b.box(Vector3(ax + sx, 3.45, an - 20.2), Vector3(0.5, 6.9, 0.5), a_red, 0, false)
+	b.box(Vector3(ax, 8.1, an - 20.3), Vector3(9.0, 1.9, 0.25), a_white, 0, false)
+	b.kanji(Vector3(ax, 8.1, an - 20.46), "忍者学校", 1.4, Color(0.12, 0.1, 0.1), 0.0)
+	# ana bina: kırmızı silindir, ortasında ve üstünde kiremit etek, tepe tamburu
+	var mcx = ax + 14.0; var mcn = an + 2.0
+	b.cyl(Vector3(mcx, 13.0, mcn), 34.0, 26.0, a_red, true, 24)
+	b.cone(Vector3(mcx, 15.5, mcn), 52.0, 9.0, a_tile, 24)
+	b.cone(Vector3(mcx, 28.6, mcn), 39.0, 7.2, a_tile, 24)
+	b.cyl(Vector3(mcx, 25.1, mcn), 39.4, 0.45, Color(0.6, 0.62, 0.64), false, 24)   # saçak kenar bandı
+	b.cyl(Vector3(mcx, 11.1, mcn), 52.4, 0.45, Color(0.6, 0.62, 0.64), false, 24)
+	b.cyl(Vector3(mcx, 29.5, mcn), 25.0, 7.0, a_red, false, 24)
+	b.cyl(Vector3(mcx, 33.3, mcn), 27.0, 0.8, a_tile.darkened(0.12), false, 24)
+	for k in 8:   # silindirin çevresinde beyaz çerçeveli pencereler (üst kat)
+		var wa = deg_to_rad(-70.0 + k * 20.0)
+		var wpn = Vector3(mcx + sin(wa) * 17.05, 21.5, mcn - cos(wa) * 17.05)
+		b.box(wpn, Vector3(2.4, 2.8, 0.5), a_white, rad_to_deg(wa), false)
+		b.box(wpn + Vector3(sin(wa), 0, -cos(wa)) * 0.12, Vector3(1.8, 2.2, 0.5), Color(0.22, 0.26, 0.34), rad_to_deg(wa), false)
+	# tepe kenarında gri-mavi boynuzlar (anime: çatı çemberinden yükselen dişler; öndeki en uzun)
+	var a_horn = Color(0.66, 0.74, 0.8)
+	for k in 5:
+		var ha = deg_to_rad(-80.0 + k * 40.0)
+		var hh = [9.0, 14.0, 17.0, 14.0, 9.0][k]
+		b.cone(Vector3(mcx + sin(ha) * 10.6, 33.6 + hh * 0.5, mcn - cos(ha) * 10.6), 2.6, hh, a_horn, 10)
+	# çatıdaki yuvarlak 火 levhası (silindirin sol önünde, direk üstünde)
+	var plx = mcx - 15.0; var pln = mcn - 12.5
+	b.box(Vector3(plx, 14.0, pln + 0.6), Vector3(0.6, 9.0, 0.6), a_wood, 0, false)
+	b.disc(Vector3(plx, 20.5, pln + 0.3), 9.4, 0.5, a_red, 0.0, 20)
+	b.disc(Vector3(plx, 20.5, pln), 8.2, 0.5, a_white, 0.0, 20)
+	b.kanji(Vector3(plx, 20.5, pln - 0.32), "火", 5.2, a_red, 0.0)
+	# beyaz sivri kule (solda): mavi-gri etek çatı, koyu bantlar, soğan başlık
+	var tx = ax - 22.0; var ttn = an + 3.0
+	b.cyl(Vector3(tx, 10.0, ttn), 13.0, 20.0, a_white, true, 16)
+	b.cone(Vector3(tx, 18.0, ttn), 23.0, 8.0, Color(0.42, 0.6, 0.7), 16)
+	b.cyl(Vector3(tx, 25.5, ttn), 8.0, 11.0, a_white, false, 16)
+	for k in 3:
+		b.cyl(Vector3(tx, 23.0 + k * 3.0, ttn), 8.5, 0.7, Color(0.62, 0.3, 0.24), false, 16)
+	b.cone(Vector3(tx, 34.0, ttn), 8.0, 6.0, a_white, 16)
+	b.cyl(Vector3(tx, 35.4, ttn), 3.4, 0.5, Color(0.62, 0.3, 0.24), false, 12)
+	b.sphere(Vector3(tx, 38.2, ttn), Vector3(5.4, 5.4, 5.4), Color(0.78, 0.8, 0.84))
+	for k in 5:   # sol ön köşede havalandırma boruları
+		b.cyl(Vector3(ax - 48.0 + k * 1.9, 9.8 + (k % 2) * 0.7, an - 12.0), 1.3, 2.4 + (k % 2) * 1.4, a_white, false, 10)
 	b.yoff = 0.0
 	# avlu: duvar + kapı, taş yol, fenerler, antrenman alanı, gölet, salıncak ağacı, oyun parkı, sundurma
 	var arng = RandomNumberGenerator.new()
@@ -244,11 +303,64 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		for sx2 in [-7.0, 7.0]:
 			b.prop("stone_lamp", Vector3(ux + sx2, 0, un - 20), 0.0, 2.4, 0.4)
 	else:
-		b.box(Vector3(ux, 4.5, un), Vector3(16, 9, 12), Color(0.55, 0.32, 0.22))
-		b.roof(Vector3(ux, 9, un), Vector3(20, 5, 16), Color(0.25, 0.25, 0.3))
-	b.box(Vector3(ux, 6, un - 16), Vector3(11, 1.0, 1.0), Color(0.8, 0.2, 0.15), 0, false)
-	for sx in [-4.6, 4.6]:
-		b.box(Vector3(ux + sx, 3.2, un - 16), Vector3(0.8, 6.4, 0.8), Color(0.8, 0.2, 0.15), 0, false)
+		# anime (refs/konoha/Naka_Shrine.png): taş kaide, krem panolu koyu kırmızı ahşap çatkılı ana salon, gri-yeşil geniş
+		# saçaklı çatı + önde üçgen alınlıklı giriş saçağı, mahya üstünde kütükler, iki yanda alçak kafesli kanatlar,
+		# önde gri kaideli büyük kırmızı torii (çift kiriş, ortasında Uchiha yelpazeli levha), taş fenerler.
+		var n_wood = Color(0.55, 0.24, 0.22)
+		var n_cream = Color(0.86, 0.82, 0.68)
+		var n_roof = Color(0.5, 0.52, 0.42)
+		var n_stone = Color(0.62, 0.63, 0.6)
+		var n_lat = Color(0.4, 0.26, 0.22)
+		b.box(Vector3(ux, 0.5, un - 1.0), Vector3(58, 1.0, 22), n_stone)                 # kaide
+		b.box(Vector3(ux, 0.25, un - 13.0), Vector3(12, 0.5, 2.4), n_stone.darkened(0.08))   # basamak
+		# ana salon
+		b.box(Vector3(ux, 5.0, un), Vector3(18, 8, 12), n_cream)
+		for i in 5:
+			b.box(Vector3(ux - 9.0 + i * 4.5, 5.0, un - 6.05), Vector3(0.5, 8.0, 0.3), n_wood, 0, false)
+		for yy in [1.3, 5.2, 8.8]:
+			b.box(Vector3(ux, yy, un - 6.05), Vector3(18.2, 0.45, 0.3), n_wood, 0, false)
+		for sxk in [-1.0, 1.0]:   # salonun ön yüzünde kafesli pencereler
+			b.box(Vector3(ux + sxk * 6.7, 3.3, un - 6.1), Vector3(3.6, 3.2, 0.2), n_lat, 0, false)
+		b.roof(Vector3(ux, 9.0, un), Vector3(27, 6.5, 19), n_roof)
+		b.box(Vector3(ux, 9.05, un - 9.4), Vector3(27.2, 0.4, 0.5), n_roof.darkened(0.25), 0, false)
+		b.box(Vector3(ux, 15.6, un), Vector3(20, 0.9, 1.4), n_wood.darkened(0.25), 0, false)   # mahya kirişi
+		for i in 5:   # mahya kütükleri
+			b.box(Vector3(ux - 7.0 + i * 3.5, 16.4, un), Vector3(0.8, 0.8, 3.4), Color(0.72, 0.62, 0.48), 0, false)
+		# giriş saçağı: iki direk, üçgen alınlık, yelpazeli levha, kafesli çift kapı, çan ipi
+		for sxk in [-1.0, 1.0]:
+			b.box(Vector3(ux + sxk * 3.6, 3.6, un - 10.0), Vector3(0.6, 5.2, 0.6), n_wood)
+		b.box(Vector3(ux, 6.4, un - 8.2), Vector3(8.6, 0.5, 4.6), n_wood, 0, false)
+		b.roof(Vector3(ux, 6.6, un - 8.4), Vector3(4.4, 3.4, 10.4), n_roof.darkened(0.06), 90.0)
+		b.box(Vector3(ux, 7.9, un - 10.75), Vector3(2.6, 1.2, 0.2), n_cream, 0, false)
+		b.disc(Vector3(ux, 8.05, un - 10.9), 0.8, 0.12, Color(0.8, 0.16, 0.14), 0.0, 12)
+		b.box(Vector3(ux, 7.72, un - 10.92), Vector3(0.84, 0.36, 0.12), Color(0.95, 0.93, 0.88), 0, false)
+		b.box(Vector3(ux, 3.2, un - 6.2), Vector3(4.6, 4.4, 0.3), n_lat, 0, false)
+		for k in 6:
+			b.box(Vector3(ux - 2.0 + k * 0.8, 3.2, un - 6.4), Vector3(0.1, 4.2, 0.1), n_wood.lightened(0.15), 0, false)
+		b.box(Vector3(ux, 3.2, un - 6.42), Vector3(0.18, 4.4, 0.12), n_wood, 0, false)
+		b.box(Vector3(ux, 4.6, un - 9.9), Vector3(0.12, 3.0, 0.12), Color(0.8, 0.74, 0.5), 0, false)   # çan ipi
+		# yan kanatlar: alçak, kafesli üst bant + krem alt pano, kendi çatısı
+		for sxk in [-1.0, 1.0]:
+			var wxk = ux + sxk * 19.0
+			b.box(Vector3(wxk, 3.2, un + 1.0), Vector3(20, 4.4, 9), n_cream)
+			b.box(Vector3(wxk, 3.9, un - 3.56), Vector3(20, 2.2, 0.2), n_lat, 0, false)
+			for i in 5:
+				b.box(Vector3(wxk - 10.0 + i * 5.0, 3.2, un - 3.6), Vector3(0.4, 4.4, 0.3), n_wood, 0, false)
+			for yy in [1.3, 2.7, 5.2]:
+				b.box(Vector3(wxk, yy, un - 3.6), Vector3(20.2, 0.3, 0.3), n_wood, 0, false)
+			b.roof(Vector3(wxk, 5.4, un + 1.0), Vector3(23, 3.0, 13), n_roof.darkened(0.04))
+			b.prop("stone_lamp", Vector3(ux + sxk * 6.2, 1.0, un - 10.5), 0.0, 2.0, 0.4)
+		# torii
+		var tn0 = un - 19.0
+		for sxk in [-1.0, 1.0]:
+			b.cyl(Vector3(ux + sxk * 6.4, 1.8, tn0), 1.5, 3.6, n_stone.lightened(0.12), true, 12)
+			b.cyl(Vector3(ux + sxk * 6.4, 8.2, tn0), 1.15, 9.4, n_wood.lightened(0.12), true, 12)
+		b.box(Vector3(ux, 13.3, tn0), Vector3(19.5, 1.0, 1.3), n_wood.lightened(0.12), 0, false)
+		b.box(Vector3(ux, 10.4, tn0), Vector3(16.0, 0.8, 0.9), n_wood.lightened(0.12), 0, false)
+		b.box(Vector3(ux, 11.85, tn0 - 0.1), Vector3(2.6, 2.0, 0.5), Color(0.8, 0.72, 0.52), 0, false)
+		b.disc(Vector3(ux, 12.05, tn0 - 0.4), 1.2, 0.12, Color(0.8, 0.16, 0.14), 0.0, 12)
+		b.box(Vector3(ux, 11.55, tn0 - 0.42), Vector3(1.24, 0.5, 0.12), Color(0.95, 0.93, 0.88), 0, false)
+		b.box(Vector3(ux, 11.2, tn0 - 0.42), Vector3(0.16, 0.5, 0.12), Color(0.95, 0.93, 0.88), 0, false)
 	b.yoff = 0.0
 	print("SURE uchiha ", Time.get_ticks_msec() - _tu, " ms")
 	_act(b, ux, un - 13, 5, "enter", "[F] Gir: Naka Tapınağı", {"room": "naka_shrine", "vid": "konoha", "out": _gp(b, ux, un - 13)})
@@ -259,11 +371,68 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	var yx = -1050.0; var yn = 250.0
 	b.yoff = _gy(b, yx, yn)
 	b.wall_rect(yx, yn, 150, 110, 5.0, Color(0.9, 0.88, 0.82), 14.0)
-	b.box(Vector3(yx, 5, yn + 15), Vector3(80, 10, 32), Color(0.58, 0.42, 0.28))
-	b.roof(Vector3(yx, 10, yn + 15), Vector3(88, 7, 40), Color(0.28, 0.28, 0.32))
-	b.box(Vector3(yx + 48, 3.5, yn - 22), Vector3(28, 7, 20), Color(0.58, 0.42, 0.28))
-	b.roof(Vector3(yx + 48, 7, yn - 22), Vector3(32, 5, 24), Color(0.28, 0.28, 0.32))
-	b.box(Vector3(yx - 25, 0.05, yn - 28), Vector3(50, 0.1, 30), Color(0.8, 0.78, 0.7), 0, false)
+	# geleneksel konak (animede Hyūga evi: beyaz sıvalı, koyu ahşap çatkılı, gri kiremitli, geniş verandalı, ahşap dōjō zeminli avlu)
+	var h_wall = Color(0.93, 0.91, 0.85)
+	var h_wood = Color(0.34, 0.24, 0.17)
+	var h_roof = Color(0.3, 0.31, 0.36)
+	var h_floor = Color(0.62, 0.46, 0.3)
+	# ana ev: yükseltilmiş ahşap zemin + veranda, çatkılı duvar, iki kademeli çatı
+	b.box(Vector3(yx, 0.6, yn + 13), Vector3(88, 1.2, 40), h_floor)
+	b.box(Vector3(yx, 5.2, yn + 15), Vector3(78, 8, 30), h_wall)
+	for i in 14:
+		b.box(Vector3(yx - 39.0 + i * 6.0, 5.2, yn - 0.05), Vector3(0.45, 8.0, 0.3), h_wood, 0, false)
+		if i < 13 and i != 6:   # shōji kayar kapılar (kâğıt panolar)
+			b.box(Vector3(yx - 36.0 + i * 6.0, 3.6, yn - 0.1), Vector3(4.6, 4.4, 0.16), Color(0.97, 0.95, 0.86), 0, false)
+			b.box(Vector3(yx - 36.0 + i * 6.0, 3.6, yn - 0.2), Vector3(0.1, 4.4, 0.1), h_wood, 0, false)
+			b.box(Vector3(yx - 36.0 + i * 6.0, 3.6, yn - 0.2), Vector3(4.6, 0.1, 0.1), h_wood, 0, false)
+	for yy in [1.3, 6.0, 9.1]:
+		b.box(Vector3(yx, yy, yn - 0.05), Vector3(78.2, 0.4, 0.3), h_wood, 0, false)
+	b.box(Vector3(yx, 3.8, yn - 0.15), Vector3(5.0, 5.0, 0.3), h_wood.lightened(0.1), 0, false)   # ana kapı
+	for i in 9:   # veranda direkleri
+		b.box(Vector3(yx - 42.0 + i * 10.5, 3.7, yn - 6.2), Vector3(0.5, 5.0, 0.5), h_wood)
+	b.box(Vector3(yx, 6.3, yn - 3.5), Vector3(90, 0.4, 7.5), h_roof.darkened(0.1), 0, false, Vector3(-8.0, 0, 0))   # veranda saçağı
+	b.roof(Vector3(yx, 9.2, yn + 15), Vector3(90, 5.0, 40), h_roof)
+	b.box(Vector3(yx, 14.3, yn + 15), Vector3(40, 3.0, 14), h_wall)
+	b.roof(Vector3(yx, 15.8, yn + 15), Vector3(48, 5.5, 22), h_roof.darkened(0.05))
+	b.box(Vector3(yx, 21.4, yn + 15), Vector3(44, 0.7, 1.2), h_roof.darkened(0.3), 0, false)
+	b.box(Vector3(yx, 0.3, yn - 8.5), Vector3(8.0, 0.6, 2.0), Color(0.66, 0.66, 0.64))   # veranda basamağı
+	# yan ev (misafir / yan kol): aynı dil
+	b.box(Vector3(yx + 48, 4.0, yn - 22), Vector3(28, 7, 20), h_wall)
+	for i in 6:
+		b.box(Vector3(yx + 34.0 + i * 5.6, 4.0, yn - 32.05), Vector3(0.4, 7.0, 0.3), h_wood, 0, false)
+	for yy in [1.0, 4.6, 7.3]:
+		b.box(Vector3(yx + 48, yy, yn - 32.05), Vector3(28.2, 0.35, 0.3), h_wood, 0, false)
+	b.roof(Vector3(yx + 48, 7.5, yn - 22), Vector3(33, 5, 25), h_roof)
+	# dōjō avlusu: ahşap antrenman zemini + kenarında vuruş kütükleri, sancakta klan arması
+	b.box(Vector3(yx - 25, 0.2, yn - 28), Vector3(50, 0.4, 30), h_floor.lightened(0.08))
+	for k in 9:
+		b.box(Vector3(yx - 47.0 + k * 5.5, 0.42, yn - 28), Vector3(0.12, 0.04, 30.0), h_floor.darkened(0.2), 0, false)
+	for k in 4:
+		b.cyl(Vector3(yx - 46.0 + k * 4.0, 1.5, yn - 45.5), 0.6, 2.4, h_wood.lightened(0.2), true, 8)
+		b.cyl(Vector3(yx - 46.0 + k * 4.0, 2.0, yn - 45.5), 0.72, 0.5, Color(0.86, 0.8, 0.62), false, 8)
+	# arma: beyaz diskte alev kıvrımı (sade: disk + koyu halka + orta nokta), ana kapının üstünde
+	b.disc(Vector3(yx, 7.6, yn - 0.3), 2.4, 0.2, h_wood, 0.0, 16)
+	b.disc(Vector3(yx, 7.6, yn - 0.4), 2.0, 0.2, Color(0.97, 0.96, 0.92), 0.0, 16)
+	b.disc(Vector3(yx, 7.6, yn - 0.5), 0.8, 0.2, Color(0.75, 0.2, 0.16), 0.0, 12)
+	# dış kapı: iki kalın direk, kiremit çatı, kiriş
+	for sxk in [-1.0, 1.0]:
+		b.box(Vector3(yx + sxk * 7.2, 3.6, yn - 55.0), Vector3(1.2, 7.2, 1.6), h_wood)
+	b.box(Vector3(yx, 6.6, yn - 55.0), Vector3(16.5, 0.7, 1.2), h_wood, 0, false)
+	b.roof(Vector3(yx, 7.2, yn - 55.0), Vector3(20.0, 2.6, 6.0), h_roof)
+	# bahçe: taş yol (dış kapıdan verandaya), taş fenerler, gölet + kayalar, çam / akçaağaç
+	b.box(Vector3(yx, 0.06, yn - 31.0), Vector3(4.0, 0.12, 44.0), Color(0.7, 0.69, 0.66), 0, false)
+	for k in 4:
+		for sxk in [-1.0, 1.0]:
+			b.prop("stone_lamp", Vector3(yx + sxk * 4.0, 0.0, yn - 14.0 - k * 10.0), 0.0, 2.0, 0.4)
+	KageHall._water_disc(b, Vector3(yx + 22.0, 0.12, yn - 40.0), 16.0)
+	for k in 7:
+		var ra = k * 51.0
+		var rq = Builder.rot(0, 8.6, ra)
+		b.sphere(Vector3(yx + 22.0 + rq.x, 0.5, yn - 40.0 + rq.y), Vector3(2.2 + (k % 3) * 0.7, 1.4 + (k % 2) * 0.5, 2.0), Color(0.5, 0.5, 0.48), 8, true)
+	KageHall.tree(b, yx + 32.0, yn - 44.0, 0.0, "green", rng, 1.2)
+	KageHall.tree(b, yx - 60.0, yn - 5.0, 0.0, "green", rng, 1.4)
+	KageHall.tree(b, yx + 62.0, yn + 30.0, 0.0, "green", rng, 1.3)
+	KageHall.tree(b, yx - 58.0, yn + 38.0, 0.0, "green", rng, 1.1)
 	b.yoff = 0.0
 	_act(b, yx, yn - 56, 6, "hyuga", "[F] Hyuga Konağı")
 	occupied.append([yx, yn, 80, 60, 25.0])
@@ -354,8 +523,10 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 
 	# ---- evler: sokak boylarına dizili (merkezde 3 sıra, dışarıda 1-2 sıra), her biri sokağa bakar
 	b.view_dist = 1500.0
+	_path_doors.clear()
 	var count = _street_houses(b, v, rng, occupied, decor, cliff_n)
 	count += _fill_blocks(b, rng, occupied, cliff_n)
+	_house_paths(b, c0_paths(v))
 	# dış mahalleler: sokaklardan uzak boşluklara ağaç kümeleri (orman köyü hissi)
 	var trees = 0
 	for k in 4800:   # orman köyü: dış mahallelerde bol, uzun ağaç (eskiden seyrek ve kısaydı)
@@ -447,6 +618,8 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 						if placed:
 							q = b.placed_xn   # komşuyla çakışmamak için kaydırıldıysa kapı/fener onunla gelir
 						var fo = Builder.rot(0, -td * 0.5 - 1.0, yaw)
+						if placed:
+							_path_doors.append(_gp(b, q.x + fo.x, q.y + fo.y))
 						if row == 0 and placed:
 							VL.doors["konoha"].append(_gp(b, q.x + fo.x, q.y + fo.y))
 							if count % 11 == 4:
@@ -464,6 +637,171 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 						alley_at = rng.randi_range(4, 6)
 	CityDecor.door_lanterns(decor, lantern_xf)
 	return count
+
+
+static var _path_doors: Array = []   # her evin kapı önü (dünya)
+
+
+static func c0_paths(v: Dictionary) -> Vector2:
+	return Vector2(float(v["x"]), float(v["y"]))
+
+
+## Her evin kapısı sokağa bağlanır: evlerin arasından dolanan toprak patikalar (çimin ortasında yolsuz ev kalmasın).
+## 3 m'lik ızgarada caddelerden dışarı doğru tek bir yayılım (engel: bütün yapıların tabanı); her kapı kendi izini
+## caddeye kadar geri izler, izler birleşince ortak ara sokak olur.
+static func _house_paths(b: Builder, vc: Vector2) -> void:
+	var t0 = Time.get_ticks_msec()
+	var CELL = 3.0
+	var N = int(ceil(2.0 * (R + 30.0) / CELL))
+	var ox = b.origin.x - N * CELL * 0.5
+	var oz = b.origin.z - N * CELL * 0.5
+	var blocked = PackedByteArray()
+	blocked.resize(N * N)
+	# yapı tabanları (yönlü dikdörtgen + 0.7 m pay)
+	for key in b.solids:
+		for rec in b.solids[key]:
+			var hw: float = float(rec[2]) - 0.1
+			var hd: float = float(rec[3]) - 0.1
+			var a: float = rec[4]
+			var ca = cos(a); var sa = sin(a)
+			var ext = absf(ca) * hw + absf(sa) * hd
+			var ezt = absf(sa) * hw + absf(ca) * hd
+			var i0 = clampi(int((float(rec[0]) - ext - ox) / CELL), 0, N - 1)
+			var i1 = clampi(int((float(rec[0]) + ext - ox) / CELL), 0, N - 1)
+			var j0 = clampi(int((float(rec[1]) - ezt - oz) / CELL), 0, N - 1)
+			var j1 = clampi(int((float(rec[1]) + ezt - oz) / CELL), 0, N - 1)
+			for j in range(j0, j1 + 1):
+				for i in range(i0, i1 + 1):
+					var dx = ox + (i + 0.5) * CELL - float(rec[0])
+					var dz = oz + (j + 0.5) * CELL - float(rec[1])
+					var lx = absf(ca * dx - sa * dz)
+					var lz = absf(sa * dx + ca * dz)
+					if lx < hw and lz < hd:
+						# 2 = yapının içi (geçilmez), 1 = duvar dibi (yalnız başka yol yoksa: evlerin arasındaki dar geçit)
+						blocked[j * N + i] = 2 if (lx < hw - 1.6 and lz < hd - 1.6) else maxi(blocked[j * N + i], 1)
+	# kaynak: cadde orta çizgileri
+	var parent = PackedInt32Array()
+	parent.resize(N * N)
+	parent.fill(-2)   # -2 görülmedi, -1 kaynak
+	var depth = PackedInt32Array()
+	depth.resize(N * N)
+	var q = PackedInt32Array()
+	for rd in Game.roads:
+		if rd["kind"] != "street":
+			continue
+		var pts: PackedVector2Array = rd["pts"]
+		for k in range(pts.size() - 1):
+			if (pts[k] - vc).length() > R + 60.0 and (pts[k + 1] - vc).length() > R + 60.0:
+				continue
+			var L = pts[k].distance_to(pts[k + 1])
+			var steps = int(L / 2.0) + 1
+			for sI in steps + 1:
+				var m = pts[k].lerp(pts[k + 1], float(sI) / steps)
+				var i = int((m.x - ox) / CELL)
+				var j = int((-m.y - oz) / CELL)
+				if i < 0 or j < 0 or i >= N or j >= N:
+					continue
+				var id = j * N + i
+				if parent[id] == -2:
+					parent[id] = -1
+					blocked[id] = 0
+					q.append(id)
+	# yayılım (8 komşu, en çok 55 hücre ≈ 165 m)
+	var head = 0
+	var offs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]
+	var tight = PackedInt32Array()   # [hücre, geldiği] çiftleri: açık yoldan ulaşılamayınca dar geçitler açılır
+	while head < q.size() or not tight.is_empty():
+		if head >= q.size():
+			var tk = 0
+			while tk < tight.size():
+				if parent[tight[tk]] == -2:
+					parent[tight[tk]] = tight[tk + 1]
+					depth[tight[tk]] = depth[tight[tk + 1]] + 1
+					q.append(tight[tk])
+				tk += 2
+			tight = PackedInt32Array()
+			continue
+		var id = q[head]
+		head += 1
+		var dd = depth[id]
+		if dd >= 75:
+			continue
+		var i = id % N
+		var j = id / N
+		for o in offs:
+			var ni = i + o[0]
+			var nj = j + o[1]
+			if ni < 0 or nj < 0 or ni >= N or nj >= N:
+				continue
+			var nid = nj * N + ni
+			if parent[nid] != -2 or blocked[nid] == 2:
+				continue
+			if o[0] != 0 and o[1] != 0 and (blocked[j * N + ni] == 2 or blocked[nj * N + i] == 2):
+				continue   # köşeden sıkışarak geçme
+			if blocked[nid] == 1:
+				if o[0] == 0 or o[1] == 0:
+					tight.append(nid)
+					tight.append(id)
+				continue
+			parent[nid] = id
+			depth[nid] = dd + 1
+			q.append(nid)
+	# her kapıdan caddeye geri iz
+	var painted = PackedByteArray()
+	painted.resize(N * N)
+	var RMc = preload("res://scripts/world/road_map.gd")
+	var lanes = 0
+	var linked = 0
+	var orphan = 0
+	for dpos in _path_doors:
+		var dp: Vector3 = dpos
+		if Game.road_dist(dp.x, dp.z) < 11.0:
+			linked += 1
+			continue   # kapı zaten caddede
+		var ci = int((dp.x - ox) / CELL)
+		var cj = int((dp.z - oz) / CELL)
+		var start = -1
+		var bd = 1e9
+		for dj in range(-2, 3):
+			for di in range(-2, 3):
+				var ni = ci + di
+				var nj = cj + dj
+				if ni < 0 or nj < 0 or ni >= N or nj >= N:
+					continue
+				var nid = nj * N + ni
+				if parent[nid] == -2:
+					continue
+				var d2 = Vector2(ox + (ni + 0.5) * CELL - dp.x, oz + (nj + 0.5) * CELL - dp.z).length() + depth[nid] * 0.01
+				if d2 < bd:
+					bd = d2
+					start = nid
+		if start < 0:
+			orphan += 1
+			continue
+		linked += 1
+		var prev = Vector2(dp.x, dp.z)
+		var cur = start
+		var run_a = prev
+		var run_dir = Vector2.ZERO
+		var guard = 0
+		while cur >= 0 and guard < 80:
+			guard += 1
+			var pt = Vector2(ox + (cur % N + 0.5) * CELL, oz + (cur / N + 0.5) * CELL)
+			var dir = (pt - prev).normalized()
+			if run_dir != Vector2.ZERO and dir.dot(run_dir) < 0.999:
+				RMc.add_lane(run_a, prev, 1.25, true)
+				lanes += 1
+				run_a = prev
+			run_dir = dir
+			prev = pt
+			if painted[cur] == 1:
+				break   # başka bir evin patikasına bağlandı
+			painted[cur] = 1
+			cur = parent[cur]
+		if prev != run_a:
+			RMc.add_lane(run_a, prev, 1.25, true)
+			lanes += 1
+	print("Konoha patika: ", _path_doors.size(), " kapı, ", linked, " bağlı, ", orphan, " ulaşılamadı, ", lanes, " parça, ", Time.get_ticks_msec() - t0, " ms")
 
 
 ## Bitişik dizilim için şablon: cadde önünde dükkân / kasaba evi ağırlıklı, arkada apartman ağırlıklı
@@ -566,6 +904,9 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 			var yaw = rad_to_deg(atan2(-best.x, -best.y))
 			b.house_ti = ti
 			b.house(x, n, tw + 0.1, td + 0.1, 3, yaw, "konoha", rng)
+			if b.house_ok:
+				var fo2 = Builder.rot(0, -td * 0.5 - 1.0, yaw)
+				_path_doors.append(_gp(b, b.placed_xn.x + fo2.x, b.placed_xn.y + fo2.y))
 			count += 1
 		gx += step
 	return count
@@ -674,63 +1015,86 @@ static func _relief_head(b: Builder, fx: float, fy: float, cliff_n: float, H: fl
 		var q = pow((u - cx) / rx, 2.0) + pow((v - cy) / ry, 2.0)
 		return d * sqrt(maxf(0.0, 1.0 - q))
 	var banded = style in [1, 2, 3]
+	# önü düz, kenarı dik kubbe (pw küçük = daha düz ön yüz): top gibi yuvarlak kafa maymun suratı yapıyordu
+	var sdome = func(u: float, v: float, cx: float, cy: float, rx: float, ry: float, d: float, pw: float) -> float:
+		var q = pow((u - cx) / rx, 2.0) + pow((v - cy) / ry, 2.0)
+		return d * pow(maxf(0.0, 1.0 - q), pw)
+	# üçgen saç dikeni: merkezden ang yönünde r0'dan r1'e incelerek uzanır
+	var spike = func(rel: Vector2, ang: float, r0: float, r1: float, w0: float, d0: float) -> float:
+		var dirv = Vector2(sin(ang), cos(ang))
+		var al = rel.dot(dirv)
+		if al < r0 * 0.4 or al > r1:
+			return 0.0
+		var k = clampf((al - r0) / (r1 - r0), 0.0, 1.0)
+		var w = w0 * (1.0 - k) + 0.004
+		var pr = absf(rel.x * dirv.y - rel.y * dirv.x)
+		return d0 * (1.0 - 0.75 * k) * pow(clampf(1.0 - pr / w, 0.0, 1.0), 0.6)
 	# derinlik (H biriminde, uçurum yüzeyinden dışarı)
 	var depth = func(u: float, v: float) -> float:
-		var face = dome.call(u, v, 0.0, -0.02, 0.31, 0.46, 0.3)
+		# yüz (anime taş yüzleri): alın geniş, çeneye doğru daralan uzun oval; ön yüz düz
+		var tj = clampf((0.02 - v) / 0.5, 0.0, 1.0)
+		var rx = 0.275 * (1.0 - 0.42 * pow(tj, 1.7))
+		var qf = pow(u / rx, 2.0) + pow((v + 0.03) / 0.47, 2.0)
+		var face = 0.3 * pow(1.0 - qf, 0.38) if qf < 1.0 else 0.0
 		var hair = 0.0
 		match style:
-			0:   # uzun saç: kafa kütlesi + omuza inen yan perdeler
-				hair = maxf(dome.call(u, v, 0.0, 0.06, 0.43, 0.5, 0.25), maxf(dome.call(u, v, -0.36, -0.35, 0.12, 0.5, 0.17), dome.call(u, v, 0.36, -0.35, 0.12, 0.5, 0.17)))
-			1:   # geriye taranmış dikenli: tepede yukarı-geri uzanan diken yelpazesi
-				hair = dome.call(u, v, 0.0, 0.1, 0.37, 0.48, 0.25)
+			0, 4:   # uzun düz saç: tepeden omuza inen kesintisiz perde (yüzü çerçeveler), uçları kırık
+				var topq = pow(u / 0.41, 2.0) + pow(maxf(0.0, v - 0.05) / 0.47, 2.0)
+				var hw = 0.41 - 0.05 * clampf((-0.1 - v) / 0.6, 0.0, 1.0)
+				var vb = -0.74 - 0.05 * sin(u * 43.0) - 0.03 * sin(u * 17.0 + 1.0)
+				if topq < 1.0 and absf(u) < hw and v > vb:
+					hair = 0.22 * pow(1.0 - topq, 0.3) * clampf((hw - absf(u)) / 0.05, 0.0, 1.0) * clampf((v - vb) / 0.07, 0.0, 1.0)
+			1:   # geriye taranmış: kafa kütlesi + tepeden yukarı-geri açılan iri dikenler
+				hair = sdome.call(u, v, 0.0, 0.1, 0.345, 0.46, 0.25, 0.4)
 				for k in 7:
-					var ang = deg_to_rad(-63.0 + k * 21.0)
-					var dirv = Vector2(sin(ang), cos(ang))
-					var rel = Vector2(u, v - 0.18)
-					var al = rel.dot(dirv)
-					var pr = absf(rel.x * dirv.y - rel.y * dirv.x)
-					if al > 0.0 and al < 0.48:
-						hair = maxf(hair, 0.2 * (1.0 - al / 0.48) * exp(-pr * pr / (2.0 * pow(0.05 * (1.0 - al / 0.6), 2.0) + 0.0001)))
+					hair = maxf(hair, float(spike.call(Vector2(u, v - 0.16), deg_to_rad(-66.0 + k * 22.0), 0.3, 0.62 - 0.05 * absf(k - 3.0), 0.085, 0.22)))
 			2:   # kâse kesim: yuvarlak kütle, kâküller alnın üstünde düz biter
-				hair = dome.call(u, v, 0.0, 0.12, 0.42, 0.44, 0.27)
-			3:   # kısa dikenli: kafanın çevresinde küçük diken tutamları
-				hair = dome.call(u, v, 0.0, 0.08, 0.37, 0.46, 0.24)
-				for k in 11:
-					var ang = deg_to_rad(-100.0 + k * 20.0)
-					var tip = Vector2(sin(ang), cos(ang)) * 0.46 + Vector2(0, 0.08)
-					hair = maxf(hair, 0.16 * g2.call(u - tip.x, v - tip.y, 0.05, 0.05))
-			4:   # kâküllü uzun (kadın): alna dökülen kâkül + uzun yan saç
-				hair = maxf(dome.call(u, v, 0.0, 0.06, 0.42, 0.5, 0.25), maxf(dome.call(u, v, -0.35, -0.42, 0.11, 0.55, 0.16), dome.call(u, v, 0.35, -0.42, 0.11, 0.55, 0.16)))
+				hair = sdome.call(u, v, 0.0, 0.12, 0.4, 0.42, 0.27, 0.4)
+			3:   # kısa dikenli: kafanın çevresinde her yöne sivri tutamlar
+				hair = sdome.call(u, v, 0.0, 0.08, 0.345, 0.45, 0.24, 0.4)
+				for k in 13:
+					hair = maxf(hair, float(spike.call(Vector2(u, v - 0.1), deg_to_rad(-126.0 + k * 21.0), 0.3, 0.5 + 0.05 * float(k % 2), 0.07, 0.2)))
+		if hair > 0.0:
+			hair += 0.011 * sin(u * 78.0 + v * 6.0) * clampf(hair / 0.1, 0.0, 1.0)   # saç telleri: dikey oluklar
 		var t = maxf(face, hair)
-		# kâkül / kâse: alnın üstünde saç yüzün önüne gelir
-		if style in [2, 4] and v > 0.16 and absf(u) < 0.32 and face > 0.0:
-			t = maxf(t, face + 0.012 + 0.004 * sin(u * 60.0))
-		# alın koruyucusu bandı + plaka
-		if banded and v > 0.19 and v < 0.29 and absf(u) < 0.34:
-			t = maxf(t, dome.call(u, 0.0, 0.0, 0.0, 0.34, 1.0, 0.318))
-			if absf(u) < 0.1:
-				t += 0.008
+		# kâse kâkülü: alnın üstünde düz biter. Kadın: ortadan ayrık, yanlara inen kâkül
+		if style == 2 and v > 0.17 and face > 0.0:
+			t = maxf(t, face + 0.014 + 0.005 * sin(u * 70.0))
+		if style == 4 and face > 0.0 and v > 0.13 + maxf(0.0, 0.2 - absf(u)) * 1.3:
+			t = maxf(t, face + 0.014 + 0.005 * sin(u * 70.0))
+		# alın koruyucusu: alnı saran ince bant + ortada plaka (yüzün eğrisini izler)
+		if banded and v > 0.2 and v < 0.295 and absf(u) < 0.36:
+			t = maxf(t, maxf(face, hair) + 0.012)
+			if absf(u) < 0.125 and v > 0.212 and v < 0.283:
+				t += 0.01
 		# yüz ayrıntıları (yalnız yüzün önde olduğu yerde)
-		if face > 0.0 and face >= hair - 0.004 and v < 0.19:
+		if face > 0.0 and face >= hair - 0.004 and v < 0.2:
 			for sx in [-1.0, 1.0]:
-				# badem göz: dış kenarı hafif yukarı kalkık oyuk + üst kapak çizgisi (anime taş yüzlerinde göz çizgisi okunur)
-				var ex = u - sx * 0.125
-				var ey = v - 0.055 - ex * sx * 0.12
-				var alm = clampf(1.0 - pow(ex / 0.075, 2.0) - pow(ey / 0.024, 2.0), 0.0, 1.0)
-				t -= 0.03 * sqrt(alm)
-				t += 0.008 * g2.call(ex, ey - 0.026, 0.07, 0.008)               # üst kapak
-				t += 0.01 * g2.call(u - sx * 0.19, v + 0.05, 0.07, 0.05)        # elmacık
-				t += 0.014 * g2.call(u - sx * 0.12, v - 0.125, 0.085, 0.012)    # kaş çıkıntısı
-			var nose_k = clampf((0.05 - v) / 0.17, 0.0, 1.0)
-			t += 0.035 * nose_k * g2.call(u, v + 0.05, 0.02 + 0.016 * nose_k, 0.09)   # ince burun
-			t -= 0.014 * g2.call(u, v + 0.24, 0.085, 0.009)                   # ağız çizgisi
-			t += 0.004 * g2.call(u, v + 0.265, 0.06, 0.015)                   # alt dudak
-			t += 0.008 * g2.call(u, v + 0.4, 0.09, 0.05)                      # çene
-		# boyun ve omuzlar: kayaya karışarak genişler
-		# boyun: çenenin altından aşağı kayaya karışarak söner (omuz kaidesi yok — anime: baş kayadan çıkar)
-		var neck = 0.14 * g2.call(u, 0.0, 0.15, 1.0) * clampf((v + 0.95) / 0.45, 0.0, 1.0) * clampf((-0.3 - v) / 0.1, 0.0, 1.0)
+				var ex = u - sx * 0.115
+				var ey = v - 0.05 - ex * sx * 0.1
+				# derin göz çukuru + içinde kabarık, bebeksiz iri badem göz (taş yüzlerin boş bakışı)
+				var sock = clampf(1.0 - pow(ex / 0.098, 2.0) - pow(ey / 0.056, 2.0), 0.0, 1.0)
+				t -= 0.038 * pow(sock, 0.6)
+				var ball = clampf(1.0 - pow(ex / 0.074, 2.0) - pow(ey / 0.03, 2.0), 0.0, 1.0)
+				t += 0.024 * pow(ball, 0.5)
+				t += 0.024 * g2.call(ex, ey - 0.066, 0.1, 0.014)                 # ağır kaş çıkıntısı
+				t += 0.012 * g2.call(u - sx * 0.175, v + 0.03, 0.05, 0.04)       # elmacık kemiği
+				t -= 0.012 * g2.call(u - sx * 0.14, v + 0.2, 0.05, 0.09)         # yanak çukuru (çeneye inen düzlem)
+				t += 0.016 * g2.call(u - sx * 0.036, v + 0.128, 0.017, 0.017)    # burun kanadı
+			# uzun düz burun: kaş arasından başlar, aşağı doğru genişleyip yükselir, ucu keskin biter
+			if v > -0.145 and v < 0.11:
+				var nk = clampf((0.11 - v) / 0.25, 0.0, 1.0)
+				t += (0.014 + 0.058 * nk) * pow(clampf(1.0 - absf(u) / (0.02 + 0.03 * nk), 0.0, 1.0), 0.7)
+			t -= 0.032 * g2.call(u, v + 0.245, 0.075, 0.011)                    # ağız çizgisi
+			t += 0.009 * g2.call(u, v + 0.222, 0.055, 0.012)                    # üst dudak
+			t += 0.013 * g2.call(u, v + 0.277, 0.048, 0.014)                    # alt dudak
+			t += 0.022 * g2.call(u, v + 0.395, 0.07, 0.05)                      # çene
+		# kısa boyun: çenenin altından kayaya karışarak söner (omuz / kaide yok — baş kayadan çıkar)
+		var neck = 0.0
+		if v < -0.34 and absf(u) < 0.15:
+			neck = 0.15 * pow(1.0 - pow(u / 0.15, 2.0), 0.5) * clampf((v + 0.68) / 0.24, 0.0, 1.0)
 		return maxf(t, neck)
-	var NX = 110; var NY = 146
+	var NX = 150; var NY = 204
 	var pos: Array = []
 	var dep: Array = []
 	for jy in NY:
@@ -740,7 +1104,7 @@ static func _relief_head(b: Builder, fx: float, fy: float, cliff_n: float, H: fl
 			var y = fy + BOT + (TOP - BOT) * jy / float(NY - 1)
 			drow.append(float(depth.call((x - fx) / H, (y - fy) / H)))
 		dep.append(drow)
-	for _pass in 2:
+	for _pass in 1:
 		var nd: Array = []
 		for jy in NY:
 			var r2: Array = []
@@ -792,7 +1156,20 @@ static func _relief_head(b: Builder, fx: float, fy: float, cliff_n: float, H: fl
 	# çarpışma: kabartmanın kendisi (üstüne basılır, tırmanılır)
 	if is_instance_valid(b.body):
 		var cs = CollisionShape3D.new()
-		cs.shape = mesh.create_trimesh_shape()
+		# çarpışma ızgarası görselin üçte biri sıklıkta (aynı şekil, dokuzda bir üçgen)
+		var faces := PackedVector3Array()
+		var STEP = 3
+		var jy2 = 0
+		while jy2 + STEP < NY:
+			var ix2 = 0
+			while ix2 + STEP < NX:
+				for e in [[ix2, jy2], [ix2 + STEP, jy2 + STEP], [ix2 + STEP, jy2], [ix2, jy2], [ix2, jy2 + STEP], [ix2 + STEP, jy2 + STEP]]:
+					faces.append(pos[e[1]][e[0]])
+				ix2 += STEP
+			jy2 += STEP
+		var tri = ConcavePolygonShape3D.new()
+		tri.set_faces(faces)
+		cs.shape = tri
 		b.add_shape(cs)
 		cs.global_transform = Transform3D.IDENTITY if cs.is_inside_tree() else Transform3D.IDENTITY
 

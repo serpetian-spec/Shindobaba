@@ -148,11 +148,20 @@ static func _has_src(p: Dictionary, src: String) -> bool:
 	return false
 
 
+## Klan ve kan soyu tarzı doğuştan gelmez: beden o tekniği taşıyacak güce erince uyanır (Güç 10). Yol / bijū / göz tarzları
+## kendi şartıyla açılır (yola girmek, canavarı taşımak, göze sahip olmak). Düşmanlar için de aynı (enemy.gd).
+const WAKE_POWER := 10
+
+
+static func wakes(src: String, level: int) -> bool:
+	return level >= WAKE_POWER or not (src.begins_with("clan:") or src.begins_with("kg:"))
+
+
 ## Oyuncunun seçebileceği tarzlar ("" = temel taijutsu her zaman ilk)
 static func available(p: Dictionary) -> Array:
 	var out = [""]
 	for id in STYLES:
-		if _has_src(p, String(STYLES[id]["src"])):
+		if _has_src(p, String(STYLES[id]["src"])) and wakes(String(STYLES[id]["src"]), int(p.get("level", 1))):
 			if STYLES[id].has("need_item") and not String(STYLES[id]["need_item"]) in Gear.owned_ids(p):
 				continue   # kanon silahı olmadan bu tarz olmaz (Jashin = üç bıçaklı tırpan)
 			out.append(id)
@@ -161,6 +170,18 @@ static func available(p: Dictionary) -> Array:
 
 static func name_of(id: String) -> String:
 	return "Temel Taijutsu" if id == "" else String(STYLES.get(id, {}).get("name", id))
+
+
+## Güç eşiği aşıldığı an: tarz uyanır ve haber verilir (Progress seviye artışında çağırır)
+static func on_power(p: Dictionary, old_lv: int, new_lv: int) -> void:
+	if old_lv >= WAKE_POWER or new_lv < WAKE_POWER:
+		return
+	for id in STYLES:
+		var src = String(STYLES[id]["src"])
+		if (src.begins_with("clan:") or src.begins_with("kg:")) and _has_src(p, src):
+			Hud.banner("DÖVÜŞ TARZI UYANDI", "%s — Ninja menüsünden seçebilirsin." % String(STYLES[id]["name"]), Color(1.0, 0.82, 0.45))
+			if String(p.get("fight_style", "")) == "":
+				p["fight_style"] = id   # ilk uyanan tarz kendiliğinden kuşanılır
 
 
 ## Oyuncunun düz vuruş kombo anahtarı (silahsızken); seçili tarz artık uygun değilse temel

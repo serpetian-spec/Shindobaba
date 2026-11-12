@@ -1130,7 +1130,7 @@ func _begin_step() -> void:
 		return
 	for n in step_nodes:
 		if is_instance_valid(n):
-			n.queue_free()
+			_retire(n)   # adım değişince kamp / cesetler gözünün önünde yok olmaz
 	step_nodes.clear()
 	# iş yerleri görev başından beri kurulu (tarla, bahçe); görev veren orada işiyle meşgul
 	for es in m["steps"]:
@@ -1270,6 +1270,9 @@ func _begin_step() -> void:
 			npc.hp = npc.max_hp
 			npc.mode = "escort"
 			npc.path = _path(_w(s["from"]), _w(s["to"]), 30.0)
+			# yol noktası bina / kaya içine düşmesin (son nokta yapının içindeyken eskort %97'de kalıyordu)
+			for pi in npc.path.size():
+				npc.path[pi] = open_ground(npc.path[pi], 12.0)
 			npc.path_i = 0
 			st["amb"] = 0
 			target_marker = npc.global_position
@@ -1593,6 +1596,8 @@ func _rank_scale(a: Dictionary, rank: String) -> void:
 
 
 func _spawn(kind: String, at: Vector3, n: int, spread: float, nm := "", solo := true) -> Array:
+	if kind == "samurai":
+		kind = "rogue"   # görevlerde samuray yok: karşına çıkan ninjadır
 	var out = []
 	var rk = _mission_rank()
 	if RANK_LV.has(rk):
@@ -1606,6 +1611,8 @@ func _spawn(kind: String, at: Vector3, n: int, spread: float, nm := "", solo := 
 	for i in cnt:
 		var e = Enemy.new()
 		var a = Enemy.archetype(kind, i)
+		if not kind in ["wolf", "bear", "boar", "animal"]:
+			Enemy.arm(a)
 		a["respawn"] = false
 		if nm != "":
 			a["name"] = nm
@@ -1644,6 +1651,8 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 		e.home = pp
 		step_nodes.append(e)
 		return e
+	if kind == "samurai":
+		kind = "rogue"
 	var a = Enemy.archetype(kind, 0)
 	a["respawn"] = false
 	a["name"] = b.get("name", a["name"])
@@ -1653,6 +1662,7 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 	a["power"] = float(b.get("power", 2.0)) * 0.85
 	a["guard"] = 0.35
 	a["sub"] = 0.3
+	Enemy.arm(a)
 	var rk = _mission_rank()
 	if RANK_LV.has(rk):   # B+ boss: rütbesinin adamlarından belirgin güçlü (taban)
 		var blv = int(round(int(RANK_LV[rk]) * 1.12))   # boss: grubunun %12 üstü
@@ -2257,16 +2267,14 @@ func _cone_mesh() -> MeshInstance3D:
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.set_meta("ui_mark", true)
 	return mi
 
 
 func _cleanup_nodes() -> void:
 	for x in step_nodes:
 		if is_instance_valid(x):
-			if x is Fighter and x.dead:
-				_corpse_later(x)   # ceset görev bitince hemen kalkmaz: bir süre yerde kalır, uzaklaşınca/süre dolunca kaybolur
-			else:
-				x.queue_free()
+			_retire(x)
 	step_nodes.clear()
 	var drop = []
 	for it in Interact.items:
@@ -2274,6 +2282,24 @@ func _cleanup_nodes() -> void:
 			drop.append(it)
 	for it in drop:
 		Interact.items.erase(it)
+
+
+## Görevin dünyada bıraktıkları (kamp, çadır, sandık, cesetler, sağ kalan düşman) görev / adım bitince gözünün önünde yok olmaz:
+## yerinde kalır, sen görüş alanından çıkınca (160 m) kalkar. Yalnız arayüz işaretleri (görev noktası ışığı, görüş konisi) hemen gider.
+func _retire(x: Node) -> void:
+	if not (x is Node3D) or x.has_meta("qp") or x.has_meta("ui_mark") or not x.is_inside_tree():
+		x.queue_free()
+		return
+	if x is Enemy and not x.dead:
+		x.blind_t = 0.0   # gizlilik görevinin kör nöbetçisi artık sıradan düşman
+	var t := 0.0
+	while t < 1200.0 and is_instance_valid(x):
+		await get_tree().create_timer(3.0).timeout
+		t += 3.0
+		if is_instance_valid(x) and Game.player and x.global_position.distance_to(Game.player.global_position) > 160.0:
+			break
+	if is_instance_valid(x):
+		x.queue_free()
 
 
 ## Ceset: 90 sn yerde kalır (oyuncu 120 m'den uzaklaşırsa daha erken temizlenir)
@@ -2293,10 +2319,10 @@ func _linger(x: Node3D) -> void:
 		x.line = ["Tekrar sağ ol, ninja.", "Eline sağlık. Köy seninle gurur duyuyor.", "Bir dahaki sefere yine seni isteyeceğim."].pick_random()
 		x.quest_tag = ""
 	var t := 0.0
-	while t < 300.0 and is_instance_valid(x):
+	while t < 1200.0 and is_instance_valid(x):
 		await get_tree().create_timer(2.0).timeout
 		t += 2.0
-		if is_instance_valid(x) and Game.player and x.global_position.distance_to(Game.player.global_position) > 70.0:
+		if is_instance_valid(x) and Game.player and x.global_position.distance_to(Game.player.global_position) > 160.0:
 			break
 	if is_instance_valid(x):
 		x.queue_free()
@@ -2307,7 +2333,7 @@ func _cleanup() -> void:
 	for x in pickups:
 		if is_instance_valid(x):
 			# görev bitince kişiler ve iş yeri (tarla, bahçe, sepet) gözünün önünde yok olmaz: sen uzaklaşınca kalkar
-			if x is Node3D and x.is_inside_tree() and x.visible and Game.player and x.global_position.distance_to(Game.player.global_position) < 90.0:
+			if x is Node3D and x.is_inside_tree() and x.visible and Game.player and x.global_position.distance_to(Game.player.global_position) < 160.0:
 				_linger(x)
 			else:
 				x.queue_free()
@@ -2942,12 +2968,20 @@ func _tick_escort(s: Dictionary) -> void:
 		_spawn(amb[ai][1], ahead, int(amb[ai][2]), 8.0, amb[ai][3] if amb[ai].size() > 3 else "")
 		Hud.banner("PUSU!", "Eskortu koru!", Color(1, 0.4, 0.3))
 	# düşman yakındayken tüccar siner
+	# Uzun süredir sinmiş bekliyorsa (düşman yapının içinde / ulaşılamaz yerde kalmış, kimse dövüşmüyor) yalnız dibindeki
+	# düşman durdurur: yoksa eskort sonsuza dek yerinde kalıyordu.
+	var now = Time.get_ticks_msec() / 1000.0
+	var long_wait = now - float(st.get("dng_t0", now)) > 12.0
 	var danger = false
 	for e in step_nodes:
-		if is_instance_valid(e) and e is Enemy and not e.dead and e.global_position.distance_to(npc.global_position) < 22.0:
+		if is_instance_valid(e) and e is Enemy and not e.dead and e.global_position.distance_to(npc.global_position) < (7.0 if long_wait else 22.0):
 			danger = true
 	if danger:
 		npc.wait = 0.4
+		if not st.has("dng_t0"):
+			st["dng_t0"] = now
+	elif not long_wait or now - float(st.get("dng_t0", now)) > 40.0:
+		st.erase("dng_t0")
 	if is_instance_valid(MissionWork.inst):
 		MissionWork.inst.cower(npc, danger)
 	Hud.objective_progress("%s — yol %%%d, can %d" % [npc.display, int(frac * 100), int(npc.hp)])

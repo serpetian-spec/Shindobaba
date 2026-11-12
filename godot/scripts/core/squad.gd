@@ -319,8 +319,8 @@ func _active() -> bool:
 	if Exams.cur != "" or int(ChuninExam.stage) != 0:
 		return false   # sınavlar kendi takımını kurar
 	var life = get_parent().get_node_or_null("VillageLife")
-	if life and life.interiors and life.interiors.inside != "":
-		return false
+	if life and life.interiors and life.interiors.inside != "" and not String(life.interiors.inside).begins_with("lair_"):
+		return false   # dükkân / ev: kapıda bekler. Dövüş geçen iç mekânlara (mağara, in) seninle girer
 	return true
 
 
@@ -344,7 +344,7 @@ func _spawn(key: String) -> Node:
 	var pp = Game.player.global_position
 	var back = -Game.player.face_dir() if Game.player.has_method("face_dir") else Vector3.BACK
 	var q = pp + back * 4.0 + back.cross(Vector3.UP) * (randf_range(-3.0, 3.0))
-	q.y = Game.ground_height(q.x, q.z)
+	q.y = Game.jutsu_floor(q.x, q.z)   # mağaradaysan oda zemini (arazi 1500 m aşağıda)
 	e.global_position = q
 	e.home = q
 	FX.smoke_puff(q + Vector3.UP, 0.8, 10)
@@ -387,7 +387,7 @@ func _process(dt: float) -> void:
 			n.home = pp + off
 			if n.global_position.distance_to(pp) > 60.0:
 				var q = pp + off
-				q.y = Game.ground_height(q.x, q.z)
+				q.y = Game.jutsu_floor(q.x, q.z)   # mağaradaysan oda zemini (arazi 1500 m aşağıda)
 				FX.smoke_puff(n.global_position + Vector3.UP, 0.6, 8)
 				n.global_position = q
 				n.target = null
@@ -466,7 +466,12 @@ func _talk(key: String) -> void:
 		for mm in members:
 			if mm["key"] == key:
 				nd = mm.get("node")
-		extra.append_array(Friends._friend_opts(fd, nd))
+		var seen := {}   # hoca aynı zamanda tanıdık: aynı seçenek iki kez yazılmasın
+		for o in extra:
+			seen[o["label"]] = true
+		for o in Friends._friend_opts(fd, nd):
+			if not seen.has(o["label"]):
+				extra.append(o)
 	Hud.dialog(who, txt, extra + [
 		{"label": "Takım: köyde bekleyin (tek başıma gideceğim)", "cb": func():
 			sq["follow"] = false

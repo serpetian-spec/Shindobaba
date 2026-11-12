@@ -1209,6 +1209,26 @@ static func eff_rank(p: Dictionary) -> int:
 	return r
 
 
+## Klan kıyafeti: üstünde klan arması olan set yalnız o klanın üyesinde (oyuncu + NPC). Verideki "clan" alanı ya da adı klan adıyla
+## başlayan set (Uchiha Ryokō, Uchiha Gusoku, Uzumaki Kamen...).
+static func clan_req(id: String) -> String:
+	if CLAN_SETS.has(id):
+		return String(CLAN_SETS[id])
+	var it = item(id)
+	if String(it.get("clan", "")) != "":
+		return String(it["clan"])
+	if String(it.get("slot", "")) == "set" and String(it.get("name", "")).begins_with("Uchiha "):
+		return "uchiha"
+	return ""
+
+
+## Üstünde klan arması taşıyan setler (adı klan adıyla başlamayanlar): yelpaze = Uchiha, 食 = Akimichi, sırtta girdap = Uzumaki,
+## kol alevi = Hyūga, zırh arması = Senju
+const CLAN_SETS := {"ss_karga_tunik": "uchiha", "ss_gozluk_genc": "uchiha", "ss_savas_reisi_genc": "uchiha", "ss_savas_reisi3": "uchiha",
+	"ss_yemek": "akimichi", "ss_mevsim": "akimichi", "ss_turuncu_esofman": "uzumaki", "ss_esofman": "uzumaki",
+	"ss_lavanta_ceket": "hyuga", "ss_acik_ceket": "hyuga", "ss_orman_zirh": "senju"}
+
+
 ## Takma şartı karşılanmıyorsa nedenini döndürür ("Chunin rütbesi gerekli"); karşılanıyorsa ""
 static func req_text(id: String, p: Dictionary) -> String:
 	var it = item(id)
@@ -1220,7 +1240,7 @@ static func req_text(id: String, p: Dictionary) -> String:
 		return "Yalnızca %s ninjaları giyebilir" % String(Game.village(iv).get("name", iv))
 	if KAGE_VID.has(id) and (String(KAGE_VID[id]) != String(p.get("village", "konoha")) or int(p.get("rank", 0)) < 6 or Orgs.is_rogue()):
 		return "Yalnızca %s Kage'si giyebilir" % String(Game.village(String(KAGE_VID[id])).get("name", KAGE_VID[id]))   # kaçak S sınıfı Kage sayılmaz: gerçek Kage olmalı
-	var cl = String(it.get("clan", ""))
+	var cl = clan_req(id)
 	if cl != "" and cl != String(p.get("clan", "")):
 		return "Yalnızca %s klanı giyebilir" % Data.clans.get(cl, {}).get("name", cl.capitalize())
 	var lv = int(it.get("level", 0))
@@ -1239,8 +1259,8 @@ static func req_summary(id: String) -> String:
 		parts.append("%s rütbesi" % Data.RANKS[mini(int(it["rank"]), Data.RANKS.size() - 1)])
 	if not KAGE_VID.has(id) and String(it.get("village", "")) != "":   # köye özel üniforma (Shinsedai Jōnin = Konoha)
 		parts.append(String(Game.village(String(it["village"])).get("name", it["village"])))
-	if String(it.get("clan", "")) != "":
-		parts.append("%s klanı" % Data.clans.get(String(it["clan"]), {}).get("name", String(it["clan"]).capitalize()))
+	if clan_req(id) != "":
+		parts.append("%s klanı" % Data.clans.get(clan_req(id), {}).get("name", clan_req(id).capitalize()))
 	if int(it.get("level", 0)) > 0:
 		parts.append("Güç %d" % int(it["level"]))
 	return ("Gerekli: " + ", ".join(parts)) if not parts.is_empty() else ""
@@ -1286,8 +1306,8 @@ static func sex_ok(id: String, gender: String) -> bool:
 
 
 ## Karakter yaratmada seçilebilen setler: temel setler + Striker'ın temel (C sırası) setleri, cinsiyete göre
-static func start_sets(gender: String) -> Array:
-	return START_SETS + STRIKER.START.filter(func(i): return sex_ok(i, gender))
+static func start_sets(gender: String, clan := "") -> Array:
+	return (START_SETS + STRIKER.START.filter(func(i): return sex_ok(i, gender))).filter(func(i): return clan_req(i) == "" or clan_req(i) == clan)
 static func preview_set_look(L: Dictionary, sid: String) -> void:
 	for pt in item(sid).get("parts", []):
 		var pit = item(String(pt[0]))
@@ -1316,7 +1336,7 @@ static func preview_set_look(L: Dictionary, sid: String) -> void:
 
 static func _starter_set(p: Dictionary) -> String:
 	var chosen = String(p.get("look", {}).get("start_set", ""))
-	if chosen != "" and (SETS.has(chosen) or STRIKER.SETS.has(chosen)) and int(p.get("rank", 0)) < 2:
+	if chosen != "" and (SETS.has(chosen) or STRIKER.SETS.has(chosen)) and int(p.get("rank", 0)) < 2 and (clan_req(chosen) == "" or clan_req(chosen) == String(p.get("clan", ""))):
 		return chosen
 	if String(p.get("clan", "")) == "uchiha":
 		return "set_uchiha"

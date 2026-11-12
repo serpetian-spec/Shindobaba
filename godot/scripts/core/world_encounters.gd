@@ -118,6 +118,24 @@ func _ahead(p: Vector3, dmin := 55.0, dmax := 85.0) -> Vector3:
 	return q2
 
 
+## Olay yeri oyuncunun burnunun dibi değil: 260-420 m ötede, görüş dışında, mümkünse bir yolun üstünde (hangi yöne gittiğine
+## bakılmaz). Olay orada kendi başına sürer; yolun düşerse rastlarsın, düşmezse süresi dolunca biter.
+func _world_spot(p: Vector3) -> Vector3:
+	var best := Vector3.INF
+	var best_rd := 1e9
+	for i in 24:
+		var a := randf() * TAU
+		var q := p + Vector3(sin(a), 0, cos(a)) * randf_range(260.0, 420.0)
+		q.y = Game.ground_height(q.x, q.z)
+		if Game.terrain_height(q.x, q.z) < -0.5 or absf(q.y - p.y) > 60.0 or not ClanWorld._village_here(q).is_empty():
+			continue
+		var rdist := Game.road_dist(q.x, q.z)
+		if rdist < best_rd:
+			best_rd = rdist
+			best = q
+	return best if best != Vector3.INF else _ahead(p, 220.0, 320.0)
+
+
 func _dir_text(at: Vector3) -> String:
 	var v := at - Game.player.global_position
 	var a := fposmod(atan2(v.x, -v.z), TAU)    # 0 = kuzey (-z)
@@ -247,7 +265,7 @@ func _abort() -> void:
 func start(kind: String) -> void:
 	var p := Game.player.global_position
 	last_kind = kind
-	cur = {"kind": kind, "nodes": [], "t": 0.0, "center": _ahead(p)}
+	cur = {"kind": kind, "nodes": [], "t": 0.0, "center": _ahead(p) if kind in ["sandstorm", "mist", "storm", "toll_revenge", "nemesis"] else _world_spot(p)}   # hava olayı ve seni arayan düşman sana gelir; gerisi dünyada kendi yerinde
 	var c: Vector3 = cur["center"]
 	call("_start_" + kind, c)
 	if cur.is_empty():

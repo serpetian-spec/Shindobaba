@@ -766,7 +766,7 @@ static func _family(clan: String, female: bool, rank: int) -> Array:
 	return fam
 
 
-static func _meet(v: Node, name_over := "") -> void:
+static func _meet(v: Node, name_over := "", silent := false) -> void:
 	var fs = all()
 	var female = String(v.look.get("gender", "m")) == "f"
 	var given = (ClanWorld.GIVEN_F if female else ClanWorld.GIVEN_M).pick_random()
@@ -815,7 +815,11 @@ static func _meet(v: Node, name_over := "") -> void:
 	v.display_override = given
 	tag(v)
 	_ensure_persona(fs[id])
-	Hud.dialog(given, Talk.react(fs[id], "meet"), [])
+	if silent:
+		if v.has_method("say"):
+			v.say(Talk.react(fs[id], "meet"), 5.0)
+	else:
+		Hud.dialog(given, Talk.react(fs[id], "meet"), [])
 	Hud.msg("Yeni tanıdık: %s (Tab > İlişkiler)" % given, Color(0.6, 1.0, 0.7))
 
 
@@ -1347,7 +1351,21 @@ static func inst() -> Friends:
 
 
 static func job_of(f: Dictionary) -> String:
-	return String(f.get("job", "evde"))
+	var j = String(f.get("job", "evde"))
+	# gece ev halkı (annen, baban, kardeşin, eşin) evdedir: menü "antrenmanda" derken adam sofrada oturuyordu
+	if j != "görev" and j != "evde" and HomeLife.night() and _household(f):
+		return "evde"
+	return j
+
+
+static func _household(f: Dictionary) -> bool:
+	var ids = [spouse_id()]
+	for rel in ["anne", "baba", "kardeş"]:
+		ids.append(Kin.id_of(rel))
+	for id in ids:
+		if id != "" and all().has(id) and is_same(all()[id], f):
+			return true
+	return false
 
 
 static func _job_pos(f: Dictionary) -> Vector3:
@@ -1463,17 +1481,29 @@ func _world_tick(dt: float) -> void:
 			if not available(all()[fid]):
 				Hud.msg("%s şu an burada değil (%s)." % [all()[fid]["name"], "görevde" if job_of(all()[fid]) == "görev" else "köyde yok"], Color(1, 0.75, 0.5))
 	# yolda: görevdeki dost saldırıya uğramış (köy dışındaysan)
-	_enc_t -= 1.0
+	var quiet_now = Missions.quiet()   # görev / antrenman / sınav sırasında araya olay girmez
+	if not quiet_now:
+		_enc_t -= 1.0
 	if _enc_t <= 0.0 and fights.is_empty():
 		_enc_t = randf_range(600.0, 1000.0)
-		if Crime._village_at(pp) == "":
-			var onm = all().keys().filter(func(k): return String(all()[k].get("status", "")) == "" and job_of(all()[k]) == "görev" and not all()[k].get("party", false))
+		# olay sıklığı tanıdık sayısıyla orantılı: 5 kişilik çevrede herkes sırayla pusuya düşmez (20 tanıdıkta eski sıklık)
+		if Crime._village_at(pp) == "" and randf() < clampf(all().size() / 20.0, 0.1, 1.0):
+			var onm = all().keys().filter(func(k): return String(all()[k].get("status", "")) == "" and job_of(all()[k]) == "görev" and not all()[k].get("party", false) and not KinDrama.is_family(String(k)))
 			if not onm.is_empty():
 				var id2 = String(onm.pick_random())
-				Hud.banner("YOLDA KARŞILAŞMA", "%s görevdeyken pusuya düşmüş! Yardım et." % all()[id2]["name"], Color(1, 0.6, 0.4))
-				ambush(id2, ["bandit", "rogue"].pick_random(), randi_range(3, 5), "Yol pususu", true)
+				# pusu tanıdığın GERÇEKTEN bulunduğu yerde olur (köyünden çıkan yolun üstü); yanına ışınlanmaz.
+				# Yakınındaysa (1,2 km) haberini alırsın ve gidersen yardım edersin; uzaktaysa olay sensiz sonuçlanır.
+				var sp2 = _mission_spot(all()[id2])
+				if sp2 != Vector3.INF and sp2.distance_to(pp) < 1200.0:
+					Hud.msg("Haber: %s görev yolunda pusuya düşmüş (%d m). Haritada işaretlendi." % [all()[id2]["name"], int(sp2.distance_to(pp))], Color(1, 0.75, 0.5), 7.0)
+					ambush(id2, ["bandit", "rogue"].pick_random(), randi_range(3, 5), "Yol pususu", true, sp2)
+				elif randf() < 0.3:
+					all()[id2]["away"] = now + 600.0
+					Friends.log_event(all()[id2], "Görev yolunda pusuya düştü, yaralı döndü")
+					all()[id2]["news"] = "Görev yolunda pusuya düştük. Ucuz atlattım, birkaç gün dinleneceğim."
 	# arka planda ilerleyen planlar
-	_plot_t -= 1.0
+	if not quiet_now:
+		_plot_t -= 1.0
 	if _plot_t <= 0.0:
 		_plot_t = randf_range(500.0, 900.0)
 		_plot_tick()
@@ -1565,8 +1595,34 @@ func order_done(m: Dictionary, ok: bool) -> void:
 	Missions._rep(String(f.get("village", Progress.home())), 25)
 
 
+## Görevdeki tanıdığın dünyadaki yeri: köyünden çıkan yollardan birinin üstünde, köyden 300-1500 m ötede (göreve göre sabit).
+static func _mission_spot(f: Dictionary) -> Vector3:
+	var vid = String(f.get("village", Progress.home()))
+	var v = Game.village(vid)
+	if v.is_empty():
+		return Vector3.INF
+	var rs = Game.roads.filter(func(r): return String(r["kind"]) == "road" and (String(r["a"]) == vid or String(r["b"]) == vid))
+	if rs.is_empty():
+		return Vector3.INF
+	var h = absi(hash(String(f.get("name", "")) + str(int(float(f.get("job_until", 0.0))))))
+	var rd: Dictionary = rs[h % rs.size()]
+	var pts: Array = Array(rd["pts"])
+	if String(rd["a"]) != vid:
+		pts.reverse()
+	var c = Vector2(float(v["x"]), float(v["y"]))
+	var want = float(v["r"]) + 300.0 + float((h / 7) % 1200)
+	for i in range(pts.size() - 1):
+		var a: Vector2 = pts[i]
+		var b: Vector2 = pts[i + 1]
+		if b.distance_to(c) >= want:
+			var da = a.distance_to(c)
+			var t = clampf((want - da) / maxf(b.distance_to(c) - da, 1.0), 0.0, 1.0)
+			return Game.from_map(a.lerp(b, t))
+	return Vector3.INF
+
+
 ## Yakında dövüş: düşmanlar + (ally ise) dost yanında savaşır. Kazanırsan bağ, kaybedersen dost ölebilir.
-func ambush(id: String, kind: String, n: int, title: String, ally: bool) -> void:
+func ambush(id: String, kind: String, n: int, title: String, ally: bool, spot := Vector3.INF) -> void:
 	if int(ChuninExam.stage) != 0 or Exams.cur != "":
 		return   # sınav sürerken pusu olayı yok
 	if Game.player == null:
@@ -1579,7 +1635,9 @@ func ambush(id: String, kind: String, n: int, title: String, ally: bool) -> void
 		dir = -cam.global_transform.basis.z
 		dir.y = 0.0
 		dir = dir.normalized()
-	var at = Missions.open_ground(pp + dir * 25.0, 25.0)   # önünde: görebileceğin yerde
+	var at = Missions.open_ground(pp + dir * 25.0, 25.0)   # birlikte gittiğiniz iş: yanında
+	if spot != Vector3.INF:
+		at = Missions.open_ground(spot, 25.0)   # dünyadaki gerçek yeri (yanına ışınlanmaz)
 	var foes = []
 	var lv = int(pr().get("level", 1))
 	for i in 1:   # 1v1: kalabalık yerine tek güçlü düşman
@@ -1606,7 +1664,7 @@ func ambush(id: String, kind: String, n: int, title: String, ally: bool) -> void
 		al.set_meta("teammate", true)
 	Game.profile["waypoint"] = [at.x, at.y, at.z, "Olay: %s" % title]
 	Game.profile["track"] = "waypoint"
-	fights.append({"fid": id, "foes": foes, "ally": al, "at": at, "t": 0.0, "title": title})
+	fights.append({"fid": id, "foes": foes, "ally": al, "at": at, "t": 0.0, "title": title, "grace": 60.0 + at.distance_to(pp) / 5.0})
 
 
 func _fights_tick(dt: float) -> void:
@@ -1615,13 +1673,13 @@ func _fights_tick(dt: float) -> void:
 		var alive = (fg["foes"] as Array).filter(func(e): return is_instance_valid(e) and not e.is_dead())
 		var al = fg["ally"]
 		var ally_dead = al != null and (not is_instance_valid(al) or al.is_dead())
-		var far = Game.player.global_position.distance_to(fg["at"]) > 250.0 and float(fg["t"]) > 60.0
+		var far = Game.player.global_position.distance_to(fg["at"]) > 250.0 and float(fg["t"]) > float(fg.get("grace", 60.0))   # uzaktaysa yola çıkacak kadar süre
 		var id = String(fg["fid"])
 		if not all().has(id):
 			fights.erase(fg)
 			continue
 		var f: Dictionary = all()[id]
-		if alive.is_empty() or ally_dead or far or float(fg["t"]) > 400.0:
+		if alive.is_empty() or ally_dead or far or float(fg["t"]) > 400.0 + float(fg.get("grace", 60.0)):
 			fights.erase(fg)
 			if Game.profile.has("waypoint") and String(Game.profile["waypoint"][3]).begins_with("Olay:"):
 				Game.profile.erase("waypoint")
@@ -2616,14 +2674,17 @@ func _process(dt: float) -> void:
 		Kin.ensure()
 		Kin.tick(dt)
 		KinDrama.tick(dt)
-		RogueKin.tick(dt)
+		if not Missions.quiet():
+			RogueKin.tick(dt)
 	if _active() and not all().is_empty():
 		_baby_tick()
 		HomeLife.tick(dt)
 		Wedding.tick(dt)
 		SchoolVisit.tick()
 		_world_tick(dt)
-		life_t -= dt
+		if not Missions.quiet():
+			life_t -= dt
+			_circle_tick(dt)
 		if life_t <= 0.0:
 			life_t = randf_range(240.0, 480.0)
 			_life_event()
@@ -2678,6 +2739,45 @@ func _process(dt: float) -> void:
 		else:
 			m["node"] = _spawn(m["id"])
 		i += 1
+
+
+## Çevren kendiliğinden genişler: köyünde yakınından geçen gerçek ninjalardan sana yakın olan (klandaşın, aynı rütbe, yaşıtın)
+## bir süre sonra kendini tanıtır ve tanıdığın olur — "Kendini tanıt" demesen de hayatına yeni insanlar girer.
+## Çevre büyüdükçe yavaşlar (40 tanıdıkta durur). Görevde / sınavda işlemez.
+var _circle_t := 120.0
+func _circle_tick(dt: float) -> void:
+	_circle_t -= dt
+	if _circle_t > 0.0:
+		return
+	_circle_t = randf_range(150.0, 300.0)
+	var n_known = all().size()
+	if Orgs.is_rogue() or randf() > 1.0 - n_known / 40.0 or Hud.dialog_open():
+		return
+	var pp = Game.player.global_position
+	if Crime._village_at(pp) != Progress.home():
+		return
+	var me = pr()
+	var best: Node = null
+	var best_w = 0.0
+	for v in get_tree().get_nodes_in_group("talkers"):
+		if not is_instance_valid(v) or not v.has_meta("world_person") or String(v.get_meta("friend_id", "")) != "" or v.global_position.distance_to(pp) > 22.0:
+			continue
+		var wp = WorldPeople.get_p(String(v.get_meta("world_person")))
+		if wp.is_empty() or WorldPeople.is_rogue(wp) or String(wp["village"]) != Progress.home() or WorldDay.friend_of(String(wp["id"])) != "":
+			continue
+		var w = 1.0
+		if String(wp["clan"]) != "" and String(wp["clan"]) == String(me.get("clan", "")):
+			w += 3.0   # klandaşın seni tanır
+		if clampi(int(wp["rank"]), 0, 2) == clampi(int(me.get("rank", 1)) - 1, 0, 2):
+			w += 2.0   # aynı rütbe: aynı görev masası, aynı antrenman sahası
+		if absf(Aging.person_years(wp) - Aging.player_years()) < 6.0:
+			w += 1.5   # yaşıtın
+		w *= randf_range(0.6, 1.4)
+		if w > best_w:
+			best_w = w
+			best = v
+	if best != null:
+		WorldDay.meet(best, true)
 
 
 ## Takımdaki dostun yanında [F]

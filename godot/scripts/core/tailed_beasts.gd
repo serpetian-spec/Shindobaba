@@ -337,7 +337,8 @@ func _process(dt: float) -> void:
 	if tick > 0.0:
 		return
 	tick = 0.5
-	host_t -= 0.5
+	if not Missions.quiet():
+		host_t -= 0.5
 	if host_t <= 0.0:
 		host_t = HOST_EVENT_T * randf_range(0.7, 1.3)
 		_host_events()

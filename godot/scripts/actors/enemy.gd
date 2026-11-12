@@ -2,7 +2,10 @@ class_name Enemy
 extends Fighter
 ## Düşman ninja yapay zekâsı.
 
-static var attack_tokens = 0  # aynı anda saldıran düşman sayısı
+## Aynı anda saldıran düşman sayısı HEDEF BAŞINA sayılır. Eskiden tek bir dünya sayacıydı: başka yerde dövüşen üç kişi
+## (antrenman sahası, yol kavgası) sırayı doldurunca senin dibindeki düşman vurmadan etrafında dönüyordu.
+static var _tok := {}
+var _tok_key := 0
 static var swings = 0         # toplam savuruş (dövüş temposu ölçümü)
 
 var arch = {}
@@ -123,6 +126,22 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 		base["auto_jutsu"] = base["jutsu"].duplicate()
 		base["auto_lv"] = int(base["level"])
 	return base
+
+
+## Görev düşmanı jutsusuz gelmez: haydut / paralı asker de bir doğa ve seviyesine uygun teknik taşır (görevde herkes ninja gibi dövüşür)
+static func arm(a: Dictionary) -> void:
+	if a.has("beast") or not (a.get("jutsu", []) as Array).is_empty():
+		return
+	var el = String(a.get("element", ""))
+	if el == "":
+		el = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()
+		a["element"] = el
+	var js = auto_jutsu("rogue", el, int(a.get("level", 2)))
+	if js.is_empty():
+		js = {"suiton": ["suiton_suikoudan"], "doton": ["doton_doryuusou"], "raiton": ["raiton_nagashi"], "katon": ["katon_goukakyuu"], "fuuton": ["fuuton_daitoppa"]}[el]
+	a["jutsu"] = js
+	a["auto_jutsu"] = js.duplicate()
+	a["auto_lv"] = int(a.get("level", 2))
 
 
 ## DÜNYA SEVİYESİ — düşmanlar oyuncuya göre ölçeklenmez: güç bölgeden gelir. Köy içi/çevresi sakin (5-10), köylerden
@@ -587,7 +606,8 @@ func _think(dt: float) -> void:
 			_dodge(pl, randf() < 0.6)
 	elif not busy:
 		_saw_busy = false
-	if global_position.distance_to(home) > (280.0 if _is_ninja() else 130.0) and state == "chase":
+	# evinden uzaklaştı diye bırakmaz: hedef hâlâ yakınındaysa (60 m) peşinde kalır; yalnız hedef gerçekten kaçtıysa döner
+	if global_position.distance_to(home) > (280.0 if _is_ninja() else 130.0) and state == "chase" and (target == null or not is_instance_valid(target) or global_position.distance_to(target.global_position) > 60.0):
 		target = null
 		state = "idle"
 		wander_to = home
@@ -700,11 +720,11 @@ func _chase(dt: float) -> void:
 		var sp: float = arch["speed"]
 		var dir = v.normalized()
 		# orta mesafeden atılma (usta ve saldırgan düşmanlar)
-		if stop_d < 3.0 and d > 3.5 and d < 11.0 and attack_cd <= 0.0 and (has_token or attack_tokens < _max_tokens()) and randf() < dt * (1.0 + skill * 3.0) * arch["aggr"]:   # uzakçı tarz atılmaz
+		if stop_d < 3.0 and d > 3.5 and d < 11.0 and attack_cd <= 0.0 and (has_token or _tok_count() < _max_tokens()) and randf() < dt * (1.0 + skill * 3.0) * arch["aggr"]:   # uzakçı tarz atılmaz
 			_lunge()
 			return
 		var side_s = 1.0 if int(get_instance_id()) % 2 == 0 else -1.0
-		if not has_token and attack_tokens >= _max_tokens() and d < 7.0:
+		if not has_token and _tok_count() >= _max_tokens() and d < 7.0:
 			dir = dir.rotated(Vector3.UP, PI * 0.5 * side_s) * 0.6
 			sp *= 0.6
 		elif _is_ninja() and not (arch.get("jutsu", []) as Array).is_empty() and d > 5.0 and d < 16.0 and ranged_cd > 0.4 and skill > 0.3:
@@ -726,10 +746,10 @@ func _chase(dt: float) -> void:
 	else:
 		step_move(Vector3.ZERO, dt, false)
 		model.play("idle", 0.2)
-		if attack_cd <= 0.0 and (has_token or attack_tokens < _max_tokens()):
+		if attack_cd <= 0.0 and (has_token or _tok_count() < _max_tokens()):
 			if not has_token:
 				has_token = true
-				attack_tokens += 1
+				_tok_add(1)
 			combo_left = randi_range(2, 3 + int(skill * 3.0))
 			state = "attack"
 			Eyes.warn_attack(self)   # açık Sharingan hamleyi önceden görür (kırmızı iz)
@@ -801,6 +821,20 @@ func _climb_leap(dy: float) -> void:
 
 
 ## Aynı anda yakın dövüşe girebilen düşman sayısı (eskiden 2: kalabalık bile sırayla bekliyordu)
+func _tok_count() -> int:
+	return int(_tok.get(target.get_instance_id(), 0)) if target != null and is_instance_valid(target) else 0
+
+
+func _tok_add(n: int) -> void:
+	if n > 0:
+		_tok_key = target.get_instance_id() if target != null and is_instance_valid(target) else 0
+	var v = maxi(0, int(_tok.get(_tok_key, 0)) + n)
+	if v == 0:
+		_tok.erase(_tok_key)
+	else:
+		_tok[_tok_key] = v
+
+
 func _max_tokens() -> int:
 	return 3 if skill < 0.6 else 5
 
@@ -824,7 +858,7 @@ func _beast_tech(d: float) -> void:
 func _exit_tree() -> void:
 	if has_token:
 		has_token = false
-		attack_tokens = maxi(0, attack_tokens - 1)
+		_tok_add(-1)
 
 
 var _step_ph := -1.0
@@ -859,7 +893,7 @@ func _lunge() -> void:
 	facing = atan2(-v.x, -v.z)
 	if not has_token:
 		has_token = true
-		attack_tokens += 1
+		_tok_add(1)
 	combo_left = randi_range(2, 3 + int(skill * 3.0))
 	state = "attack"
 	Eyes.warn_attack(self)   # açık Sharingan hamleyi önceden görür (kırmızı iz)
@@ -876,6 +910,8 @@ var key_step := {}      # oynayan adım: {hit, len, two, i}
 func _keyed_id() -> String:
 	var wid = look.get("weapon_r") if look is Dictionary else null
 	if (wid == null or String(wid) == "") and model != null and arch is Dictionary:
+		if int(arch.get("level", 99)) < FightingStyles.WAKE_POWER:
+			return ""   # oyuncuyla aynı kural: klan / kan soyu tarzı Güç 10'da uyanır (zayıf genin temel taijutsu dövüşür)
 		var ck = FightingStyles.npc_key(String(arch.get("clan", "")))   # silahsız klanlı düşman: klanın dövüş tarzı (oyuncuyla aynı kombo)
 		if ck == "":   # klansız kekkei genkai (Ranton/Yōton/Bakuton/Shakuton/Shōton/Jinton/Mokuton): oyuncu soyuyla aynı tarz
 			ck = FightingStyles.npc_kg_key(String(element), arch.get("jutsu", []) if arch.get("jutsu") is Array else [])
@@ -1041,7 +1077,7 @@ func _end_attack() -> void:
 	attack_cd = randf_range(0.35, 1.1) / arch["aggr"] / (1.0 + skill)
 	if has_token:
 		has_token = false
-		attack_tokens = maxi(0, attack_tokens - 1)
+		_tok_add(-1)
 
 
 ## Can barı: düşmansa ve (hasar almışsa ya da sana saldırıyorsa) görünür; rengi sana göre tehlikesini söyler
@@ -1205,7 +1241,7 @@ func take_hit(info: Dictionary) -> void:
 		return
 	if has_token:
 		has_token = false
-		attack_tokens = maxi(0, attack_tokens - 1)
+		_tok_add(-1)
 	super.take_hit(info)
 	# yenilen kaçak pes eder: öldür / teslim et / bağışla (kaçak dostluğu)
 	if not dead and hp > 0.0 and hp < max_hp * (0.25 + Stats.skill(Game.profile, "persuade") * 0.3) and RogueBonds.spareable(self, info):   # Sosyal: İkna
@@ -1299,7 +1335,7 @@ func die(info: Dictionary) -> void:
 		get_tree().create_timer(2.5).timeout.connect(func(): TailedBeasts.release_from_host(bid, at0))
 	if has_token:
 		has_token = false
-		attack_tokens = maxi(0, attack_tokens - 1)
+		_tok_add(-1)
 	nameplate.visible = false
 	if has_meta("stolen_ryo") and int(get_meta("stolen_ryo")) > 0:
 		Progress.add_ryo(int(get_meta("stolen_ryo")))

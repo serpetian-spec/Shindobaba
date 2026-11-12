@@ -175,6 +175,35 @@ static func dress(b: Builder, cx: float, front_n: float, half_w: float, depth: f
 		var hx = tx0 + 2.5 + (k % 2) * 1.3
 		var hn = tn1 - 6.0 - k * 1.1
 		b.box(Vector3(hx, g.call(hx, hn) + 0.45 + (0.8 if k == 2 else 0.0), hn if k < 2 else hn + 1.6), Vector3(1.3, 0.8, 0.9), Color(0.82, 0.72, 0.42), rng.randf_range(-10, 10))
+	# saha çizgileri (kireç): eşli dövüş çemberi, hedeflerin önünde atış çizgisi, kenarda koşu kulvarları — çıplak toprak kalmasın
+	var yq_chalk = Color(0.93, 0.91, 0.84)
+	var yq_cr = minf(6.5, (tn1 - tn0) * 0.2)
+	for k in 28:
+		var yq_ca = TAU * k / 28.0
+		var yq_cxp = tcx + sin(yq_ca) * yq_cr; var yq_cnp = tcn - 4.0 + cos(yq_ca) * yq_cr
+		b.box(Vector3(yq_cxp, g.call(yq_cxp, yq_cnp) + 0.135, yq_cnp), Vector3(yq_cr * 0.235, 0.03, 0.16), yq_chalk, rad_to_deg(yq_ca), false)
+	for yq_sgn in [-0.6, 0.6]:   # başlangıç çizgileri (çemberin içinde karşılıklı)
+		b.box(Vector3(tcx + yq_sgn, g.call(tcx, tcn - 4.0) + 0.135, tcn - 4.0), Vector3(0.14, 0.03, 1.6), yq_chalk, 0, false)
+	b.box(Vector3(tcx, g.call(tcx, tn1 - 9.0) + 0.135, tn1 - 9.0), Vector3(tx1 - tx0 - 6.0, 0.03, 0.18), yq_chalk, 0, false)   # atış çizgisi
+	for k in 3:   # koşu kulvarı (ön kenar boyunca)
+		var yq_lane_n = tn0 + 1.6 + k * 1.3
+		b.box(Vector3(tcx, g.call(tcx, yq_lane_n) + 0.135, yq_lane_n), Vector3(tx1 - tx0 - 3.0, 0.03, 0.12), yq_chalk, 0, false)
+	# denge / sıçrama kazıkları: giderek yükselen kütük dizisi (üstünden atlanır)
+	var yq_np = maxi(4, int((tx1 - tx0) / 8.0))
+	for k in yq_np:
+		var yq_px2 = tx0 + 5.0 + k * 2.4
+		var yq_pn2 = tn1 - 13.0 - (k % 2) * 1.4
+		if absf(yq_px2 - tcx) < yq_cr + 2.0:
+			break
+		var yq_ph = 0.7 + k * 0.45
+		b.cyl(Vector3(yq_px2, g.call(yq_px2, yq_pn2) + yq_ph * 0.5, yq_pn2), 0.9, yq_ph, WOOD.lightened(0.05), true, 9)
+		b.cyl(Vector3(yq_px2, g.call(yq_px2, yq_pn2) + yq_ph + 0.02, yq_pn2), 0.92, 0.06, WOOD_D, false, 9)
+	# denge kirişi (iki ayak üstünde uzun kalas)
+	var yq_bbx = tx1 - 9.0; var yq_bbn = tn1 - 14.0
+	if yq_bbx - tcx > yq_cr + 5.0:
+		for yq_sgn in [-1.0, 1.0]:
+			b.box(Vector3(yq_bbx + yq_sgn * 3.4, g.call(yq_bbx, yq_bbn) + 0.4, yq_bbn), Vector3(0.4, 0.8, 0.9), WOOD_D)
+		b.box(Vector3(yq_bbx, g.call(yq_bbx, yq_bbn) + 0.9, yq_bbn), Vector3(8.0, 0.25, 0.4), WOOD)
 	# kuklalar + eşli antrenman
 	for i in 4:
 		var x = tx0 + 4.0 + i * (tx1 - tx0 - 8.0) / 3.0

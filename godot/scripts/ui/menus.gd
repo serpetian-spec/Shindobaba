@@ -782,7 +782,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 				swatches.call("Göz Rengi", "eye", [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1), Color(0.6, 0.4, 0.15), Color(0.55, 0.55, 0.6), Color(0.6, 0.25, 0.55)])
 		"kiyafet":
 			# kıyafet artık set olarak giyilir (parçalar iç içe geçmesin)
-			var ss = Gear.start_sets(String(state.get("gender", "m")))
+			var ss = Gear.start_sets(String(state.get("gender", "m")), String(state.get("clan", "")))
 			if state.has("start_set") and not String(state["start_set"]) in ss:
 				state["start_set"] = ss[0]   # cinsiyet değişince karşı cinsin seti seçili kalmasın
 			var sl = ss.map(func(x): return String(Gear.item(x).get("name", x)))
@@ -792,6 +792,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			swatches.call("Alt Rengi", "pants", outfit_cols)
 	if not keep_scroll.is_empty():
 		_restore_scroll.call_deferred(keep_scroll)
+		Engine.get_main_loop().process_frame.connect(_restore_scroll.bind(keep_scroll), CONNECT_ONE_SHOT)   # yerleşim bittikten sonra bir kez daha
 	# sağ üst: özet kartı
 	var sum = PanelContainer.new()
 	sum.add_theme_stylebox_override("panel", UI.glass(14, 16, 0.7))
@@ -1331,14 +1332,27 @@ static func last_tab(fallback := "inv") -> String:
 
 
 static func _scroll_positions() -> Array:
+	return _live_scrolls().map(func(sc): return sc.scroll_vertical)
+
+
+## Silinmeyi bekleyen eski ekranın kaydırma kutuları sayılmaz (yeniden kurulan ekranda konum eskisine yazılıp kayboluyordu)
+static func _live_scrolls() -> Array:
 	var out = []
 	for sc in Hud.dialog_layer.find_children("*", "ScrollContainer", true, false):
-		out.append(sc.scroll_vertical)
+		var dead = false
+		var n: Node = sc
+		while n != null and n != Hud.dialog_layer:
+			if n.is_queued_for_deletion():
+				dead = true
+				break
+			n = n.get_parent()
+		if not dead:
+			out.append(sc)
 	return out
 
 
 static func _restore_scroll(vals: Array) -> void:
-	var scs = Hud.dialog_layer.find_children("*", "ScrollContainer", true, false)
+	var scs = _live_scrolls()
 	for i in mini(scs.size(), vals.size()):
 		if is_instance_valid(scs[i]):
 			scs[i].scroll_vertical = int(vals[i])

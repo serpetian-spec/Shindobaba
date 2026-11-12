@@ -108,7 +108,13 @@ func _physics_process(dt: float) -> void:
 			if NpcNav.stuck(self, path[path_i], dt):
 				stuck_n += 1
 				if stuck_n >= 2:
-					_hop_to(global_position + v.normalized() * minf(v.length(), 8.0))
+					if v.length() < 14.0:
+						# nokta ulaşılamaz bir yerde (yapının içi / dibi): yeterince yakın, sıradakine geç
+						stuck_n = 0
+						path_i += 1
+						NpcNav.reset(self)
+					else:
+						_hop_to(global_position + v.normalized() * minf(v.length(), 8.0))
 		"follow":
 			var v = pl.global_position - global_position
 			v.y = 0

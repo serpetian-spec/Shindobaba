@@ -595,14 +595,14 @@ static func friend_of(wid: String) -> String:
 
 
 ## "Kendini tanıt": dünya ninjası gerçek kimliğiyle tanıdığın olur (adı, klanı, gözü, rütbesi, ailesi kayıttan)
-static func meet(v: Node) -> void:
+static func meet(v: Node, silent := false) -> void:
 	var p = WorldPeople.get_p(String(v.get_meta("world_person", "")))
 	if p.is_empty():
 		return
 	var keep_site = v.has_meta("site_key")
 	if keep_site:
 		v.remove_meta("site_key")   # sabit yere bağlanmaz: günü neredeyse orada olur
-	Friends._meet(v, String(p["name"]))
+	Friends._meet(v, String(p["name"]), silent)
 	var fid = String(v.get_meta("friend_id", ""))
 	var fs = Friends.all()
 	if fid == "" or not fs.has(fid):

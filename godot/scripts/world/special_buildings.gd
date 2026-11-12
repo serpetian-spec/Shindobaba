@@ -103,65 +103,108 @@ static func shop_front(b: Builder, decor: Node3D, x: float, nf: float, dn: float
 static func hospital(b: Builder, decor: Node3D, hx: float, hn: float, rng: RandomNumberGenerator) -> void:
 	var yo = b.yoff
 	b.yoff = _g(b, hx, hn)
-	var white = Color(0.96, 0.95, 0.92)
+	# anime (refs/konoha/Konoha_Hospital.png): açık leylak üç katlı gövde, mavi eğimli çatı, turuncu balkon bantları,
+	# nane yeşili pencereler, girişte yeşil tabela + kırmızı 医 diski ve mavi saçak; çatıda soluk mavi kubbe,
+	# turuncu külahlı kule (tepesinde top) ve turuncu şapkalı iki silindir kule; sağda alçak mor kanat.
+	var white = Color(0.93, 0.9, 0.94)
 	var grey = Color(0.78, 0.78, 0.8)
-	var red = Color(0.78, 0.2, 0.17)
-	var glass = Color(0.5, 0.7, 0.85)
+	var red = Color(0.82, 0.3, 0.2)
+	var glass = Color(0.62, 0.86, 0.8)
+	var blue = Color(0.28, 0.6, 0.74)
+	var orange = Color(0.95, 0.66, 0.22)
+	var lilac = Color(0.8, 0.76, 0.88)
 	var fn = hn - 21.0
-	b.box(Vector3(hx, 15, hn), Vector3(76, 30, 42), white)
-	b.box(Vector3(hx, 30.6, hn), Vector3(79, 1.4, 45), red)
-	for fl in 4:
-		var y = 4.5 + fl * 7.0
-		b.box(Vector3(hx, y + 3.2, fn - 0.35), Vector3(76.4, 0.4, 0.9), grey, 0, false)
+	b.box(Vector3(hx, 12, hn), Vector3(76, 24, 42), white)
+	b.roof(Vector3(hx, 24.0, hn), Vector3(81, 6.0, 47), blue)
+	b.box(Vector3(hx, 24.1, fn - 2.5), Vector3(81.4, 0.5, 0.6), blue.darkened(0.25), 0, false)   # saçak kenarı
+	for k in 20:   # çatı sacı dikişleri (ön yüz)
+		b.box(Vector3(hx - 38.0 + k * 4.0, 26.9, hn - 11.8), Vector3(0.2, 0.2, 24.2), blue.darkened(0.18), 0, false, Vector3(14.3, 0, 0))
+	for i in 13:   # cephe payandaları (bölmeler)
+		var bx = hx - 36.0 + i * 6.0
+		if absf(bx - hx) < 8.0:
+			continue
+		b.box(Vector3(bx, 12.0, fn - 0.2), Vector3(0.7, 24.0, 0.5), white.lightened(0.04), 0, false)
+	for fl in 3:
+		var y = 4.2 + fl * 7.4
 		for i in 12:
 			var wx = hx - 33.0 + i * 6.0
 			if absf(wx - hx) < 9.0:
 				continue
-			b.box(Vector3(wx, y, fn - 0.12), Vector3(3.6, 2.8, 0.3), grey.darkened(0.2), 0, false)
-			b.box(Vector3(wx, y, fn - 0.25), Vector3(3.1, 2.4, 0.2), glass, 0, false)
-	# giriş kulesi
-	b.box(Vector3(hx, 18, fn - 3.0), Vector3(16, 36, 6), white.darkened(0.03))
-	b.box(Vector3(hx, 36.4, fn - 3.0), Vector3(17, 0.8, 7), red)
-	for fl in 3:
-		b.box(Vector3(hx, 11.0 + fl * 7.0, fn - 6.15), Vector3(10, 4.6, 0.3), glass.darkened(0.05), 0, false)
-		b.box(Vector3(hx, 13.5 + fl * 7.0, fn - 6.2), Vector3(16.2, 0.4, 0.5), grey, 0, false)
-	b.disc(Vector3(hx, 31.0, fn - 6.3), 8.0, 0.4, red, 0.0, 24)
-	b.box(Vector3(hx, 31.0, fn - 6.55), Vector3(1.6, 5.0, 0.2), Color(1, 1, 1), 0, false)
-	b.box(Vector3(hx, 31.0, fn - 6.55), Vector3(5.0, 1.6, 0.2), Color(1, 1, 1), 0, false)
-	b.box(Vector3(hx + 9.6, 18.0, fn - 3.0), Vector3(2.4, 12.0, 0.3), Color(0.96, 0.94, 0.88), 0, false)
-	b.kanji(Vector3(hx + 9.6, 20.2, fn - 3.2), "病", 2.0, red.darkened(0.2), 0.0)
-	b.kanji(Vector3(hx + 9.6, 17.6, fn - 3.2), "院", 2.0, red.darkened(0.2), 0.0)
-	# giriş: cam kapılar + kanopi (4 sütun)
-	b.box(Vector3(hx, 2.2, fn - 6.2), Vector3(7.0, 4.4, 0.3), glass.lightened(0.15), 0, false)
-	b.box(Vector3(hx, 2.2, fn - 6.3), Vector3(0.2, 4.4, 0.3), grey.darkened(0.3), 0, false)
-	b.box(Vector3(hx, 5.2, fn - 10.5), Vector3(18.0, 0.5, 9.0), white, 0, false)
-	b.box(Vector3(hx, 5.55, fn - 15.0), Vector3(18.0, 0.3, 0.3), red, 0, false)
+			b.box(Vector3(wx, y, fn - 0.12), Vector3(2.9, 3.4, 0.3), Color(0.42, 0.66, 0.62), 0, false)
+			b.box(Vector3(wx, y, fn - 0.25), Vector3(2.4, 2.9, 0.2), glass, 0, false)
+			b.box(Vector3(wx, y, fn - 0.32), Vector3(0.14, 2.9, 0.2), Color(0.42, 0.66, 0.62), 0, false)
+			if fl == 1:   # orta kat: kemerli pencere
+				b.disc(Vector3(wx, y + 1.5, fn - 0.2), 2.9, 0.3, Color(0.42, 0.66, 0.62), 0.0, 12)
+				b.disc(Vector3(wx, y + 1.5, fn - 0.3), 2.4, 0.3, orange, 0.0, 12)
+			if fl > 0:    # üst katlarda turuncu balkon bandı
+				b.box(Vector3(wx, y - 2.6, fn - 0.6), Vector3(5.0, 1.3, 1.1), orange, 0, false)
+				b.box(Vector3(wx, y - 1.9, fn - 0.6), Vector3(5.1, 0.14, 1.2), orange.darkened(0.15), 0, false)
+	for fl in 3:   # arka ve yan cepheler boş duvar kalmasın
+		for i in 12:
+			b.box(Vector3(hx - 33.0 + i * 6.0, 4.2 + fl * 7.4, hn + 21.12), Vector3(2.9, 3.4, 0.3), Color(0.42, 0.66, 0.62), 0, false)
+			b.box(Vector3(hx - 33.0 + i * 6.0, 4.2 + fl * 7.4, hn + 21.2), Vector3(2.4, 2.9, 0.3), glass, 0, false)
+		for i in 5:
+			b.box(Vector3(hx - 38.12, 4.2 + fl * 7.4, hn - 14.0 + i * 7.0), Vector3(0.3, 3.4, 2.9), Color(0.42, 0.66, 0.62), 0, false)
+			b.box(Vector3(hx - 38.2, 4.2 + fl * 7.4, hn - 14.0 + i * 7.0), Vector3(0.3, 2.9, 2.4), glass, 0, false)
+		b.box(Vector3(hx, 1.6 + fl * 7.4 + 7.0, hn + 21.2), Vector3(76.4, 0.5, 0.5), orange, 0, false)
+	# giriş bölümü: hafif öne çıkan blok, mavi saçak, yeşil tabela + 医 diski, altında hastane yazısı
+	b.box(Vector3(hx, 10.0, fn - 3.0), Vector3(16, 20, 6), white.darkened(0.03))
+	b.box(Vector3(hx, 17.0, fn - 6.1), Vector3(11, 5.0, 0.3), Color(0.78, 0.9, 0.86), 0, false)   # üst kat cam bandı
+	b.box(Vector3(hx, 12.0, fn - 6.5), Vector3(19.0, 3.6, 0.6), Color(0.36, 0.7, 0.36), 0, false)
+	b.box(Vector3(hx, 12.0, fn - 6.4), Vector3(19.8, 4.4, 0.4), Color(0.9, 0.8, 0.3), 0, false)
+	b.disc(Vector3(hx, 12.8, fn - 6.7), 6.6, 0.5, Color(0.9, 0.8, 0.3), 0.0, 24)
+	b.disc(Vector3(hx, 12.8, fn - 6.9), 5.8, 0.5, red, 0.0, 24)
+	b.kanji(Vector3(hx, 12.8, fn - 7.2), "医", 3.4, red.darkened(0.45), 0.0)
+	b.box(Vector3(hx, 8.6, fn - 10.5), Vector3(20.0, 0.5, 9.6), blue, 0, false, Vector3(-6.0, 0, 0))   # mavi saçak
+	b.box(Vector3(hx, 8.1, fn - 15.2), Vector3(20.2, 0.5, 0.4), blue.darkened(0.25), 0, false)
+	b.box(Vector3(hx, 6.6, fn - 6.3), Vector3(11.0, 1.7, 0.3), Color(0.3, 0.56, 0.36), 0, false)
+	b.kanji(Vector3(hx, 6.6, fn - 6.5), "木ノ葉病院", 1.3, Color(0.92, 0.9, 0.7), 0.0)
+	b.box(Vector3(hx, 2.4, fn - 6.2), Vector3(8.0, 4.8, 0.3), Color(0.5, 0.74, 0.88), 0, false)
+	for dxk in [-2.0, 0.0, 2.0]:
+		b.box(Vector3(hx + dxk, 2.4, fn - 6.3), Vector3(0.18, 4.8, 0.3), Color(0.3, 0.5, 0.62), 0, false)
 	for sx in [-1.0, 1.0]:
 		for sn in [-8.0, -14.5]:
-			b.cyl(Vector3(hx + sx * 8.0, 2.5, fn + sn), 0.5, 5.0, grey, true, 8)
-	b.box(Vector3(hx, 0.08, fn - 10.5), Vector3(16.0, 0.16, 9.0), Color(0.72, 0.7, 0.68), 0, false)
-	# çatı: korkuluk + su depoları + çamaşır ipi (hastane çatısı)
-	var rt = 31.3
-	for i in 26:
-		var px = hx - 37.5 + i * 3.0
-		b.box(Vector3(px, rt + 0.6, hn - 21.8), Vector3(0.12, 1.2, 0.12), grey.darkened(0.2), 0, false)
-		b.box(Vector3(px, rt + 0.6, hn + 21.8), Vector3(0.12, 1.2, 0.12), grey.darkened(0.2), 0, false)
-	for sz in [-1.0, 1.0]:
-		b.box(Vector3(hx, rt + 1.2, hn + sz * 21.8), Vector3(76.0, 0.12, 0.12), grey.darkened(0.2), 0, false)
-	for t in 3:
-		var tx = hx - 24.0 + t * 12.0
-		b.cyl(Vector3(tx, rt + 2.3, hn + 8.0), 4.4, 4.0, Color(0.82, 0.84, 0.86), true, 14)
-		b.cone(Vector3(tx, rt + 4.9, hn + 8.0), 5.0, 1.2, Color(0.6, 0.62, 0.66), 14)
-	for k in 6:
-		b.box(Vector3(hx + 14.0 + k * 1.6, rt + 1.6, hn - 4.0), Vector3(1.2, 1.4, 0.03), Color(0.97, 0.97, 0.97), 0, false)
-	b.box(Vector3(hx + 18.0, rt + 2.35, hn - 4.0), Vector3(11.0, 0.04, 0.04), grey.darkened(0.4), 0, false)
-	# yan kanat + bağlantı koridoru
-	b.box(Vector3(hx + 50, 11, hn + 4), Vector3(22, 22, 30), white.darkened(0.02))
-	b.box(Vector3(hx + 50, 22.6, hn + 4), Vector3(24, 1.2, 32), red)
-	b.box(Vector3(hx + 40.0, 12.0, hn - 4.0), Vector3(6.0, 4.0, 5.0), glass.lightened(0.1))
-	for fl in 3:
-		for i in 3:
-			b.box(Vector3(hx + 43.0 + i * 7.0, 5.0 + fl * 6.5, hn - 11.15), Vector3(3.6, 2.6, 0.3), glass, 0, false)
+			b.cyl(Vector3(hx + sx * 9.0, 4.0, fn + sn), 0.7, 8.0, white.darkened(0.08), true, 8)
+	b.box(Vector3(hx, 0.25, fn - 9.0), Vector3(12.0, 0.5, 6.0), Color(0.72, 0.74, 0.8), 0, false)   # giriş basamağı
+	b.box(Vector3(hx, 0.08, fn - 13.0), Vector3(14.0, 0.16, 3.0), Color(0.72, 0.74, 0.8), 0, false)
+	# çatı üstü: soluk mavi kubbe (kasnaklı), sol uçta turuncu külah kule + top, sağda turuncu şapkalı iki silindir kule
+	var rt = 27.0
+	b.cyl(Vector3(hx - 10.0, rt + 2.0, hn + 4.0), 26.0, 5.0, Color(0.72, 0.86, 0.9), true, 24)
+	for k in 24:
+		var da = TAU * k / 24.0
+		b.box(Vector3(hx - 10.0 + sin(da) * 13.05, rt + 2.4, hn + 4.0 - cos(da) * 13.05), Vector3(0.5, 3.2, 0.3), Color(0.56, 0.74, 0.82), -rad_to_deg(da), false)
+	b.dome(Vector3(hx - 10.0, rt + 4.5, hn + 4.0), 25.0, 8.0, Color(0.74, 0.9, 0.94), 24)
+	b.cyl(Vector3(hx - 31.0, rt + 1.0, hn + 4.0), 13.0, 6.0, white, true, 16)
+	b.cone(Vector3(hx - 31.0, rt + 8.5, hn + 4.0), 17.0, 11.0, orange, 16)
+	for k in 3:
+		b.cyl(Vector3(hx - 31.0, rt + 6.6 + k * 2.6, hn + 4.0), 12.6 - k * 3.6, 0.5, orange.darkened(0.18), false, 16)
+	b.sphere(Vector3(hx - 31.0, rt + 15.6, hn + 4.0), Vector3(5.2, 5.2, 5.2), orange.lightened(0.05))
+	for t in 2:
+		var tx = hx + 14.0 + t * 15.0
+		var th = 9.0 + t * 5.0
+		b.cyl(Vector3(tx, rt + th * 0.5 - 1.0, hn + 5.0), 10.0, th, lilac.lightened(0.08), true, 14)
+		for k in 8:
+			var wa = TAU * k / 8.0
+			b.box(Vector3(tx + sin(wa) * 5.02, rt + th - 3.4, hn + 5.0 - cos(wa) * 5.02), Vector3(1.6, 2.2, 0.3), Color(0.5, 0.72, 0.8), -rad_to_deg(wa), false)
+		b.cone(Vector3(tx, rt + th + 1.0, hn + 5.0), 13.5, 4.0, orange.darkened(0.08), 14)
+		b.cyl(Vector3(tx, rt + th + 2.6, hn + 5.0), 4.0, 1.8, Color(0.86, 0.9, 0.94), false, 12)
+	b.cyl(Vector3(hx + 21.5, rt + 1.6, hn + 12.0), 6.0, 4.2, Color(0.88, 0.92, 0.96), true, 14)   # su deposu
+	# sağ kanat: alçak mor blok, düz çatı, turuncu bant, çatıda depolar + bağlantı koridoru
+	b.box(Vector3(hx + 50, 10, hn + 4), Vector3(22, 20, 30), lilac)
+	b.box(Vector3(hx + 50, 20.4, hn + 4), Vector3(23.5, 0.8, 31.5), lilac.darkened(0.22))
+	b.box(Vector3(hx + 40.0, 12.0, hn - 4.0), Vector3(6.0, 4.0, 5.0), Color(0.78, 0.9, 0.86))
+	b.box(Vector3(hx + 50, 10.6, hn - 11.3), Vector3(20.0, 1.2, 0.7), orange, 0, false)
+	for fl in 2:
+		for i in 2:
+			b.box(Vector3(hx + 45.5 + i * 9.0, 6.4 + fl * 8.0, hn - 11.15), Vector3(2.8, 3.2, 0.3), Color(0.3, 0.56, 0.52), 0, false)
+			b.box(Vector3(hx + 45.5 + i * 9.0, 6.4 + fl * 8.0, hn - 11.25), Vector3(2.2, 2.6, 0.3), glass, 0, false)
+	for t in 2:
+		b.cyl(Vector3(hx + 45.0 + t * 10.0, 22.4, hn + 8.0), 5.6, 3.6, Color(0.88, 0.92, 0.96), true, 12)
+	# bahçe kapısı direkleri (tepesinde taş top)
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(hx + sx * 7.5, 2.6, fn - 43.0), Vector3(2.0, 5.2, 2.0), Color(0.62, 0.74, 0.76))
+		b.sphere(Vector3(hx + sx * 7.5, 6.0, fn - 43.0), Vector3(2.0, 2.0, 2.0), Color(0.66, 0.78, 0.8))
+	b.kanji(Vector3(hx - 7.5, 3.0, fn - 44.05), "病院", 1.0, Color(0.2, 0.3, 0.34), 0.0)
 	# ön avlu: taş döşeme, derzler, giriş yolu, ortada yuvarlak çiçeklik + ağaç
 	var pav = Color(0.82, 0.8, 0.76)
 	b.box(Vector3(hx, -0.5, fn - 21.0), Vector3(66.0, 1.12, 42.0), pav, 0, false)

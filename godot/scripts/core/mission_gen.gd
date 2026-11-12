@@ -131,7 +131,7 @@ static func _foe(r: String, here: String, rng: RandomNumberGenerator) -> Array:
 				return [fv, "%s Ajanı" % {"oto": "Ses", "kumo": "Bulut", "kiri": "Sis", "iwa": "Taş", "suna": "Kum"}[fv]]
 			return ["rogue", _rand(ROGUES, rng)] if rng.randf() < 0.6 else ["bandit", _rand(BANDITS, rng)]
 	if rng.randf() < 0.3:
-		return ["samurai", "Paralı Samuray"]
+		return ["rogue", "Paralı Ninja"]
 	return ["rogue", _rand(ROGUES, rng)]
 
 
@@ -201,7 +201,7 @@ static func _one(here: String, r: String, rng: RandomNumberGenerator) -> Diction
 		"duel":
 			var du: Array = _rand(DUEL, rng)
 			var opp = "%s %s" % [_rand(["Usta", "Rōnin", "Fedai", "Genç", "Kılıççı"], rng), _name(rng)]
-			sp.merge({"t": du[0], "b": du[1], "g": opp, "en": opp, "e": "samurai" if "Rōnin" in opp or "Kılıççı" in opp else "rogue",
+			sp.merge({"t": du[0], "b": du[1], "g": opp, "en": opp, "e": "rogue",
 				"hp": {"C": 450.0, "B": 700.0, "A": 1000.0}.get(r, 700.0), "lv": {"C": 14, "B": 22, "A": 32}.get(r, 22),
 				"s1": "Demek meydan okumamı kabul eden sensin. Güzel.", "s2": "Kaybettim... ama iyi dövüştün."})
 		"investigate":
