@@ -492,6 +492,426 @@ static func _donor_part(donor: String, mesh_name: String, mat_filter := "") -> D
 	return out
 
 
+# ------------------------------------------------------------------ yüz hatları
+## Aynı hazır yüzden GERÇEKTEN farklı yüzler: yüzün parçaları ayrı ayrı biçimlenir —
+## kafa (çene eni, yanak, yüz boyu, çene ucu), göz kapağı (büyüklük, açıklık, eğim, üst kapak düşüklüğü, göz arası),
+## kaş (kalınlık, eğim, yükseklik, uzunluk; yalnız kaş yüzeyi), iris (büyüklük; yalnız iris yüzeyi), ağız (genişlik).
+## NPC: hat numarası (1..FACE_CUTS) kişinin tohumu. Oyuncu: yaratıcıda parça parça seçer ("face_v").
+## Biçimlenmiş ağ aynı değerler için bir kez kurulur, sonra herkes onu paylaşır.
+const FACE_CUTS := 48
+const FP := {"jaw": 0, "cheek": 1, "flen": 2, "chin": 3, "esize": 4, "eopen": 5, "etilt": 6, "lid": 7, "espace": 8,
+	"bthick": 9, "btilt": 10, "bheight": 11, "blen": 12, "iris": 13, "mouth": 14}
+const FACE_EYES := {"Sade": {}, "Badem": {"eopen": -0.55, "etilt": 0.45}, "İri": {"esize": 0.85, "eopen": 0.5}, "Kısık": {"eopen": -1.0, "esize": 0.25},
+	"Çekik": {"etilt": 1.0, "eopen": -0.4}, "Düşük": {"etilt": -1.0, "eopen": 0.2}, "Yarı Kapalı": {"lid": 1.0}, "Keskin": {"etilt": 0.7, "lid": 0.55, "esize": -0.3},
+	"Küçük": {"esize": -1.0, "espace": 0.5}, "Yakın": {"espace": -1.0, "esize": 0.2}}
+const FACE_BROWS := {"Sade": {}, "Kalın": {"bthick": 1.0}, "İnce": {"bthick": -1.0}, "Çatık": {"btilt": 1.0, "bheight": -0.7}, "Yumuşak": {"btilt": -1.0, "bheight": 0.4},
+	"Kalın Çatık": {"bthick": 1.0, "btilt": 0.8, "bheight": -0.5}, "Kısa": {"blen": -1.0, "bthick": 0.5}, "Yüksek": {"bheight": 1.0, "bthick": -0.4}}
+const FACE_HEADS := {"Sade": {}, "İnce": {"jaw": -1.0, "cheek": -0.5}, "Geniş": {"jaw": 1.0}, "Uzun": {"flen": 1.0, "jaw": -0.3}, "Kısa": {"flen": -1.0, "cheek": 0.4},
+	"Sivri Çene": {"jaw": -0.7, "chin": 1.0}, "Köşeli": {"jaw": 1.0, "chin": -0.7, "cheek": -0.5}, "Dolgun": {"cheek": 1.0, "jaw": 0.5, "chin": -0.4}}
+const FACE_IRIS := {"Normal": {}, "Küçük": {"iris": -1.0}, "İri": {"iris": 1.0}}
+const FACE_MOUTHS := {"Normal": {}, "Geniş": {"mouth": 1.0}, "Küçük": {"mouth": -1.0}}
+
+
+static func _face_zero() -> Array:
+	var o = []
+	o.resize(FP.size())
+	o.fill(0.0)
+	return o
+
+
+## Yaratıcıdaki parça seçimlerinden yüz değerleri
+static func face_from_parts(eye: String, brow: String, head: String, iris: String, mouth: String) -> Array:
+	var o = _face_zero()
+	for d in [FACE_EYES.get(eye, {}), FACE_BROWS.get(brow, {}), FACE_HEADS.get(head, {}), FACE_IRIS.get(iris, {}), FACE_MOUTHS.get(mouth, {})]:
+		for k in d:
+			o[int(FP[k])] = float(d[k])
+	return o
+
+
+## NPC: tohumdan sürekli değerler (iki üç belirgin özellikle; hepsi ortalama kalmasın)
+static func face_shape(cut: int) -> Array:
+	var o = _face_zero()
+	if cut <= 0:
+		return o
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 7919 * cut + 13
+	for i in o.size():
+		o[i] = clampf(rng.randfn(0.0, 0.5), -1.0, 1.0)
+	o[int(FP["lid"])] = maxf(0.0, float(o[int(FP["lid"])]) * 1.4 - 0.3)   # yarı kapalı göz azınlıkta
+	for k in 3:
+		var j = rng.randi() % o.size()
+		o[j] = (1.0 if rng.randf() < 0.5 or j == int(FP["lid"]) else -1.0) * rng.randf_range(0.75, 1.0)
+	return o
+
+
+static func face_cut_of(look_d: Dictionary) -> int:
+	if look_d.has("face_cut"):
+		return clampi(int(look_d["face_cut"]), 0, FACE_CUTS)
+	return 1 + absi(hash(int(look_d.get("face_id", 0)) * 31 + 7)) % FACE_CUTS
+
+
+## Kişinin yüz değerleri: seçilmiş parçalar ("face_v") > hat numarası > yüz kimliğinden türetme
+static func face_values(look_d: Dictionary) -> Array:
+	var fv = look_d.get("face_v")
+	if fv is Array and fv.size() == FP.size():
+		return fv
+	return face_shape(face_cut_of(look_d))
+
+
+static func _face_variant(donor: String, sh: Array, soft: bool, fd: Dictionary) -> Dictionary:
+	var key = "%s|FaceCut|%s|%s" % [donor, str(sh.map(func(x): return snappedf(float(x), 0.05))), str(soft)]
+	if _donor_cache.has(key):
+		return _donor_cache[key]
+	var k = 0.65 if soft else 1.0   # çocuk / genç: hatlar daha yumuşak
+	var ic: Array = fd["iris_c"]
+	var e0: Vector3 = ic[0]
+	var e1: Vector3 = ic[1]
+	var c = (e0 + e1) * 0.5
+	var d = maxf(0.02, (e1 - e0).length())
+	var zb = (fd["aabb"] as AABB).position.z
+	var src: ArrayMesh = fd["mesh"]
+	var mats: Array = fd["mats"]
+	var jaw = float(sh[0]) * 0.12 * k
+	var cheek = float(sh[1]) * 0.085 * k
+	var flen = float(sh[2]) * 0.08 * k
+	var chin = float(sh[3]) * 0.012 * k
+	var esize = float(sh[4]) * 0.16 * k
+	var eopen = float(sh[5]) * 0.22 * k
+	var etilt = float(sh[6]) * deg_to_rad(10.0) * k
+	var lid = clampf(float(sh[7]), 0.0, 1.0) * 0.42 * k
+	var espace = float(sh[8]) * 0.0035 * k
+	var bthick = float(sh[9]) * (0.9 if float(sh[9]) > 0.0 else 0.5) * k
+	var btilt = float(sh[10]) * deg_to_rad(13.0) * k
+	var bheight = float(sh[11]) * 0.0035 * k
+	var blen = float(sh[12]) * 0.22 * k
+	var iris_k = float(sh[13]) * 0.2 * k
+	var mouth = float(sh[14]) * 0.24 * k
+	# yüzey türleri + ağız / kaş merkezleri
+	var kinds = []
+	var mc = c + Vector3(0, -0.8 * d, 0)
+	var bsum = [Vector3.ZERO, Vector3.ZERO]
+	var bn = [0, 0]
+	for si in src.get_surface_count():
+		var mn = String(mats[si].resource_name) if si < mats.size() and mats[si] else ""
+		var kd = "iris" if (mn.contains("EyeIris") or mn.contains("EyeHighlight") or mn.contains("EyeExtra")) else "white" if mn.contains("EyeWhite") \
+			else "brow" if mn.contains("FaceBrow") else "mouth" if mn.contains("FaceMouth") else "skin"
+		kinds.append(kd)
+		if kd == "brow":
+			for q in (src.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+				var s2 = 0 if q.x < c.x else 1
+				bsum[s2] += q
+				bn[s2] += 1
+		elif kd == "mouth":
+			var ab := AABB()
+			var f1 = true
+			for q in (src.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+				if f1:
+					ab = AABB(q, Vector3.ZERO); f1 = false
+				else:
+					ab = ab.expand(q)
+			if not f1:
+				mc = Vector3(c.x, ab.get_center().y, ab.end.z)
+	var bc = [bsum[0] / maxf(1.0, bn[0]), bsum[1] / maxf(1.0, bn[1])]
+	var am = ArrayMesh.new()
+	for si in src.get_surface_count():
+		var a = src.surface_get_arrays(si)
+		var vv: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		var kd: String = kinds[si]
+		for vi in vv.size():
+			var q: Vector3 = vv[vi]
+			var sd = -1.0 if q.x < c.x else 1.0
+			var e: Vector3 = e0 if q.x < c.x else e1
+			if kd == "brow":
+				# kaş: yalnız kaş yüzeyi — kendi merkezi çevresinde uzar / kalınlaşır / eğilir, yukarı aşağı kayar
+				var b0: Vector3 = bc[0 if q.x < c.x else 1]
+				var qb = Vector2((q.x - b0.x) * (1.0 + blen), (q.y - b0.y) * (1.0 + bthick))
+				qb = qb.rotated(btilt * sd)
+				q.x = b0.x + qb.x + espace * sd
+				q.y = b0.y + qb.y + bheight
+				vv[vi] = q
+				continue
+			var qe = Vector2(q.x - e.x, q.y - e.y)
+			if kd == "iris" or kd == "white":
+				# göz küresi: kapakların arkasında; iris kendi büyüklüğüyle, kapak açıklığı onu örter / açar
+				if kd == "iris":
+					qe *= (1.0 + esize) * (1.0 + iris_k)
+				else:
+					qe *= 1.0 + esize
+				q.x = e.x + qe.x + espace * sd
+				q.y = e.y + qe.y
+				vv[vi] = q
+				continue
+			var wf = smoothstep(zb + 0.012, zb + 0.06, q.z)   # kenar (kulak / saç dibi) yerinde kalır
+			var uy = (q.y - c.y) / d
+			var ux = absf(q.x - c.x) / d
+			# göz kapakları (deri + kirpik + göz çizgisi): büyür / kısılır / eğilir, üst kapak düşer
+			var we = (1.0 - smoothstep(0.26, 0.5, qe.length() / d)) * smoothstep(c.z - 0.045, c.z - 0.02, q.z)
+			if we > 0.0:
+				qe *= 1.0 + esize * we
+				qe.y *= 1.0 + eopen * we
+				if qe.y > 0.0:
+					qe.y *= 1.0 - lid * we
+				qe = qe.rotated(etilt * sd * we)
+				q.x = e.x + qe.x + espace * sd * we
+				q.y = e.y + qe.y
+			# alt yüz: boy, çene ucu, çene eni
+			if uy < -0.2:
+				var wl = smoothstep(-0.2, -0.7, uy) * wf
+				q.y = c.y + (q.y - c.y) * (1.0 + flen * wl)
+				q.y -= chin * smoothstep(-0.8, -1.2, uy) * wf
+				q.x = c.x + (q.x - c.x) * (1.0 + jaw * smoothstep(-0.3, -0.95, uy) * wf)
+			var wc = exp(-pow((uy + 0.55) / 0.33, 2.0)) * smoothstep(0.35, 0.9, ux) * wf
+			q.x = c.x + (q.x - c.x) * (1.0 + cheek * wc)
+			# ağız: çevresiyle birlikte genişler / daralır
+			var wm = 1.0 - smoothstep(0.22, 0.6, Vector2(q.x - mc.x, (q.y - mc.y) * 1.6).length() / d)
+			if wm > 0.0 and q.z > c.z - 0.03:
+				q.x = mc.x + (q.x - mc.x) * (1.0 + mouth * wm)
+			vv[vi] = q
+		a[Mesh.ARRAY_VERTEX] = vv
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a)
+	var out: Dictionary = fd.duplicate()
+	out["mesh"] = am
+	var ic2: Array = ic.duplicate()
+	ic2[0] = e0 + Vector3(-espace, 0, 0)
+	ic2[1] = e1 + Vector3(espace, 0, 0)
+	ic2[2] = float(ic[2]) * (1.0 + esize) * (1.0 + iris_k)
+	if ic2.size() > 3:
+		ic2[3] = float(ic[3]) * (1.0 + esize) * (1.0 + iris_k)
+	out["iris_c"] = ic2
+	_donor_cache[key] = out
+	return out
+
+
+# ------------------------------------------------------------------ çizilmiş anime gözleri
+## Göz deliği deriyle kapatılır, VRoid göz küresi / kirpik / göz çizgisi atılır; göz, üstüne serilen ince katmana ÇİZİLİR
+## (shaders/anime_eye.gdshader). Her tasarım kendi eğrileriyle ayrı bir göz: yuvarlak, keskin, uykulu, kirpikli, badem, nokta...
+const ANIME_EYES := true
+## ad, [iç x, dış x, iç y, dış y], [üst yükseklik, tepe yeri, üs], [alt derinlik, dip yeri, üs],
+## [üst çizgi, dış ek, kuyruk boyu, kuyruk yönü], [alt çizgi, alt pay, çift kapak, halka], [iris r, iris y, bebek, nokta]
+const EYE_ARTS := [
+	["Yuvarlak", [-0.22, 0.25, 0.0, 0.01], [0.165, 0.45, 0.75], [0.105, 0.5, 0.9], [0.026, 0.012, 0.03, 0.3], [0.007, 0.45, 0.0, 0.0], [0.105, 0.015, 0.33, 0.0]],
+	["Keskin", [-0.23, 0.28, -0.03, 0.05], [0.085, 0.38, 1.0], [0.05, 0.62, 1.2], [0.03, 0.018, 0.06, 0.45], [0.006, 0.5, 0.0, 0.0], [0.072, 0.005, 0.3, 0.0]],
+	["Uykulu", [-0.22, 0.26, 0.0, -0.01], [0.055, 0.5, 0.4], [0.08, 0.5, 0.8], [0.03, 0.006, 0.02, -0.1], [0.006, 0.35, 0.035, 0.0], [0.092, -0.02, 0.32, 0.0]],
+	["Kirpikli", [-0.22, 0.26, -0.005, 0.02], [0.185, 0.47, 0.7], [0.115, 0.5, 0.9], [0.038, 0.03, 0.085, 0.6], [0.011, 0.35, 0.03, 0.0], [0.115, 0.02, 0.3, 0.0]],
+	["Badem", [-0.23, 0.28, -0.02, 0.04], [0.115, 0.42, 1.35], [0.075, 0.55, 1.35], [0.03, 0.02, 0.07, 0.4], [0.007, 0.5, 0.0, 0.0], [0.085, 0.01, 0.32, 0.0]],
+	["Nokta", [-0.17, 0.2, 0.0, 0.0], [0.13, 0.5, 0.8], [0.12, 0.5, 0.8], [0.02, 0.0, 0.0, 0.0], [0.012, 1.0, 0.0, 0.0], [0.04, 0.0, 0.0, 1.0]],
+	["Tilki", [-0.24, 0.31, -0.04, 0.075], [0.042, 0.45, 1.0], [0.03, 0.55, 1.0], [0.03, 0.012, 0.05, 0.5], [0.006, 0.6, 0.0, 0.0], [0.05, 0.015, 0.3, 0.0]],
+	["Düşük", [-0.21, 0.26, 0.03, -0.045], [0.135, 0.35, 0.8], [0.085, 0.45, 0.9], [0.026, 0.01, 0.025, -0.5], [0.007, 0.4, 0.03, 0.0], [0.1, 0.0, 0.33, 0.0]],
+	["Sert", [-0.22, 0.27, 0.0, 0.015], [0.08, 0.45, 0.5], [0.06, 0.5, 0.6], [0.04, 0.008, 0.02, 0.2], [0.012, 1.0, 0.0, 0.0], [0.068, 0.005, 0.3, 0.0]],
+	["Halkalı", [-0.22, 0.27, -0.01, 0.03], [0.1, 0.42, 0.9], [0.07, 0.55, 1.0], [0.03, 0.01, 0.0, 0.0], [0.0, 0.0, 0.0, 0.035], [0.07, 0.005, 0.28, 0.0]],
+	["İri Parlak", [-0.21, 0.24, 0.0, 0.0], [0.2, 0.5, 0.65], [0.13, 0.5, 0.75], [0.03, 0.02, 0.05, 0.5], [0.008, 0.5, 0.025, 0.0], [0.13, 0.02, 0.36, 0.0]],
+	["Bebeksiz", [-0.22, 0.26, 0.0, 0.01], [0.13, 0.45, 0.9], [0.09, 0.5, 1.0], [0.026, 0.01, 0.03, 0.3], [0.007, 0.45, 0.0, 0.0], [0.105, 0.01, 0.0, 0.0]],
+]
+
+
+static func eye_art_names() -> Array:
+	return EYE_ARTS.map(func(a): return a[0])
+
+
+## Kişinin göz tasarımı (0..): seçilmişse o ("eye_art"), yoksa yüz kimliğinden — kadınlarda kirpikli tasarımlar ağır basar
+static func eye_art_of(look_d: Dictionary) -> int:
+	if look_d.has("eye_art"):
+		return clampi(int(look_d["eye_art"]), 0, EYE_ARTS.size() - 1)
+	var h = absi(hash(int(look_d.get("face_id", 0)) * 131 + 17))
+	var pool: Array = [3, 3, 10, 4, 0, 7, 1, 2, 11] if String(look_d.get("gender", "m")) == "f" else [0, 1, 1, 2, 4, 6, 7, 8, 8, 9, 5, 11]
+	return int(pool[h % pool.size()])
+
+
+## Tasarım + kişinin göz değerleri (büyüklük, açıklık, eğim, kapak, iris) -> shader değerleri
+static func eye_art_params(art: int, fv: Array, female: bool) -> Dictionary:
+	var A: Array = EYE_ARTS[clampi(art, 0, EYE_ARTS.size() - 1)]
+	var s = 1.12 * (1.0 + float(fv[4]) * 0.10)
+	var op = 1.0 + float(fv[5]) * 0.16
+	var tilt = float(fv[6]) * 0.03
+	var lid = clampf(float(fv[7]), 0.0, 1.0)
+	var sa: Array = A[1]; var sb: Array = A[2]; var sc: Array = A[3]; var la: Array = A[4]; var lb: Array = A[5]; var ip: Array = A[6]
+	var o = {}
+	o["sh_a"] = Vector4(sa[0] * s, sa[1] * s, (sa[2] - tilt) * s, (sa[3] + tilt) * s)
+	o["sh_b"] = Vector4(sb[0] * s * op * (1.0 - 0.45 * lid), sb[1], sb[2] * (1.0 - 0.35 * lid), 0)
+	o["sh_c"] = Vector4(sc[0] * s * op, sc[1], sc[2], 0)
+	var lk = 1.75 if female else 1.5
+	o["lash_a"] = Vector4(la[0] * s * lk, la[1] * s * lk, la[2] * s * lk, la[3])
+	o["lash_b"] = Vector4(lb[0] * s, lb[1], lb[2] * s, lb[3] * s)
+	o["iris_p"] = Vector4(ip[0] * s * (1.0 + float(fv[13]) * 0.14), ip[1] * s, ip[2], ip[3])
+	return o
+
+
+## Yüz ağını çizilmiş göz için hazırlar: göz deliklerini kapatır, VRoid göz parçalarını atar, göz katmanını kurar
+static func _anime_face(fd: Dictionary) -> Dictionary:
+	var key = "anime|%d" % (fd["mesh"] as ArrayMesh).get_instance_id()
+	if _donor_cache.has(key):
+		return _donor_cache[key]
+	var ic: Array = fd["iris_c"]
+	var es = [ic[0] as Vector3, ic[1] as Vector3]
+	var c: Vector3 = (es[0] + es[1]) * 0.5
+	var d = maxf(0.02, (es[1] - es[0]).length())
+	var hc = c + Vector3(0, -0.2 * d, -0.085)   # kafa küresinin yaklaşık merkezi (göz çevresi normalleri için)
+	var src: ArrayMesh = fd["mesh"]
+	var mats: Array = fd["mats"]
+	var am = ArrayMesh.new()
+	var mats2 = []
+	var av = PackedVector3Array()
+	var an = PackedVector3Array()
+	var auv = PackedVector2Array()
+	var flat_uv = Vector2(0.5, 0.5)
+	for si in src.get_surface_count():
+		var mn = String(mats[si].resource_name) if si < mats.size() and mats[si] else ""
+		if mn.contains("_EYE"):
+			continue   # göz küresi, iris, parlama: artık çiziliyor
+		var a = src.surface_get_arrays(si)
+		var vv: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+		var nn: PackedVector3Array = a[Mesh.ARRAY_NORMAL]
+		var uu: PackedVector2Array = a[Mesh.ARRAY_TEX_UV]
+		var ii: PackedInt32Array = a[Mesh.ARRAY_INDEX]
+		if mn.contains("SKIN"):
+			# düz ten örneği: yanaktaki köşe (göz çevresindeki boyalı kapak gölgeleri bununla silinir)
+			var best = 1e9
+			var cheek = c + Vector3(0.62 * d, -0.62 * d, 0.0)
+			for vi in vv.size():
+				var dq = Vector2(vv[vi].x - cheek.x, vv[vi].y - cheek.y).length_squared()
+				if dq < best and vv[vi].z > c.z - 0.03:
+					best = dq
+					flat_uv = uu[vi]
+			# kaynaklı köşeler -> tek üçgene ait kenarlar = delik kenarı
+			var wid = {}
+			var w = PackedInt32Array()
+			for v in vv:
+				var k3 = Vector3i(roundi(v.x * 20000.0), roundi(v.y * 20000.0), roundi(v.z * 20000.0))
+				if not wid.has(k3):
+					wid[k3] = wid.size()
+				w.append(wid[k3])
+			var ecnt = {}
+			for t in range(0, ii.size(), 3):
+				for e in 3:
+					var p0 = w[ii[t + e]]
+					var p1 = w[ii[t + (e + 1) % 3]]
+					var ek = Vector2i(mini(p0, p1), maxi(p0, p1))
+					ecnt[ek] = int(ecnt.get(ek, 0)) + 1
+			var n_tri0 = ii.size()
+			for side in 2:
+				var e0: Vector3 = es[side]
+				var edges = []
+				var sum = Vector3.ZERO
+				var cnt = 0
+				for t in range(0, n_tri0, 3):
+					for e in 3:
+						var i0 = ii[t + e]
+						var i1 = ii[t + (e + 1) % 3]
+						if ecnt[Vector2i(mini(w[i0], w[i1]), maxi(w[i0], w[i1]))] != 1:
+							continue
+						var v0 = vv[i0]
+						var v1 = vv[i1]
+						if Vector2(v0.x - e0.x, v0.y - e0.y).length() < d * 0.5 and Vector2(v1.x - e0.x, v1.y - e0.y).length() < d * 0.5 and v0.z > c.z - 0.06:
+							edges.append([i0, i1])
+							sum += v0 + v1
+							cnt += 2
+				if cnt == 0:
+					continue
+				var ci = vv.size()
+				var cp: Vector3 = sum / float(cnt)
+				cp.z = maxf(cp.z, e0.z + 0.003)
+				vv.append(cp)
+				nn.append((cp - hc).normalized())
+				uu.append(flat_uv)
+				for ed in edges:
+					ii.append(ed[1]); ii.append(ed[0]); ii.append(ci)
+			# göz çevresi: kapak kıvrımının normalleri yumuşatılır (çizilmiş gözün altında düz ten)
+			for vi in vv.size():
+				var q = vv[vi]
+				for side in 2:
+					var e0: Vector3 = es[side]
+					var r = Vector2((q.x - e0.x) / (0.46 * d), (q.y - e0.y) / (0.3 * d)).length()
+					if r < 1.0 and q.z > c.z - 0.06:
+						nn[vi] = nn[vi].lerp((q - hc).normalized(), 1.0 - smoothstep(0.55, 1.0, r)).normalized()
+			# göz katmanı: göz çevresindeki ten üçgenlerinin kopyası (biraz önde)
+			for t in range(0, ii.size(), 3):
+				var ok = false
+				for side in 2:
+					var e0: Vector3 = es[side]
+					var all_in = true
+					for e in 3:
+						var q = vv[ii[t + e]]
+						if absf(q.x - e0.x) > 0.66 * d or absf(q.y - e0.y) > 0.42 * d or q.z < c.z - 0.06:
+							all_in = false
+					ok = ok or all_in
+				if ok:
+					for e in 3:
+						var q = vv[ii[t + e]]
+						var n = nn[ii[t + e]]
+						av.append(q + n * 0.0009 + Vector3(0, 0, 0.0004))
+						an.append(n)
+						auv.append(Vector2.ZERO)
+			a[Mesh.ARRAY_VERTEX] = vv
+			a[Mesh.ARRAY_NORMAL] = nn
+			a[Mesh.ARRAY_TEX_UV] = uu
+			a[Mesh.ARRAY_INDEX] = ii
+			for ch in [Mesh.ARRAY_TANGENT, Mesh.ARRAY_COLOR, Mesh.ARRAY_TEX_UV2, Mesh.ARRAY_BONES, Mesh.ARRAY_WEIGHTS]:
+				a[ch] = null   # köşe eklendi: köşe başına tutulan öteki diziler geçersiz
+		else:
+			# kaş / ağız yüzeyleri kalır; kirpik ve göz çizgisi üçgenleri (göz kutusunun içindekiler) atılır
+			# bağlı parça parça bakılır (kaş bütün kalır; üçgen üçgen kesince kaşın alt kenarı da gidiyordu)
+			var par = {}
+			var wv = PackedInt32Array()
+			var wmap = {}
+			for v in vv:
+				var k3 = Vector3i(roundi(v.x * 20000.0), roundi(v.y * 20000.0), roundi(v.z * 20000.0))
+				if not wmap.has(k3):
+					wmap[k3] = wmap.size()
+					par[wmap[k3]] = wmap[k3]
+				wv.append(wmap[k3])
+			var find = func(x):
+				while par[x] != x:
+					par[x] = par[par[x]]
+					x = par[x]
+				return x
+			for t in range(0, ii.size(), 3):
+				var r0 = find.call(wv[ii[t]])
+				for e in [1, 2]:
+					var r1 = find.call(wv[ii[t + e]])
+					if r1 != r0:
+						par[r1] = r0
+			var csum = {}
+			var ccnt = {}
+			for vi in vv.size():
+				var r = find.call(wv[vi])
+				csum[r] = (csum.get(r, Vector3.ZERO) as Vector3) + vv[vi]
+				ccnt[r] = int(ccnt.get(r, 0)) + 1
+			var keep = PackedInt32Array()
+			var is_brow = mn.contains("FaceBrow")
+			for t in range(0, ii.size(), 3):
+				var r = find.call(wv[ii[t]])
+				var cen: Vector3 = csum[r] / float(ccnt[r])
+				var cut = false
+				for side in 2:
+					var e0: Vector3 = es[side]
+					if not is_brow and absf(cen.x - e0.x) < 0.6 * d and cen.y - e0.y > -0.4 * d and cen.y - e0.y < 0.27 * d and cen.z > c.z - 0.05:
+						cut = true
+				if not cut:
+					keep.append(ii[t]); keep.append(ii[t + 1]); keep.append(ii[t + 2])
+			if keep.is_empty():
+				continue
+			a[Mesh.ARRAY_INDEX] = keep
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a)
+		mats2.append(mats[si])
+	if av.size() > 0:
+		var a2 = []
+		a2.resize(Mesh.ARRAY_MAX)
+		a2[Mesh.ARRAY_VERTEX] = av
+		a2[Mesh.ARRAY_NORMAL] = an
+		a2[Mesh.ARRAY_TEX_UV] = auv
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a2)
+		var mk = StandardMaterial3D.new()
+		mk.resource_name = "AnimeEye"
+		mats2.append(mk)
+	var out: Dictionary = fd.duplicate()
+	out["mesh"] = am
+	out["mats"] = mats2
+	out["flat_uv"] = flat_uv
+	out["eye_d"] = d
+	_donor_cache[key] = out
+	return out
+
+
 ## Yüz (VRoid) + saç (VRoid) kafaya; göz malzemesi dōjutsu desteğiyle
 func _face_and_hair() -> void:
 	var female = look["gender"] == "f"
@@ -507,6 +927,19 @@ func _face_and_hair() -> void:
 		donor = ["HairSample_Male", "Sakurada_Fumiriya"][fi % 2]
 	var _q0 = Time.get_ticks_usec()
 	var fd = _donor_part(donor, "Face")
+	var fvals = face_values(look)
+	var art = eye_art_of(look) if ANIME_EYES else -1
+	if not fd.is_empty() and (fd["iris_c"] as Array).size() >= 3 and fd["iris_c"][0] != Vector3.ZERO:
+		var mv: Array = fvals.duplicate()
+		if art >= 0:
+			for j in [4, 5, 6, 7, 8, 13]:   # göz değerleri artık çizime gider (ağ çekiştirilmez)
+				mv[j] = 0.0
+		if mv.any(func(x): return absf(float(x)) > 0.001):
+			fd = _face_variant(donor, mv, look.get("age", "adult") in ["child", "teen"], fd)
+		if art >= 0:
+			fd = _anime_face(fd)
+	else:
+		art = -1
 	if PROF: print("PROF  donor_face %s %.0f" % [donor, (Time.get_ticks_usec() - _q0) / 1000.0])
 	var head_bi = skel.find_bone("Head")
 	var head_rest = _grest(head_bi)
@@ -535,7 +968,25 @@ func _face_and_hair() -> void:
 			var mat: Material = fd["mats"][si]
 			var mname = mat.resource_name if mat else ""
 			var tex = mat.albedo_texture if mat is BaseMaterial3D else null
-			if mname.contains("EyeIris"):
+			if mname.contains("AnimeEye"):
+				# çizilmiş göz: tasarım + kişinin göz değerleri; dōjutsu / göz akı boyaması aynı malzemede
+				eye_mat = ShaderMaterial.new()
+				eye_mat.shader = load("res://shaders/anime_eye.gdshader")
+				eye_mat.set_shader_parameter("eye_color", look["eye"])
+				var icA: Array = fd["iris_c"]
+				var dA = float(fd.get("eye_d", 0.08))
+				eye_mat.set_shader_parameter("eye_c_r", icA[0])
+				eye_mat.set_shader_parameter("eye_c_l", icA[1])
+				eye_mat.set_shader_parameter("eye_d", dA)
+				var ap: Dictionary = eye_art_params(art, fvals, look.get("gender", "m") == "f")
+				for pk in ap:
+					eye_mat.set_shader_parameter(pk, ap[pk])
+				eye_mat.set_shader_parameter("iris_r3", float((ap["iris_p"] as Vector4).x) * dA)
+				eye_mat.set_shader_parameter("line_col", Color(0.2, 0.12, 0.1) if look.get("gender", "m") == "f" else Color(0.07, 0.05, 0.06))
+				sclera_mat = eye_mat
+				face_mi.set_surface_override_material(si, eye_mat)
+				materials.append(eye_mat)
+			elif mname.contains("EyeIris"):
 				eye_mat = ShaderMaterial.new()
 				eye_mat.shader = load("res://shaders/vroid_eye.gdshader")
 				eye_mat.set_shader_parameter("tex", tex)
@@ -560,6 +1011,9 @@ func _face_and_hair() -> void:
 					sm.set_shader_parameter("eye_c_l", ic4[1])
 					sm.set_shader_parameter("iris_r3", ic4[2])
 				sm.set_shader_parameter("tint", ratio)
+				if fd.has("flat_uv"):
+					var fu: Vector2 = fd["flat_uv"]
+					sm.set_shader_parameter("eye_flat", Vector4(fu.x, fu.y, 0.4 * float(fd.get("eye_d", 0.08)), 1.0))
 				var fpid = String(look.get("face_paint", "yok")) if look.get("face_paint") != null else "yok"
 				if fpid != "yok" and ResourceLoader.exists("res://assets/facepaint/%s.png" % fpid):
 					sm.set_shader_parameter("paint_tex", load("res://assets/facepaint/%s.png" % fpid))

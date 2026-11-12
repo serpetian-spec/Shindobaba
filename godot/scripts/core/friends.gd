@@ -980,10 +980,10 @@ func _life_event() -> void:
 				log_event(f, "%s oldu" % RANKS[rank + 1])
 				f["news"] = "Duydun mu? Artık %s oldum! Yeleği giyince insan bir tuhaf oluyor." % RANKS[rank + 1]
 				Hud.msg("Haber: %s %s oldu!" % [f["name"], RANKS[rank + 1]], Color(0.6, 1.0, 0.75), 5.0)
-		elif r < defect_p + 0.33 and randf() < 0.4 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f) and not String(f.get("kin", "")) in ["baba", "anne"]:   # evlilik: arada bir (eskiden olayların %12si)
+		elif r < defect_p + 0.33 and randf() < 0.4 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f) and not String(f.get("kin", "")) in ["baba", "anne"] and Lineage.gen_of(f) == 0 and Aging.person_years(f) >= Lineage.WED_AGE:   # evlilik: arada bir (eskiden olayların %12si)
 			var fem = String(f["look"].get("gender", "m")) == "f"
 			# kimi zaman tanıdığın başka bir dostla evlenir (ikisi de bekâr, karşı cins, aynı köy, sana gönlü olmayan)
-			var mates = fs.keys().filter(func(k): return k != id and String(fs[k].get("status", "")) == "" and int(fs[k].get("rank", 0)) >= 1 				and String(fs[k]["look"].get("gender", "m")) != String(f["look"].get("gender", "m")) and String(fs[k].get("village", "")) == String(f.get("village", "")) 				and romance_of(k) == "" and not likes_you(fs[k]) and not (fs[k].get("family", []) as Array).any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"]))
+			var mates = fs.keys().filter(func(k): return k != id and String(fs[k].get("status", "")) == "" and int(fs[k].get("rank", 0)) >= 1 and Lineage.gen_of(fs[k]) == 0 and Aging.person_years(fs[k]) >= Lineage.WED_AGE 				and String(fs[k]["look"].get("gender", "m")) != String(f["look"].get("gender", "m")) and String(fs[k].get("village", "")) == String(f.get("village", "")) 				and romance_of(k) == "" and not likes_you(fs[k]) and not (fs[k].get("family", []) as Array).any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"]))
 			if not mates.is_empty() and randf() < 0.5:
 				_wed(id, String(mates.pick_random()))
 				return
@@ -1070,7 +1070,7 @@ func _defect(id: String) -> void:
 	e["village"] = String(f.get("village", Progress.home()))
 	# kimliği (yüz, saç, ten, cinsiyet) kendisinin; kıyafeti artık kaçak kıyafeti (_bb_new'in rogue seti) — chūnin yeleğiyle gezmez
 	var lk = look_of(f)
-	for k in ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "beard", "age", "face_mark", "eye_kind"]:
+	for k in ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "face_cut", "face_v", "eye_art", "beard", "age", "face_mark", "eye_kind"]:
 		if lk.has(k):
 			e["look"][k] = Missions._hex(lk[k]) if lk[k] is Color else lk[k]
 	e["look"]["vest"] = null
@@ -2409,6 +2409,7 @@ func graduation() -> void:
 				all()[id]["family"] = [{"rel": "Kardeşi", "name": "%s (sen)" % pr().get("name", ""), "alive": true}]
 			log_event(all()[id], "Akademiden mezun oldu! Alın koruyucusunu sana gösterdi")
 			names.append("%s (senin %s)" % [kid["name"], "kızın" if fem else "oğlun"])
+	names.append_array(Lineage.graduate_all(now, CHILD_GROW))   # torunların: gerçek tanıdık kaydı olur
 	for id in all():
 		var f: Dictionary = all()[id]
 		for m in f.get("family", []):
@@ -2624,6 +2625,7 @@ func _process(dt: float) -> void:
 		if life_t <= 0.0:
 			life_t = randf_range(240.0, 480.0)
 			_life_event()
+			Lineage.step()   # çocukların / torunların: yetişkin olunca evlenir, çocukları olur
 	t -= dt
 	if t > 0.0:
 		return

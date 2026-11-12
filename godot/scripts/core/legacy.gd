@@ -17,6 +17,7 @@ var v: Node3D
 var band: MeshInstance3D
 var band_at: Node3D
 var _was_phys := true
+var death := false       # yaşlılıktan ölüm: tören yok, son nefes + geçiş
 
 
 static func pr() -> Dictionary:
@@ -61,6 +62,114 @@ static func start(fid: String, node: Node) -> void:
 	s.v = node
 	cur = s
 	Friends.inst().get_parent().add_child(s)
+
+
+# ====================================================================== yaşlılıktan ölüm
+## Yolu devralacak çocuk: mezun, hayatta, köyde; en yakın olan
+static func heir() -> String:
+	var hs = Lineage.heirs()
+	return String(hs[0]) if not hs.is_empty() else ""
+
+
+static func _die_with(h: String) -> void:
+	if is_instance_valid(cur) or not Friends.all().has(h):
+		return
+	var s = Legacy.new()
+	s.id = h
+	s.death = true
+	cur = s
+	Friends.inst().get_parent().add_child(s)
+
+
+## Aging her birkaç saniyede çağırır (ömrün son 3 yılından itibaren)
+static func old_age(y: float, life: float) -> void:
+	if is_instance_valid(cur) or Game.player == null:
+		return
+	var p = pr()
+	if not p.has("flags"):
+		p["flags"] = {}
+	var fl: Dictionary = p["flags"]
+	var h = heir()
+	if y < life:
+		if not fl.get("old_warned", false):
+			fl["old_warned"] = true
+			Hud.banner("ÖMRÜN SONBAHARI", "Nefesin eskisi gibi değil. Yolunu bırakacağın kişiyi düşünme vakti." if h != "" else "Nefesin eskisi gibi değil. Yolunu bırakacak bir çocuğun yok.", Color(0.85, 0.8, 0.7))
+			Journal.add("Yaş %d. Vücudum artık eskisi gibi değil; ömrümün sonbaharındayım." % int(y), "milestone")
+		return
+	if h == "":
+		if not fl.get("old_noheir", false):
+			fl["old_noheir"] = true
+			Hud.msg("Ömrün doldu sayılır, ama yolunu bırakacak mezun bir çocuğun yok. İnatla yaşamaya devam ediyorsun.", Color(0.85, 0.8, 0.7), 7.0)
+		return
+	var pl = Game.player
+	if not Missions.active().is_empty() or int(ChuninExam.stage) != 0 or Exams.cur != "" or Interiors.inst.inside != "" or not pl.grounded 			or pl.combat.action != "" or pl.hp < pl.max_hp * 0.6 or pl.get("scene_hold") or float(pl.input_locked) > 0.0 or Hud.dialog_open():
+		return   # iş / dövüş ortasında değil: sakin bir anda
+	var hs = Lineage.heirs()
+	if hs.size() == 1:
+		_die_with(h)
+		return
+	# birden fazla çocuk: yolu kime bırakacağını sen seçersin
+	var opts = []
+	for hid in hs:
+		var hf: Dictionary = Friends.all()[hid]
+		var fam = ""
+		if not Lineage.spouse_entry(hf).is_empty():
+			fam = ", evli" + (", %d çocuk" % Lineage.kid_entries(hf).size() if not Lineage.kid_entries(hf).is_empty() else "")
+		opts.append({"label": "%s (%d yaş, %s, Güç %d%s)" % [String(hf["name"]), int(Aging.person_years(hf)), Friends.rank_label(hf), int(hf.get("pupil_lv", 1)), fam],
+			"cb": func(): _die_with(String(hid))})
+	Hud.dialog("Son Nefes", "Ömrün doldu; gözlerin kapanmadan önce çocukların başucunda. Alın koruyucunu hangisine uzatıyorsun?", opts)
+
+
+func _last_breath() -> void:
+	var pl = Game.player
+	var p = pr()
+	var old_name = String(p.get("name", ""))
+	var yrs = int(Aging.player_years())
+	var cf: Dictionary = Friends.all()[id]
+	var kid_short = String(cf["name"]).split(" ")[-1]
+	var was_kage = Kage.is_kage()
+	var home = Progress.home()
+	pl.model.play("idle", 0.3)
+	Hud.banner("SON NEFES", "%s, %d yaşında. Dizlerin tutmuyor; gözünün önünde koca bir ömür." % [old_name, yrs], Color(0.85, 0.8, 0.7))
+	await _wait(3.2)
+	_say(pl, "%s... yol artık senin." % kid_short, 3.4)
+	await _wait(2.4)
+	pl.model.play("death", 0.25, 0.6, true)
+	await _wait(3.0)
+	await Interiors.inst._fade(1.0, 1.4)
+	var kid_years = Aging.person_years(cf)
+	var me_id = Legacy.inherit(id)
+	var me: Dictionary = Friends.all()[me_id]
+	Aging.set_years(me, float(yrs))
+	me["status"] = "öldü"      # köy mezarlığı + cenaze: Friends'in kendi akışı
+	me["party"] = false
+	me["title"] = "Rahmetli annen" if String(me.get("kin", "")) == "anne" else "Rahmetli baban"
+	Friends.log_event(me, "%d yaşında, yaşlılıktan öldü" % yrs)
+	Aging.set_years(p, kid_years)
+	p.erase("life")
+	p["body"] = {"fat": 0.0, "mus": 0.0}
+	p["flags"].erase("old_warned")
+	p["flags"].erase("old_noheir")
+	if Orgs.is_rogue():        # suç eski bedenle gömülür
+		Orgs.flags()["rogue"] = false
+		Orgs.flags().erase("hideout")
+		Orgs.state()["bounty"] = 0
+	if was_kage:
+		Kage.succeed(home, "%s yaşlılıktan öldü" % old_name)
+	pl.velocity = Vector3.ZERO
+	pl.rebuild_model()
+	pl.apply_profile_stats()
+	pl.hp = pl.max_hp
+	pl.chakra = pl.max_chakra
+	Progress.on_power_changed()
+	Journal.add("%s %d yaşında son nefesini verdi. Başucundaydım; alın koruyucusu artık bende." % [old_name, yrs], "milestone")
+	Game.save_game()
+	await _wait(1.6)
+	await Interiors.inst._fade(0.0, 1.4)
+	Hud.banner("YENİ NESİL", "%s — %s'in yolu sende yaşıyor" % [String(p["name"]), old_name.split(" ")[-1]], Color(1.0, 0.85, 0.45))
+	_pose(pl, "bow", {"anim": "idle", "len": 2.6})
+	await _wait(2.8)
+	_clear_pose(pl)
 
 
 # ====================================================================== geçiş (kayıt)
@@ -229,6 +338,7 @@ static func inherit(fid: String) -> String:
 	while sl.size() < 9:
 		sl.append("")
 	p["slots"] = sl
+	Lineage.on_inherit(fid, cf)   # mirasçının eşi eşin, çocukları çocukların olur
 	# --- çocuğun dost kaydı kapanır (artık sensin)
 	fs.erase(fid)
 	Gear.ensure(p)
@@ -249,6 +359,13 @@ static func inherit(fid: String) -> String:
 func _ready() -> void:
 	Hud.close_dialog()
 	_lock(120.0)
+	if death:
+		await _last_breath()
+		if cur == self:
+			cur = null
+		_release_player()
+		queue_free()
+		return
 	_was_phys = v.is_physics_processing()
 	v.set_physics_process(false)
 	await _ceremony()
@@ -373,7 +490,13 @@ func _ceremony() -> void:
 	var kid_face: float = v.facing
 	var old_pos = spot
 	v.queue_free()
+	var old_years = Aging.player_years()
+	var kid_years = Aging.person_years(Friends.all()[id])
 	var me_id = Legacy.inherit(id)
+	Aging.set_years(Friends.all()[me_id], old_years)
+	Aging.set_years(pr(), kid_years)
+	pr().erase("life")
+	pr()["body"] = {"fat": 0.0, "mus": 0.0}
 	pl.global_position = kid_pos + Vector3.UP * 0.05
 	pl.velocity = Vector3.ZERO
 	pl.rebuild_model()

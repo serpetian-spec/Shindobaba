@@ -1307,6 +1307,10 @@ func _look_with_age() -> Dictionary:
 	if not Game.profile.is_empty():
 		Aging.dress_player(look)
 	look["own_hair"] = true   # oyuncunun seçtiği saç (NPC saç eşlemesi uygulanmaz)
+	if not look.has("face_cut"):
+		look["face_cut"] = 0   # eski kayıt: yüz hattı seçilmemiş, yüzün aynı kalır
+	if not look.has("eye_art"):
+		look["eye_art"] = 3 if String(look.get("gender", "m")) == "f" else 0
 	return look
 
 

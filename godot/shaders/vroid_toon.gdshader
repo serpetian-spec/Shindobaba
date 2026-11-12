@@ -14,6 +14,7 @@ uniform float shade_floor = 0.5;   // karakter gölgesi (dünyadan biraz açık:
 // Byakugan: gözlerin çevresinde, şakaklara uzanan kabarık damarlar (yüz derisi)
 uniform float byakugan_veins = 0.0;
 uniform float seal_marks = 0.0;
+uniform vec4 eye_flat = vec4(0.0);   // çizilmiş göz: (düz ten UV, yarıçap m, açık) — göz çevresindeki boyalı kapak gölgeleri silinir
 uniform float age_lines = 0.0;    // yaş çizgileri 0..1: önce burun-ağız çizgisi, sonra göz altı, alın, göz kenarı
 uniform float juin_marks = 0.0;   // lanet mührü: yüze yayılan kara alev lekeleri   // Byakugō / Sōzō Saisei: alında elmas + yanaklarda kara mühür çizgileri
 uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
@@ -46,6 +47,10 @@ float vein_mask(vec3 p, vec3 c, float ir, float side) {
 
 void fragment() {
 	vec4 tx = texture(tex, UV);
+	if (eye_flat.w > 0.5) {
+		float em = min(length((lp - eye_c_r).xy * vec2(1.0, 1.35)), length((lp - eye_c_l).xy * vec2(1.0, 1.35)));
+		tx.rgb = mix(tx.rgb, texture(tex, eye_flat.xy).rgb, 1.0 - smoothstep(eye_flat.z * 0.72, eye_flat.z, em));
+	}
 	if (hm_cut(hm_p)) discard;
 	vec3 c = tx.rgb * tint.rgb;
 	if (mode == 1) {

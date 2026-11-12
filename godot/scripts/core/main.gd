@@ -221,6 +221,11 @@ func _creator_look() -> Dictionary:
 	Gear.preview_set_look(L, String(L["start_set"]))   # seçilen set önizlemede giyili
 	L["top"] = s["top"]   # üst rengi: setin üst giysisi
 	L["pants"] = s.get("pants", L.get("pants", Color(0.15, 0.15, 0.17)))   # alt rengi: pantolon
+	L["face_id"] = int(s.get("face_base", 0))
+	L["face_cut"] = 0
+	L["eye_art"] = maxi(0, CharacterModel.eye_art_names().find(String(s.get("eye_art", "Yuvarlak"))))
+	L["face_v"] = CharacterModel.face_from_parts(String(s.get("face_eye", "Sade")), String(s.get("face_brow", "Sade")), String(s.get("face_head", "Sade")),
+		String(s.get("face_iris", "Normal")), String(s.get("face_mouth", "Normal")))
 	L["face_paint"] = String(s.get("face_paint", CharacterModel.CLAN_FACE_PAINT.get(String(s["clan"]), "yok")))
 	L["face_paint_col"] = CharacterModel.FACE_PAINT_COLORS.get(String(s.get("face_paint_col_name", "Doğal")), Color(0, 0, 0, 0))
 	return L

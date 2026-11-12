@@ -72,6 +72,11 @@ static func ensure(kid: Dictionary) -> void:
 		var r = randf()
 		return ca if r < w else (cb if r < w + (1.0 - w) * 0.7 else ca.lerp(cb, 0.5))
 	var lk = {"gender": "f" if fem else "m"}
+	var fsrc: Dictionary = a if randf() < 0.6 else b   # yüz hatları anne ya da babadan
+	if fsrc.get("face_v") is Array:
+		lk["face_v"] = fsrc["face_v"]
+	else:
+		lk["face_cut"] = CharacterModel.face_cut_of(fsrc)
 	lk["hair"] = pick.call("hair", 0.6)
 	lk["eye"] = pick.call("eye", 0.6)
 	lk["skin"] = _col(me.get("skin"), d["skin"]).lerp(_col(ot.get("skin"), d["skin"]), randf())

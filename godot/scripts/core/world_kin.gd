@@ -82,7 +82,7 @@ static func relatives(p: Dictionary) -> Array:
 
 # ====================================================================== hayat (WorldPeople._life çağırır)
 static func life(p: Dictionary) -> void:
-	if not _ok(p):
+	if not _ok(p) or String(p.get("spouse", "")).begins_with("fam:"):   # senin soyundan biriyle evli (Lineage)
 		return
 	var sp = spouse_of(p)
 	if not sp.is_empty() and not WorldPeople.alive(sp):
@@ -125,6 +125,8 @@ static func _birth(fa: Dictionary, mo: Dictionary) -> void:
 	var lk = {}
 	for key in ["hair", "eye", "skin"]:
 		lk[key] = (dl if randf() < 0.6 else ol).get(key, dl.get(key))
+	var fpar: Dictionary = dl if randf() < 0.5 else ol   # yüz hatları anne ya da babadan
+	lk["face_cut"] = CharacterModel.face_cut_of(fpar)
 	var k = {"id": "k%d" % int(d["kid_seq"]), "name": nm, "female": fem, "fa": String(fa["id"]), "mo": String(mo["id"]), "village": String(mo["village"]),
 		"clan": clan, "age": 0.0, "el": String(((dom["els"] as Array) + (oth["els"] as Array)).pick_random()), "look": lk}
 	d["kids"][k["id"]] = k
@@ -159,7 +161,7 @@ static func _graduate(k: Dictionary) -> void:
 	var ek = int(ClanWorld.EYE_KIND.get(String(p["clan"]), 0))
 	p["eye"] = [ek, 1] if ek == 2 or ek == 3 or (ek == 1 and randf() < 0.3) else [0, 0]
 	var lk = WorldPeople._make_look(p)
-	for key in ["hair", "eye", "skin"]:
+	for key in ["hair", "eye", "skin", "face_cut"]:
 		if (k.get("look", {}) as Dictionary).get(key) != null:
 			lk[key] = k["look"][key]
 	p["look"] = lk

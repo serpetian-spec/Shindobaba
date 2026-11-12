@@ -10,7 +10,12 @@ static func pr() -> Dictionary:
 
 
 ## İlişki anahtarı
+static var _gp := false   # son konuşulan torunun mu (hitap: Dede / Nine)
+
 static func rel(f: Dictionary) -> String:
+	_gp = int(f.get("gen", 0)) >= 2
+	if _gp:
+		return "cocuk"
 	var kk = KinTalk.key(f)
 	if kk != "":
 		return kk
@@ -34,6 +39,8 @@ static func rel(f: Dictionary) -> String:
 
 
 static func _parent_word() -> String:
+	if _gp:
+		return "Nine" if Friends.player_gender() == "f" else "Dede"
 	return "Anne" if Friends.player_gender() == "f" else "Baba"
 
 

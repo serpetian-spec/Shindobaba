@@ -747,6 +747,20 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			if not hks.has(state["hair_style"]):
 				state["hair_style"] = hks[0]
 			carousel.call("Saç Stili", "hair_style", hks, hks.map(func(h): return CharacterModel.HAIR_STYLES[h]))
+			# yüz: hazır yüz + yüz hatları (çene, yanak, göz biçimi, kaş)
+			var fbn = (CharacterModel.FACE_DONORS_F if String(state["gender"]) == "f" else CharacterModel.FACE_DONORS_M).size()
+			state["face_base"] = clampi(int(state.get("face_base", 0)), 0, fbn - 1)
+			carousel.call("Yüz", "face_base", range(fbn), range(fbn).map(func(i): return "Yüz %d" % (i + 1)))
+			var eans: Array = CharacterModel.eye_art_names()
+			if not eans.has(state.get("eye_art")):
+				state["eye_art"] = "Kirpikli" if String(state["gender"]) == "f" else "Yuvarlak"
+			carousel.call("Göz", "eye_art", eans, eans)
+			for fr in [["Yüz Şekli", "face_head", CharacterModel.FACE_HEADS, "Sade"], ["Göz Ayarı", "face_eye", CharacterModel.FACE_EYES, "Sade"], ["İris", "face_iris", CharacterModel.FACE_IRIS, "Normal"],
+					["Kaş", "face_brow", CharacterModel.FACE_BROWS, "Sade"], ["Ağız", "face_mouth", CharacterModel.FACE_MOUTHS, "Normal"]]:
+				var fks: Array = (fr[2] as Dictionary).keys()
+				if not fks.has(state.get(fr[1])):
+					state[fr[1]] = fr[3]
+				carousel.call(fr[0], fr[1], fks, fks)
 			swatches.call("Saç Rengi", "hair", [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.18, 0.12, 0.1), Color(0.95, 0.8, 0.25), Color(0.98, 0.92, 0.6), Color(0.75, 0.25, 0.15),
 				Color(0.95, 0.4, 0.15), Color(0.9, 0.9, 0.92), Color(0.6, 0.6, 0.65), Color(0.2, 0.3, 0.6), Color(0.15, 0.18, 0.35), Color(0.9, 0.55, 0.7), Color(0.55, 0.3, 0.6), Color(0.25, 0.45, 0.25)])
 			if state["clan"] == "hoshigaki":
@@ -835,7 +849,7 @@ static func _tab_relations(main: Node, body: Control) -> void:
 			var f: Dictionary = fs[id]
 			var b = int(f["bond"])
 			var stt = String(f.get("status", ""))
-			var txt = "%s  —  %s, %s  •  %s (%d)%s" % [f["name"], String(f.get("title", "")), Friends.rank_label(f), Friends.bond_label(f), b,
+			var txt = "%s  —  %s, %s, %d yaş  •  %s (%d)%s" % [f["name"], String(f.get("title", "")), Friends.rank_label(f), int(Aging.person_years(f)), Friends.bond_label(f), b,
 				"  •  ÖLDÜ" if stt == "öldü" else ("  •  KAÇAK" if stt == "kaçak" else ("  ★ takımda" if f.get("party", false) else ""))]
 			var row = UI.chip(txt, ids.find(id) == _friend_i, func():
 				_friend_i = ids.find(id)
@@ -988,7 +1002,7 @@ static func _friends_card(main: Node, left: Control) -> void:
 	var rm = Friends.romance_of(id)
 	if rm != "":
 		st_txt += "  •  %s ♥" % {"eş": "Eşin", "sevgili": "Sevgilin", "flört": "Flört"}.get(rm, rm)
-	fv.add_child(UI.label("%s  •  %s  •  %s: %d (%s)%s" % [String(f.get("title", "")), Friends.rank_label(f), "Güven" if f.get("rogue", false) else "Bağ", b, Friends.bond_label(f), st_txt], 13, Friends.level_color(b)))
+	fv.add_child(UI.label("%s  •  %s  •  %d yaşında  •  %s: %d (%s)%s" % [String(f.get("title", "")), Friends.rank_label(f), int(Aging.person_years(f)), "Güven" if f.get("rogue", false) else "Bağ", b, Friends.bond_label(f), st_txt], 13, Friends.level_color(b)))
 	if f.get("rogue", false) and int(f.get("motive_known", 0)) > 0:
 		fv.add_child(UI.label("Neden kaçtı: " + String(RogueBonds.motive_of(f)[int(f["motive_known"])]), 12, Color(0.85, 0.8, 0.7), HORIZONTAL_ALIGNMENT_LEFT, true))
 	var bar = UI.bar(Friends.level_color(b), 700, 8)
@@ -1105,6 +1119,13 @@ static func _arrow_btn(text: String, cb: Callable) -> Button:
 static func _creator_random(state: Dictionary) -> void:
 	state["gender"] = ["m", "f"].pick_random()
 	state["hair_style"] = CharacterModel.hair_styles_for(state["gender"]).filter(func(h): return h != "kel").pick_random()
+	state["face_base"] = randi() % 4
+	state["eye_art"] = CharacterModel.eye_art_names().pick_random()
+	state["face_head"] = CharacterModel.FACE_HEADS.keys().pick_random()
+	state["face_eye"] = CharacterModel.FACE_EYES.keys().pick_random()
+	state["face_iris"] = CharacterModel.FACE_IRIS.keys().pick_random()
+	state["face_brow"] = CharacterModel.FACE_BROWS.keys().pick_random()
+	state["face_mouth"] = CharacterModel.FACE_MOUTHS.keys().pick_random()
 	state["hair"] = [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.95, 0.8, 0.25), Color(0.75, 0.25, 0.15), Color(0.9, 0.9, 0.92), Color(0.2, 0.3, 0.6), Color(0.9, 0.55, 0.7), Color(0.95, 0.4, 0.15)].pick_random()
 	state["skin"] = [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36)].pick_random()
 	state["eye"] = [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1)].pick_random()
@@ -1124,7 +1145,7 @@ static func pause(main: Node) -> void:
 	bg.add_child(root)
 	root.add_child(UI.label("DURAKLATILDI", 15, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 	root.add_child(UI.label(String(Game.profile.get("name", "")), 54, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
-	root.add_child(UI.label("%s  •  %s" % [Orgs.rogue_rank_name() if Orgs.is_rogue() else Data.RANKS[int(Game.profile.get("rank", 0))], Game.region_name(Game.player.global_position) if Game.player else ""], 17, UI.MUTED))
+	root.add_child(UI.label("%s  •  %d yaşında  •  %s" % [Orgs.rogue_rank_name() if Orgs.is_rogue() else Data.RANKS[int(Game.profile.get("rank", 0))], int(Aging.player_years()), Game.region_name(Game.player.global_position) if Game.player else ""], 17, UI.MUTED))
 	root.add_child(UI.spacer(0, 26, false))
 	var items = [["Devam", "play", func(): main.resume()], ["Ninja Menüsü", "bag", func(): ninja_menu(main, last_tab())],
 		["Ekipman ve Kıyafetler", "armor", func(): ninja_menu(main, "wardrobe")], ["Jutsular", "scroll", func(): ninja_menu(main, "jutsu")],
@@ -1359,7 +1380,7 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	info.offset_left = -720; info.offset_right = -110; info.offset_top = 36
 	info.alignment = BoxContainer.ALIGNMENT_END
 	bg.add_child(info)
-	info.add_child(UI.icon_label("person", "%s  •  %s  •  Güç %d" % [pr["name"], Data.RANKS[int(pr["rank"])], int(pr["level"])], 16, UI.TEXT))
+	info.add_child(UI.icon_label("person", "%s  •  %s  •  %d yaşında  •  Güç %d" % [pr["name"], Data.RANKS[int(pr["rank"])], int(Aging.player_years()), int(pr["level"])], 16, UI.TEXT))
 	info.add_child(UI.icon_label("coin", "%d Ryō" % int(pr["ryo"]), 16, UI.GOLD))
 	_close_button(bg, func(): main.resume())
 	# içerik

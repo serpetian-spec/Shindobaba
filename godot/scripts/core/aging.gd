@@ -78,6 +78,14 @@ static func player_years() -> float:
 	return y
 
 
+## Ömür: kişiye göre 76-92 yıl. Dolunca mezun çocuğun varsa yol ona geçer (Legacy.old_age)
+static func lifespan() -> float:
+	var pr: Dictionary = Game.profile
+	if not pr.has("life"):
+		pr["life"] = 76.0 + _h(String(pr.get("name", "?")), 11) * 16.0
+	return float(pr["life"])
+
+
 static func player_stage() -> String:
 	return stage(player_years())
 
@@ -148,6 +156,8 @@ static func tick(dt: float) -> void:
 	if pl == null or not is_instance_valid(pl) or pl.get("model") == null or _shown.is_empty():
 		return
 	var y = player_years()
+	if y >= lifespan() - 3.0:
+		Legacy.old_age(y, lifespan())
 	var sh = player_shape()
 	var m = pl.model
 	if stage(y) != String(_shown["stage"]):

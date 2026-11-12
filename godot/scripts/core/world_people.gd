@@ -298,7 +298,7 @@ static func _make_look_keep(p: Dictionary) -> Dictionary:
 	# terfide kıyafet rütbesine göre değişir, kimlik (yüz, saç, ten) aynı kalır
 	var old: Dictionary = p.get("look", {})
 	var nw = _make_look(p)
-	for k in ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "beard", "face_mark"]:
+	for k in ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "face_cut", "face_v", "eye_art", "beard", "face_mark"]:
 		if old.has(k):
 			nw[k] = old[k]
 	return nw
@@ -475,7 +475,7 @@ static func defect(p: Dictionary, why: String) -> Dictionary:
 	var lk: Dictionary = p["look"]
 	var rog = Outfits.roll("rogue", String(p["village"]))
 	var keep = {}
-	for k in ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "beard", "face_mark"]:
+	for k in ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "face_cut", "face_v", "eye_art", "beard", "face_mark"]:
 		if lk.has(k):
 			keep[k] = lk[k]
 	var nl = CharacterModel.default_look()
