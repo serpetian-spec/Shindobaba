@@ -57,6 +57,7 @@ func _process(dt: float) -> void:
 	if Game.paused:
 		return
 	WorldKin.tick(dt)
+	WorldNews.tick(dt)
 	_t -= dt
 	if _t > 0.0:
 		return
@@ -254,6 +255,8 @@ func world_tick() -> void:
 
 
 static func _life(p: Dictionary) -> void:
+	if p.get("missing", false):
+		return   # kayıp: kaderi WorldNews'te (kurtarılır ya da ölür)
 	var r = randf()
 	var rank = int(p["rank"])
 	if is_rogue(p):
@@ -275,7 +278,8 @@ static func _life(p: Dictionary) -> void:
 			_learn(p)
 			log_event(p, "İkinci doğasını uyandırdı (%s)" % ", ".join(p["els"]))
 	elif r < 0.33:
-		_die(p, "Bir görevden dönmedi")
+		if not WorldNews.went_missing(p):
+			_die(p, "Bir görevden dönmedi")
 	elif r < 0.33 + _defect_p(p):
 		defect(p, _defect_reason(p))
 	elif r < 0.37 and _try_path(p):
@@ -315,8 +319,10 @@ static func _defect_reason(p: Dictionary) -> String:
 ## Ölüm: yakını yasa boğulur; Uchiha ise en yakınını kaybetmek Mangekyō'yu uyandırabilir (kanon şartı: Sharingan'ı tam açık olmalı)
 static func _die(p: Dictionary, why: String) -> void:
 	p["status"] = "öldü"
+	p["missing"] = false
 	log_event(p, why)
 	WorldKin.on_death(p)   # aile yası, intikam
+	WorldNews.on_death(p, why)
 	var cid = String(p.get("close", ""))
 	if cid == "" or not all().has(cid):
 		return
@@ -345,9 +351,11 @@ static func _rogue_life(p: Dictionary, r: float) -> void:
 	p["level"] = mini(int(p["level"]) + randi_range(1, 5), 260)
 	if r < 0.4:
 		var near = String(Game.world_info["villages"].pick_random()["id"])
+		var ci = randi() % 5
 		var crime = ["%s yakınında bir kervanı soydu" % vname(near), "%s sınır karakoluna saldırdı" % vname(near), "%s'den bir ninjayı öldürdü" % vname(near),
-			"%s'de bir yasak parşömenin izini sürdü" % vname(near)][randi() % 4]
+			"%s'de bir yasak parşömenin izini sürdü" % vname(near), "%s'de bir evi ateşe verdi" % vname(near)][ci]
 		log_event(p, crime)
+		WorldNews.on_crime(p, ci, near, crime)
 		var cr: Array = p.get("crimes", [])
 		cr.append(crime)
 		p["crimes"] = cr.slice(maxi(0, cr.size() - 5))
@@ -479,6 +487,7 @@ static func defect(p: Dictionary, why: String) -> Dictionary:
 	p["alias"] = ALIAS.pick_random()
 	var e = make_bingo(p)
 	Missions._bingo()["list"].append(e)
+	WorldNews.on_defect(p)
 	if randf() < 0.6:
 		Hud.msg("Haber: %s köyünden %s kaçtı — Bingo Kitabı'nda «%s»" % [vname(String(p["village"])), String(p["name"]), String(p["alias"])], Color(1, 0.6, 0.5), 6.0)
 	return e
@@ -602,7 +611,7 @@ static func after_spawn(e: Node, p: Dictionary) -> void:
 static func team_people(vid: String, chunin: bool, used: Dictionary) -> Array:
 	if not data().get("init", false):
 		return []
-	var pool = all().values().filter(func(p): return String(p["village"]) == vid and alive(p) and not is_rogue(p) and not used.has(String(p["id"])))
+	var pool = all().values().filter(func(p): return String(p["village"]) == vid and alive(p) and not is_rogue(p) and not p.get("missing", false) and not used.has(String(p["id"])))
 	var out = []
 	var need = [1, 1, 1] if chunin else [2, 0, 0, 0]
 	for rk in need:
@@ -640,7 +649,7 @@ static func fill_enemy(a: Dictionary) -> void:
 	var cands = []
 	for id in all():
 		var p: Dictionary = all()[id]
-		if not alive(p) or is_rogue(p) != rogue or absf(int(p["level"]) - lv) > tol:
+		if not alive(p) or p.get("missing", false) or is_rogue(p) != rogue or absf(int(p["level"]) - lv) > tol:
 			continue
 		if not rogue and String(p["village"]) != vid:
 			continue

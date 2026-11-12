@@ -28,6 +28,8 @@ var load_n := 0          # sırt küfesindeki parça sayısı
 var tagged: Array = []   # mühür yapıştırılmış sandık yığınları (sabotaj)
 var bound_d := {}        # bağlı rehine -> {"post", "rope"}
 var rider_off := Vector3(0.19, 1.38, -0.03)
+var job_d := {}          # aktif iş yeri (iskele / onarım / inşaat / ders): {"kind", "root", ...}
+var hunt_d := {}         # av: {"root", "rack", "rack_front", "prey", "hung"}
 
 
 static func I() -> MissionWork:
@@ -76,7 +78,7 @@ func make(kind: String, pos: Vector3, yaw: float, idx: int, label: String, extra
 		"herb":
 			_build_herb(root, rng)
 		"clue":
-			_build_clue(root, int(extra.get("clue", idx)), rng)
+			_build_clue(root, int(extra.get("clue", idx)), rng, String(extra.get("ck", "")))
 		"sack":
 			_build_loot(root)
 		"book":
@@ -89,6 +91,8 @@ func make(kind: String, pos: Vector3, yaw: float, idx: int, label: String, extra
 			_build_item(root, String(extra.get("item", "")), rng)
 		"spot":
 			_build_spot(root, String(extra.get("style", "stone")), rng)
+		"lamp":
+			_build_lamp(root)
 	if kind == "book" and extra.has("look"):
 		_restyle_doc(root, String(extra["look"]))
 	if kind in ["clue", "sack", "scroll", "item"]:
@@ -492,6 +496,22 @@ func run(it: Dictionary) -> void:
 			Hud.float_text("+1 %s" % String(it.get("item", "")), Color(0.6, 1, 0.6))
 		"spot":
 			await _act_spot(it)
+		"flame":
+			await _act_douse(it)
+		"carcass":
+			await _act_carcass(it)
+		"rack":
+			await _act_rack(it)
+		"lamp":
+			await _act_lamp(it)
+		"fish":
+			await _act_fish(it)
+		"plank":
+			await _act_plank(it)
+		"build":
+			await _act_build(it)
+		"teach":
+			await _act_teach(it)
 	if is_instance_valid(pl):
 		_clear_pose(pl)
 		pl.model.play("idle", 0.25)
@@ -887,6 +907,14 @@ func _make(n: Node3D, s: Dictionary) -> Dictionary:
 			var arms10 = _ik(n, "Left", eye - right * 0.045 * sc)
 			arms10.append_array(_ik(n, "Right", eye + right * 0.045 * sc))
 			return {"arms": arms10, "fL": GRIP, "fR": GRIP, "spine": 14.0 + sin(t * 9.0) * 3.0, "neck": 18.0}
+		"blow":
+			# göğüs önünde mühür, sonra baş geriye: el ağzın önünde halka, göğe üfler
+			var k20 = smoothstep(0.55, 0.85, t)
+			var chest = n.global_position + fd * 0.26 * sc + Vector3.UP * 1.12 * sc
+			var mouth = _bone(n, "Head") + fd * 0.13 * sc + Vector3.UP * 0.02 * sc
+			var arms20 = _ik(n, "Right", chest.lerp(mouth, k20) + right * 0.02)
+			arms20.append_array(_ik(n, "Left", chest.lerp(chest - Vector3.UP * 0.12 * sc, k20) - right * 0.02))
+			return {"arms": arms20, "fL": HALF, "fR": HALF, "spine": 4.0 - 9.0 * k20, "neck": -24.0 * k20}
 	return super._make(n, s)
 
 
@@ -1031,6 +1059,8 @@ func _item(kind: String) -> Node3D:
 				b.add("cyl", Vector3(sd * 0.15, 0.03, 0), Vector3(0.075, 0.025, 0.075), Color(0.3, 0.2, 0.14), Vector3(0, 0, 90), 8)
 			b.add("cyl", Vector3(0, 0.03, 0), Vector3(0.068, 0.05, 0.068), Color(0.75, 0.15, 0.13), Vector3(0, 0, 90), 8)
 			b.add("cyl", Vector3(0, 0.03, 0.036), Vector3(0.05, 0.012, 0.05), Color(0.85, 0.7, 0.25), Vector3(90, 0, 0), 8)
+		"band":
+			_band_parts(b, Vector3(0, 0.02, 0))
 		"pouch":
 			b.add("sphere", Vector3(0, 0.06, 0), Vector3(0.18, 0.14, 0.16), Color(0.55, 0.42, 0.22), Vector3.ZERO, 10)
 			b.add("cyl", Vector3(0, 0.135, 0), Vector3(0.065, 0.05, 0.065), Color(0.5, 0.38, 0.2), Vector3.ZERO, 8)
@@ -1361,9 +1391,10 @@ func site(kind: String, c: Vector3) -> Dictionary:
 	var key = "%s:%s" % [String(Missions.active().get("id", "")), kind]
 	if sites.has(key) and is_instance_valid(sites[key].get("root")):
 		return sites[key]
-	var hx = {"checkpoint": 6.0}.get(kind, 2.4)
-	var hz = {"checkpoint": 5.0}.get(kind, 2.2)
-	c = clear_spot(c, hx, hz) if kind != "checkpoint" else Missions.open_ground(c, 40.0)
+	var hx = {"checkpoint": 6.0, "hunt_camp": 4.6, "guard_post": 3.0, "repair_house": 5.8, "build_lot": 6.2, "class_yard": 6.2}.get(kind, 2.4)
+	var hz = {"checkpoint": 5.0, "hunt_camp": 3.4, "guard_post": 2.6, "repair_house": 3.8, "build_lot": 3.6, "class_yard": 5.6}.get(kind, 2.2)
+	if kind != "fish_dock":   # iskele kıyıda kalır
+		c = clear_spot(c, hx, hz) if kind != "checkpoint" else Missions.open_ground(c, 40.0)
 	c.y = Game.ground_height(c.x, c.z)
 	var root = Node3D.new()
 	get_tree().current_scene.add_child(root)
@@ -1429,6 +1460,117 @@ func site(kind: String, c: Vector3) -> Dictionary:
 				b.add("box", Vector3(-0.7, g0 + 0.89, 0.1), Vector3(0.5, 0.02, 0.3), Color(0.9, 0.88, 0.8), Vector3(0, 20, 0))
 				d["npc_at"] = c + Vector3(-0.2, 0, 1.9)
 				d["face"] = c + Vector3(0.3, 0, 0)
+		"well_poisoned":
+			# zehirlenen kuyu: taş bilezik, çatı, mor su, çapraz çakılmış tahtalar, devrik kova
+			var g2: float = gy.call(0, 0)
+			var stone = Color(0.58, 0.56, 0.52)
+			for k in 12:
+				var a7 = TAU * k / 12.0
+				b.add("box", Vector3(cos(a7) * 0.9, g2 + 0.4, sin(a7) * 0.9), Vector3(0.5, 0.8, 0.3), stone.darkened((k % 3) * 0.06), Vector3(0, -rad_to_deg(a7) + 90.0, 0))
+			b.add("cyl", Vector3(0, g2 + 0.5, 0), Vector3(1.6, 0.04, 1.6), Color(0.45, 0.22, 0.55), Vector3.ZERO, 12)
+			for sx in [-1.0, 1.0]:
+				b.add("box", Vector3(sx * 1.05, g2 + 1.3, 0), Vector3(0.12, 2.6, 0.12), wood.darkened(0.15))
+			b.add("prism", Vector3(0, g2 + 2.85, 0), Vector3(2.6, 0.6, 1.6), Color(0.35, 0.26, 0.2))
+			b.add("cyl", Vector3(0, g2 + 2.2, 0), Vector3(0.12, 2.0, 0.12), wood, Vector3(0, 0, 90), 6)
+			b.add("box", Vector3(0, g2 + 0.86, 0), Vector3(2.3, 0.05, 0.2), wood.lightened(0.1), Vector3(0, 35, 0))
+			b.add("box", Vector3(0, g2 + 0.9, 0), Vector3(2.3, 0.05, 0.2), wood.lightened(0.05), Vector3(0, -35, 0))
+			b.add("cyl", Vector3(1.7, gy.call(1.7, 0.8) + 0.16, 0.8), Vector3(0.34, 0.36, 0.34), wood, Vector3(0, 0, 85), 8)
+			b.add("sphere", Vector3(2.1, gy.call(2.1, 0.8) + 0.01, 0.8), Vector3(0.9, 0.03, 0.6), Color(0.45, 0.22, 0.55), Vector3.ZERO, 9)
+			solid.call(Vector3(0, g2 + 0.45, 0), Vector3(2.0, 0.9, 2.0))
+			d["npc_at"] = c + Vector3(-1.2, 0, 1.9)
+			d["face"] = c
+		"barn_robbed":
+			# soyulan ambar: direkler üstünde küçük kiler, kapısı açık, kilidi kırık, içi boş; yerde dökülmüş pirinç
+			var g3: float = gy.call(0, 0)
+			for sx in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					b.add("cyl", Vector3(sx * 1.3, g3 + 0.3, sz * 1.0 - 0.6), Vector3(0.22, 0.6, 0.22), stone_c(), Vector3.ZERO, 6)
+			b.add("box", Vector3(0, g3 + 0.66, -0.6), Vector3(3.2, 0.14, 2.6), wood.darkened(0.1))
+			b.add("box", Vector3(0, g3 + 1.7, -1.75), Vector3(3.0, 2.0, 0.12), Color(0.86, 0.82, 0.72))
+			for sx in [-1.0, 1.0]:
+				b.add("box", Vector3(sx * 1.45, g3 + 1.7, -0.6), Vector3(0.12, 2.0, 2.4), Color(0.86, 0.82, 0.72))
+				b.add("box", Vector3(sx * 1.05, g3 + 1.7, 0.55), Vector3(0.9, 2.0, 0.12), Color(0.86, 0.82, 0.72))
+			b.add("box", Vector3(0, g3 + 1.7, -0.5), Vector3(2.7, 1.9, 2.1), Color(0.07, 0.06, 0.05))   # karanlık iç
+			b.add("box", Vector3(0, g3 + 2.5, 0.56), Vector3(1.3, 0.4, 0.12), Color(0.86, 0.82, 0.72))
+			b.add("prism", Vector3(0, g3 + 3.15, -0.6), Vector3(3.8, 0.9, 3.2), Color(0.3, 0.26, 0.24))
+			b.add("box", Vector3(0.95, g3 + 1.55, 1.0), Vector3(0.08, 1.6, 0.9), wood, Vector3(0, -25, 0))   # açık kapı kanadı
+			b.add("box", Vector3(0.3, gy.call(0.3, 1.5) + 0.04, 1.5), Vector3(0.14, 0.08, 0.1), Color(0.3, 0.3, 0.33), Vector3(0, 30, 20))   # kırık kilit
+			b.add("box", Vector3(0, g3 + 0.36, 1.0), Vector3(1.2, 0.12, 0.5), wood.darkened(0.15))   # basamak
+			b.add("sphere", Vector3(-0.3, g3 + 0.95, 0.1), Vector3(0.6, 0.4, 0.5), Color(0.72, 0.62, 0.42), Vector3(0, 0, 20), 8)   # kalan tek çuval
+			for k in 16:
+				b.add("sphere", Vector3(-0.5 + k * 0.1 + sin(k * 2.1) * 0.1, gy.call(0, 1.6) + 0.02, 1.4 + k * 0.08), Vector3(0.07, 0.02, 0.05), Color(0.97, 0.96, 0.9), Vector3.ZERO, 5)
+			solid.call(Vector3(0, g3 + 1.4, -0.6), Vector3(3.2, 2.8, 2.6))
+			d["npc_at"] = c + Vector3(-1.3, 0, 2.0)
+			d["face"] = c + Vector3(0, 0, 0.5)
+		"stable_burnt":
+			# kundaklanan ahır: kömürleşmiş direkler, çökmüş kirişler, kül, yarı yanmış saman, su kovaları
+			var g4: float = gy.call(0, 0)
+			var burnt = Color(0.11, 0.1, 0.09)
+			b.add("cyl", Vector3(0, g4 + 0.015, -0.4), Vector3(4.2, 0.03, 3.6), Color(0.26, 0.25, 0.24), Vector3.ZERO, 12)
+			var hs = [2.4, 1.5, 2.0, 0.9]
+			for q in 4:
+				var px = (q % 2 - 0.5) * 3.4
+				var pz = (q / 2 - 0.5) * 2.6 - 0.4
+				b.add("box", Vector3(px, gy.call(px, pz) + hs[q] * 0.5, pz), Vector3(0.2, hs[q], 0.2), burnt, Vector3(0, 0, (q - 1.5) * 3.0))
+				solid.call(Vector3(px, gy.call(px, pz) + hs[q] * 0.5, pz), Vector3(0.2, hs[q], 0.2))
+			b.add("box", Vector3(-0.4, g4 + 1.2, -1.7), Vector3(3.6, 0.18, 0.18), burnt, Vector3(0, 0, -15))
+			b.add("box", Vector3(0.6, g4 + 0.5, -0.2), Vector3(0.18, 0.18, 3.0), burnt.lightened(0.04), Vector3(22, 14, 0))
+			b.add("box", Vector3(-0.9, g4 + 0.12, 0.3), Vector3(2.2, 0.16, 0.18), burnt, Vector3(0, 40, 0))
+			for k in 5:
+				b.add("box", Vector3(-1.2 + k * 0.6, g4 + 0.03, -0.6 + sin(k * 1.7) * 0.6), Vector3(0.5, 0.04, 0.14), Color(0.85, 0.4, 0.12).darkened(0.3 + (k % 2) * 0.2), Vector3(0, k * 40.0, 0))
+			b.add("sphere", Vector3(1.3, g4 + 0.3, -1.2), Vector3(1.1, 0.6, 0.9), Color(0.78, 0.66, 0.3), Vector3.ZERO, 8)
+			b.add("sphere", Vector3(1.0, g4 + 0.34, -1.0), Vector3(0.8, 0.5, 0.7), Color(0.16, 0.14, 0.1), Vector3.ZERO, 7)
+			for k in 2:
+				b.add("cyl", Vector3(-2.2 + k * 0.45, gy.call(-2.2, 1.6) + 0.18, 1.6 + k * 0.2), Vector3(0.34, 0.36, 0.34), wood, Vector3.ZERO, 8)
+			d["npc_at"] = c + Vector3(0.6, 0, 2.2)
+			d["face"] = c + Vector3(0, 0, -0.4)
+		"workbench":
+			# soyulan atölye: sundurma altında tezgâh, arkada alet panosu (boş askılar), açık boş parça sandığı, talaş
+			var g5: float = gy.call(0, 0)
+			b.add("box", Vector3(0, g5 + 0.84, 0), Vector3(2.6, 0.1, 0.9), wood.lightened(0.08))
+			for sx in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					b.add("box", Vector3(sx * 1.2, g5 + 0.4, sz * 0.38), Vector3(0.1, 0.8, 0.1), wood.darkened(0.1))
+			b.add("box", Vector3(0, g5 + 1.5, -0.75), Vector3(2.8, 1.6, 0.08), wood.darkened(0.2))
+			for sx in [-1.0, 1.0]:
+				b.add("box", Vector3(sx * 1.4, g5 + 1.3, -0.75), Vector3(0.12, 2.6, 0.12), wood.darkened(0.25))
+				b.add("box", Vector3(sx * 1.4, g5 + 1.2, 0.9), Vector3(0.1, 2.4, 0.1), wood.darkened(0.25))
+			b.add("box", Vector3(0, g5 + 2.6, 0.1), Vector3(3.2, 0.06, 2.0), Color(0.4, 0.3, 0.24), Vector3(-8, 0, 0))
+			for k in 8:
+				b.add("cyl", Vector3(-1.05 + k * 0.3, g5 + 1.9, -0.68), Vector3(0.03, 0.1, 0.03), Color(0.3, 0.3, 0.33), Vector3(90, 0, 0), 4)
+			b.add("box", Vector3(-1.05, g5 + 1.62, -0.69), Vector3(0.06, 0.5, 0.03), Color(0.3, 0.3, 0.33))   # kalan tek alet
+			b.add("box", Vector3(-1.05, g5 + 1.4, -0.69), Vector3(0.16, 0.12, 0.05), Color(0.3, 0.3, 0.33))
+			for k in 3:   # çalınan aletlerin panodaki soluk izi
+				b.add("box", Vector3(-0.45 + k * 0.6, g5 + 1.6, -0.705), Vector3(0.1, 0.5, 0.01), wood.lightened(0.12))
+			b.add("box", Vector3(1.8, gy.call(1.8, 0.3) + 0.25, 0.3), Vector3(0.8, 0.5, 0.6), wood)
+			b.add("box", Vector3(1.8, gy.call(1.8, 0.3) + 0.46, 0.3), Vector3(0.7, 0.1, 0.5), Color(0.07, 0.06, 0.05))
+			b.add("box", Vector3(1.8, gy.call(1.8, 0.3) + 0.4, -0.2), Vector3(0.8, 0.06, 0.6), wood.lightened(0.05), Vector3(-70, 0, 0))
+			b.add("box", Vector3(0.4, g5 + 0.9, 0.0), Vector3(0.5, 0.02, 0.36), Color(0.9, 0.87, 0.78), Vector3(0, 12, 0))   # çizim kâğıdı
+			for k in 10:
+				b.add("box", Vector3(sin(k * 2.3) * 1.2, gy.call(0, 0.9) + 0.012, 0.8 + cos(k * 1.9) * 0.4), Vector3(0.1, 0.01, 0.03), wood.lightened(0.25), Vector3(0, k * 37.0, 0))
+			solid.call(Vector3(0, g5 + 0.45, 0), Vector3(2.6, 0.9, 0.9))
+			solid.call(Vector3(0, g5 + 1.3, -0.75), Vector3(2.8, 2.6, 0.12))
+			d["npc_at"] = c + Vector3(-0.3, 0, 1.4)
+			d["face"] = c + Vector3(0.3, 0, 0)
+		"notice":
+			# kayıp ilanı panosu: saçaklı tahta pano, üstünde yüz çizimli ilanlar, altında adak mumu
+			var g6: float = gy.call(0, 0)
+			for sx in [-1.0, 1.0]:
+				b.add("box", Vector3(sx * 1.1, g6 + 1.2, 0), Vector3(0.12, 2.4, 0.12), wood.darkened(0.2))
+				solid.call(Vector3(sx * 1.1, g6 + 1.2, 0), Vector3(0.12, 2.4, 0.12))
+			b.add("box", Vector3(0, g6 + 1.5, 0), Vector3(2.1, 1.3, 0.06), wood)
+			b.add("prism", Vector3(0, g6 + 2.5, 0), Vector3(2.7, 0.4, 0.7), Color(0.3, 0.25, 0.22))
+			for k in 5:
+				var q6 = Vector3(-0.72 + (k % 3) * 0.72 + (0.36 if k >= 3 else 0.0), g6 + (1.78 if k < 3 else 1.24), 0.04)
+				b.add("box", q6, Vector3(0.44, 0.52, 0.01), Color(0.92, 0.89, 0.78), Vector3(0, 0, sin(k * 3.1) * 5.0))
+				b.add("sphere", q6 + Vector3(0, 0.08, 0.008), Vector3(0.2, 0.22, 0.01), Color(0.3, 0.27, 0.25), Vector3.ZERO, 8)
+				b.add("box", q6 + Vector3(0, -0.17, 0.008), Vector3(0.3, 0.03, 0.005), Color(0.6, 0.15, 0.12))
+			b.add("cyl", Vector3(0.5, g6 + 0.1, 0.5), Vector3(0.1, 0.2, 0.1), Color(0.95, 0.93, 0.85), Vector3.ZERO, 6)
+			b.add("cone", Vector3(0.5, g6 + 0.26, 0.5), Vector3(0.05, 0.1, 0.05), Color(1.0, 0.7, 0.25), Vector3.ZERO, 5)
+			b.add("hemi", Vector3(0.2, g6 + 0.0, 0.55), Vector3(0.22, 0.1, 0.22), Color(0.3, 0.2, 0.15), Vector3(180, 0, 0), 8)
+			solid.call(Vector3(0, g6 + 1.5, 0), Vector3(2.1, 1.3, 0.1))
+			d["npc_at"] = c + Vector3(-0.4, 0, 1.4)
+			d["face"] = c + Vector3(-0.4, 0, 0)
 		"checkpoint":
 			# yolu kesen bariyer + nöbetçi kulübesi + gözetleme kulesi + bayrak
 			var g1: float = gy.call(0, 0)
@@ -1473,6 +1615,8 @@ func site(kind: String, c: Vector3) -> Dictionary:
 			b.add("box", Vector3(4.7, gy.call(4.0, 1.2) + 3.9, 1.2), Vector3(1.3, 0.8, 0.03), Color(0.2, 0.35, 0.6))
 			d["npc_at"] = c + Vector3(1.4, 0, 1.4)
 			d["face"] = c + Vector3(1.4, 0, 8.0)
+	_site_more(kind, root, b, d, c, gy, solid)
+	_site_jobs(kind, root, b, d, c, gy, solid)
 	_part(root, b)
 	sites[key] = d
 	return d
@@ -1493,9 +1637,15 @@ func open_barrier() -> void:
 
 
 # ====================================================================== ipuçları (soruşturma)
-func _build_clue(root: Node3D, idx: int, rng: RandomNumberGenerator) -> void:
+func _build_clue(root: Node3D, idx: int, rng: RandomNumberGenerator, ck := "") -> void:
 	var b = MB.new()
-	match idx % 3:
+	if ck == "":
+		ck = ["prints", "ash", "bandana"][idx % 3]
+	if not ck in ["prints", "ash", "bandana"]:
+		_build_clue2(root, b, ck, rng)
+		_part(root, b)
+		return
+	match ["prints", "ash", "bandana"].find(ck):
 		0:   # çamurlu sandal izleri: ıslak toprağa basılmış bir sıra iz
 			for k in 6:
 				var z = -0.9 + k * 0.36
@@ -1523,12 +1673,145 @@ func _build_clue(root: Node3D, idx: int, rng: RandomNumberGenerator) -> void:
 	_part(root, b)
 
 
+## Soruşturmaya özgü ipuçları (olayın kendi eşyası) ve S görevlerinin izleri
+func _build_clue2(root: Node3D, b: MB, ck: String, rng: RandomNumberGenerator) -> void:
+	var mud = Color(0.36, 0.27, 0.17)
+	match ck:
+		"rice":   # yırtık çuval köşesi + dökülmüş pirinç izi
+			b.add("sphere", Vector3(-0.5, 0.1, 0), Vector3(0.5, 0.2, 0.36), Color(0.72, 0.62, 0.42), Vector3(0, 20, 0), 8)
+			b.add("box", Vector3(-0.3, 0.06, 0.1), Vector3(0.26, 0.02, 0.2), Color(0.66, 0.56, 0.38), Vector3(0, 35, 12))
+			for k in 26:
+				var z = -0.1 + k * 0.07
+				b.add("sphere", Vector3(-0.25 + k * 0.05 + rng.randf_range(-0.06, 0.06), 0.02, z * 0.4 + rng.randf_range(-0.07, 0.07)), Vector3(0.05, 0.02, 0.03), Color(0.97, 0.96, 0.9), Vector3(0, rng.randf() * 180.0, 0), 5)
+			b.add("sphere", Vector3(-0.15, 0.03, 0.02), Vector3(0.3, 0.05, 0.22), Color(0.97, 0.96, 0.9), Vector3.ZERO, 8)
+		"vial":   # devrik boş şişe, mantarı, mor tortu, kurumuş otlar
+			b.add("sphere", Vector3(0.1, 0.012, 0.05), Vector3(0.7, 0.02, 0.5), Color(0.42, 0.2, 0.5), Vector3.ZERO, 10)
+			b.add("cyl", Vector3(0, 0.07, 0), Vector3(0.13, 0.24, 0.13), Color(0.55, 0.75, 0.6), Vector3(90, 25, 0), 8)
+			b.add("cyl", Vector3(0.07, 0.07, -0.15), Vector3(0.06, 0.1, 0.06), Color(0.55, 0.75, 0.6), Vector3(90, 25, 0), 6)
+			b.add("cyl", Vector3(0.3, 0.03, -0.28), Vector3(0.06, 0.06, 0.06), Color(0.6, 0.45, 0.28), Vector3(70, 0, 0), 6)
+			for k in 7:
+				var a = TAU * k / 7.0
+				b.add("box", Vector3(cos(a) * 0.38, 0.08, sin(a) * 0.3), Vector3(0.02, 0.2, 0.012), Color(0.5, 0.42, 0.2), Vector3(rng.randf_range(30, 60), rad_to_deg(a), 0))
+		"rag":   # yağlı yanık bezler + devrik yağ testisi
+			b.add("sphere", Vector3(0.25, 0.012, 0.1), Vector3(0.8, 0.02, 0.6), Color(0.12, 0.1, 0.08), Vector3.ZERO, 10)
+			for k in 3:
+				var q = Vector3(-0.3 + k * 0.28, 0.05, rng.randf_range(-0.2, 0.2))
+				b.add("sphere", q, Vector3(0.3, 0.08, 0.24), Color(0.16, 0.13, 0.11), Vector3(0, rng.randf() * 90.0, 0), 7)
+				b.add("box", q + Vector3(0.1, 0.03, 0.06), Vector3(0.16, 0.015, 0.1), Color(0.75, 0.68, 0.5), Vector3(8, rng.randf() * 90.0, 10))
+				b.add("box", q + Vector3(0.02, 0.045, 0.0), Vector3(0.12, 0.012, 0.03), Color(0.85, 0.4, 0.12), Vector3(0, rng.randf() * 90.0, 0))
+			b.add("sphere", Vector3(0.55, 0.14, -0.2), Vector3(0.3, 0.28, 0.28), Color(0.55, 0.36, 0.24), Vector3(0, 0, 80), 8)
+			b.add("cyl", Vector3(0.38, 0.14, -0.2), Vector3(0.14, 0.1, 0.14), Color(0.5, 0.32, 0.22), Vector3(0, 0, 80), 7)
+		"bag":   # yırtık yolcu çantası, saçılmış eşyalar
+			b.add("sphere", Vector3(0, 0.13, 0), Vector3(0.55, 0.26, 0.4), Color(0.58, 0.48, 0.32), Vector3(0, 15, 0), 8)
+			b.add("box", Vector3(0.05, 0.2, 0.0), Vector3(0.3, 0.015, 0.04), Color(0.1, 0.08, 0.07), Vector3(0, 40, 0))   # yırtık
+			b.add("box", Vector3(-0.35, 0.03, 0.2), Vector3(0.6, 0.02, 0.05), Color(0.4, 0.3, 0.2), Vector3(0, -30, 0))   # kopuk askı
+			b.add("hemi", Vector3(0.5, 0.0, 0.25), Vector3(0.2, 0.1, 0.2), Color(0.3, 0.2, 0.15), Vector3(180, 0, 0), 8)   # çanak
+			b.add("box", Vector3(0.42, 0.02, -0.25), Vector3(0.2, 0.02, 0.06), Color(0.75, 0.62, 0.4), Vector3(0, 55, 0))   # tarak
+			b.add("box", Vector3(-0.1, 0.02, 0.45), Vector3(0.24, 0.025, 0.11), Color(0.7, 0.6, 0.4), Vector3(0, -20, 0))   # hasır sandal
+			b.add("box", Vector3(-0.1, 0.045, 0.45), Vector3(0.02, 0.02, 0.11), Color(0.3, 0.3, 0.6), Vector3(0, -20, 0))
+			b.add("box", Vector3(0.2, 0.02, 0.5), Vector3(0.22, 0.01, 0.16), Color(0.92, 0.9, 0.8), Vector3(0, 25, 0))   # yol izni kâğıdı
+		"puppet":   # kopmuş kukla kolu: eklem zorlanmış, chakra ipi kesik
+			var pw = Color(0.72, 0.6, 0.42)
+			b.add("cyl", Vector3(-0.2, 0.06, 0), Vector3(0.1, 0.42, 0.1), pw, Vector3(90, 70, 0), 7)
+			b.add("sphere", Vector3(0.02, 0.06, 0.08), Vector3.ONE * 0.12, pw.darkened(0.2), Vector3.ZERO, 7)
+			b.add("box", Vector3(0.16, 0.05, 0.13), Vector3(0.14, 0.05, 0.11), pw, Vector3(0, -20, 0))
+			for k in 4:
+				b.add("cyl", Vector3(0.27 + k * 0.004, 0.05, 0.12 + (k - 1.5) * 0.03), Vector3(0.022, 0.12, 0.022), pw.lightened(0.05), Vector3(90, 70 - k * 8, 0), 5)
+			b.add("cyl", Vector3(-0.42, 0.06, -0.08), Vector3(0.05, 0.05, 0.05), Color(0.35, 0.33, 0.33), Vector3(90, 70, 0), 6)   # kırık mil
+			for k in 5:
+				b.add("box", Vector3(-0.1 + k * 0.16, 0.012, -0.3 + sin(k * 1.3) * 0.08), Vector3(0.17, 0.006, 0.012), Color(0.6, 0.85, 1.0), Vector3(0, k * 22.0 - 40.0, 0))
+			for k in 6:
+				b.add("box", Vector3(rng.randf_range(-0.5, 0.5), 0.01, rng.randf_range(-0.4, 0.4)), Vector3(0.06, 0.008, 0.02), pw.lightened(0.1), Vector3(0, rng.randf() * 180.0, 0))
+		"clay":   # kil topakları, biri parmak izli; kumdan sararmış eldiven
+			for k in 5:
+				var q2 = Vector3(rng.randf_range(-0.4, 0.4), 0.06, rng.randf_range(-0.3, 0.3))
+				b.add("sphere", q2, Vector3(rng.randf_range(0.14, 0.24), 0.12, rng.randf_range(0.14, 0.22)), Color(0.86, 0.84, 0.8).darkened(rng.randf() * 0.08), Vector3.ZERO, 7)
+			b.add("sphere", Vector3(0, 0.1, 0), Vector3(0.3, 0.16, 0.26), Color(0.86, 0.84, 0.8), Vector3.ZERO, 8)
+			for k in 4:
+				b.add("sphere", Vector3(-0.06 + k * 0.04, 0.175, 0.02), Vector3(0.03, 0.02, 0.07), Color(0.6, 0.58, 0.55), Vector3.ZERO, 5)
+			b.add("box", Vector3(0.5, 0.025, 0.25), Vector3(0.16, 0.04, 0.22), Color(0.8, 0.68, 0.3), Vector3(0, 30, 0))
+			for k in 4:
+				b.add("box", Vector3(0.44 + k * 0.035, 0.025, 0.4 + k * 0.012), Vector3(0.03, 0.035, 0.12), Color(0.8, 0.68, 0.3), Vector3(0, 30 - k * 6, 0))
+		"receipt":   # taşın altına sıkışmış ıslak makbuzlar, su birikintisi
+			b.add("sphere", Vector3(0.1, 0.01, 0.0), Vector3(0.9, 0.018, 0.7), Color(0.4, 0.5, 0.58), Vector3.ZERO, 10)
+			for k in 4:
+				var yw = rng.randf_range(-40, 40)
+				var q3 = Vector3(-0.2 + k * 0.14, 0.022 + k * 0.004, rng.randf_range(-0.1, 0.1))
+				b.add("box", q3, Vector3(0.2, 0.004, 0.3), Color(0.88, 0.85, 0.74).darkened(k * 0.04), Vector3(0, yw, 0))
+				for j in 3:
+					b.add("box", q3 + Vector3(0, 0.004, -0.08 + j * 0.07).rotated(Vector3.UP, deg_to_rad(yw)), Vector3(0.14, 0.003, 0.012), Color(0.2, 0.2, 0.3), Vector3(0, yw, 0))
+				b.add("cyl", q3 + Vector3(0.05, 0.005, 0.1).rotated(Vector3.UP, deg_to_rad(yw)), Vector3(0.05, 0.003, 0.05), Color(0.7, 0.15, 0.12), Vector3.ZERO, 7)
+			b.add("sphere", Vector3(-0.25, 0.08, -0.05), Vector3(0.26, 0.16, 0.22), Color(0.5, 0.5, 0.48), Vector3.ZERO, 7)
+		"sandal":   # küçük çocuk sandaleti + sürüklenme izi + düşmüş fırıldak
+			for sx in [-0.1, 0.1]:
+				b.add("box", Vector3(sx, 0.012, 0.6), Vector3(0.05, 0.012, 2.2), mud.darkened(0.25), Vector3(0, sx * 12.0, 0))
+			b.add("box", Vector3(0.2, 0.03, -0.5), Vector3(0.11, 0.03, 0.2), Color(0.8, 0.7, 0.45), Vector3(0, 35, 0))
+			b.add("box", Vector3(0.2, 0.05, -0.53), Vector3(0.11, 0.025, 0.03), Color(0.8, 0.2, 0.2), Vector3(0, 35, 0))
+			b.add("cyl", Vector3(-0.3, 0.02, -0.3), Vector3(0.02, 0.4, 0.02), Color(0.5, 0.38, 0.25), Vector3(90, 60, 0), 5)
+			for k in 4:
+				b.add("box", Vector3(-0.47, 0.03, -0.4) + Vector3(cos(k * PI * 0.5), 0, sin(k * PI * 0.5)) * 0.06, Vector3(0.1, 0.01, 0.06), [Color(0.9, 0.3, 0.3), Color(0.95, 0.85, 0.3)][k % 2], Vector3(0, -k * 90.0, 20))
+		"skin":   # dev yılanın attığı gömlek: S çizen, yer yer çökmüş soluk tüp; pul halkaları, ağız kısmı yırtık
+			var sc2 = Color(1.0, 0.95, 0.74)
+			for k in 30:
+				var t = k / 29.0
+				var q4 = Vector3(sin(t * TAU) * 0.6, 0.0, -1.7 + t * 3.4)
+				var yw4 = rad_to_deg(atan2(cos(t * TAU) * 0.6 * TAU / 3.4, 1.0))
+				var r = 0.3 * (0.45 + 0.55 * sin(clampf(t * 1.15, 0.0, 1.0) * PI)) * (0.8 + 0.2 * sin(k * 2.3))
+				b.add("sphere", q4 + Vector3(0, r * 0.45, 0), Vector3(r * 2.0, r * 1.1, 0.26), sc2.darkened(0.05 * (k % 2)), Vector3(0, yw4, 0), 8)
+				if k % 2 == 0:
+					b.add("box", q4 + Vector3(0, r * 0.98, 0), Vector3(r * 1.5, 0.02, 0.04), Color(0.7, 0.58, 0.36), Vector3(0, yw4, 0))
+			for sx in [-1.0, 1.0]:   # yırtık ağız: iki yana açılmış ince zar
+				b.add("box", Vector3(sx * 0.22, 0.03, 1.85), Vector3(0.3, 0.012, 0.5), sc2.lightened(0.06), Vector3(0, sx * 28.0, sx * -10.0))
+		"needle":   # parçalanmış kapı tahtasına saplı zehirli senbonlar
+			b.add("box", Vector3(0, 0.04, 0), Vector3(0.9, 0.06, 0.4), Color(0.45, 0.33, 0.2), Vector3(0, 12, 4))
+			b.add("box", Vector3(0.5, 0.03, 0.3), Vector3(0.4, 0.05, 0.14), Color(0.42, 0.3, 0.18), Vector3(0, -30, 0))
+			for k in 6:
+				var q5 = Vector3(-0.32 + k * 0.13, 0.2, rng.randf_range(-0.1, 0.1))
+				var tilt = Vector3(rng.randf_range(-28, 28), 0, rng.randf_range(-28, 28))
+				b.add("cyl", q5, Vector3(0.014, 0.34, 0.014), Color(0.78, 0.8, 0.84), tilt, 4)
+				b.add("sphere", q5 - Vector3(0, 0.13, 0), Vector3(0.05, 0.03, 0.05), Color(0.5, 0.25, 0.6), Vector3.ZERO, 5)
+	if not ck in ["sandal", "skin"]:
+		b.add("sphere", Vector3(0, -0.02, 0), Vector3(1.2, 0.05, 1.0), mud.lightened(0.05), Vector3.ZERO, 9)
+
+
+## Soruşturmada aranan eşyanın ipucu türü
+static func clue_kind(item: String) -> String:
+	var n = item.to_lower()
+	for pair in [["pirinç", "rice"], ["şişe", "vial"], ["zehir", "vial"], ["bez", "rag"], ["çanta", "bag"], ["kukla", "puppet"], ["kil", "clay"], ["makbuz", "receipt"]]:
+		if String(pair[0]) in n:
+			return String(pair[1])
+	return "bandana"
+
+
+## İncelenince oyuncunun çıkardığı sonuç
+static func clue_find(ck: String, n := 3) -> String:
+	return String({
+		"prints": "Ayak izleri... %d kişi, yükleri ağır. Köyden uzaklaşıyorlar." % n,
+		"ash": "Sönmüş ateş, kül daha ılık. Kampları uzakta değil.",
+		"bandana": "Dala takılmış yırtık bir bandana. Bir çetenin işareti.",
+		"rice": "Yırtık çuvaldan dökülen pirinç... iz buradan dağa doğru uzanıyor.",
+		"vial": "Boş şişe, dibinde mor tortu. Çevresindeki ot bile kurumuş: zehir bu.",
+		"rag": "Yağa bulanmış yanık bezler, devrik bir yağ testisi. Bu yangın kaza değil.",
+		"bag": "Yırtık bir yolcu çantası; eşyalar saçılmış, para kesesi yok. Sahibi kendi isteğiyle gitmemiş.",
+		"puppet": "Kopmuş bir kukla kolu... eklemi zorlanmış, chakra ipi kesilmiş.",
+		"clay": "Kil topakları ve kumdan sararmış bir eldiven. Fıçıları kurcalayan buradan geçmiş.",
+		"receipt": "Yağmurda ıslanmış makbuzlar: çalıntı malın kime satıldığı yazıyor.",
+		"sandal": "Küçük bir sandalet ve sürüklenme izi... Çocuk bayıltılıp taşınmış.",
+		"skin": "Yılan gömleği. Ama bu boyda bir yılan... sıradan bir hayvan değil, çağrılmış bir canavar.",
+		"needle": "Senbonlar, uçları mor. Kukla mekanizmasından fırlatılmış zehirli iğneler.",
+	}.get(ck, "Bir iz..."))
+
+
+static func stone_c() -> Color:
+	return Color(0.58, 0.56, 0.52)
+
+
 ## İpucunu incele: çök, eliyle yokla, düşün; bulduğunu söyler
 func _act_examine(it: Dictionary) -> void:
 	var pl = Game.player
 	var w: Node3D = it["node"]
 	await _stand_at(w, 0.75)
-	_pose(pl, "examine", {"sit": "seiza", "anim": "idle", "at": w.global_position + Vector3.UP * (0.45 if int(it.get("clue", 0)) % 3 == 2 else 0.0), "lift": 0.0})
+	_pose(pl, "examine", {"sit": "seiza", "anim": "idle", "at": w.global_position + Vector3.UP * (0.45 if String(it.get("ck", ["prints", "ash", "bandana"][int(it.get("clue", 0)) % 3])) == "bandana" else 0.0), "lift": 0.0})
 	await _wait(1.3)
 	Combat.popup_text(pl.global_position + Vector3.UP * 1.6, String(it.get("find", "Bir iz...")), Color(0.85, 0.95, 1.0))
 	Sfx.play("pickup", w.global_position, 0.5, 1.5)
@@ -1957,7 +2240,7 @@ func blow() -> void:
 
 
 # ====================================================================== rehine: kazığa bağlı
-func bind(npc: Node3D) -> void:
+func bind(npc: Node3D, flat := false) -> void:
 	if not is_instance_valid(npc) or bound_d.has(npc):
 		return
 	var fd = _fd(npc)
@@ -1965,7 +2248,7 @@ func bind(npc: Node3D) -> void:
 	get_tree().current_scene.add_child(post)
 	_own(post, true)
 	var pp = npc.global_position - fd * 0.3
-	pp.y = Game.ground_height(pp.x, pp.z)
+	pp.y = npc.global_position.y if flat else Game.ground_height(pp.x, pp.z)   # iç mekânda zemin = odanın tabanı
 	post.global_position = pp
 	post.rotation.y = npc.facing
 	var b = MB.new()
@@ -1981,6 +2264,8 @@ func bind(npc: Node3D) -> void:
 		for sx in [-1.0, 1.0]:
 			rb.add("box", Vector3(sx * 0.17, y, -0.21), Vector3(0.035, 0.035, 0.66), rc, Vector3(0, sx * 9.0, 0))
 	var rope = _part(post, rb)
+	if npc.get("model") != null and npc.model.age_scale < 0.9:
+		rope.scale = Vector3.ONE * npc.model.age_scale   # çocuk: ip gövdesine göre
 	bound_d[npc] = {"post": post, "rope": rope}
 	if npc is QuestNPC:
 		npc.set_physics_process(false)
@@ -2028,7 +2313,7 @@ func untie(npc: Node3D) -> void:
 
 
 ## Kavuşma: kurtarılan kişi yakınına koşar, sarılırlar
-func reunite(kid: Node3D, parent: Node3D) -> void:
+func reunite(kid: Node3D, parent: Node3D, lines: Array = []) -> void:
 	if not is_instance_valid(kid) or not is_instance_valid(parent):
 		return
 	busy_run = true
@@ -2043,14 +2328,17 @@ func reunite(kid: Node3D, parent: Node3D) -> void:
 	if dir.length() < 0.1:
 		dir = _fd(parent)
 	_look_at(parent, kid.global_position)
-	_say(kid, "Baba!", 1.6)
+	_say(kid, String(lines[0]) if lines.size() > 0 else "Baba!", 1.6)
 	await _go_w(kid, parent.global_position + dir.normalized() * 0.42, 5.0, true, 0.08)
 	_look_at(kid, parent.global_position)
 	_look_at(parent, kid.global_position)
 	_pose(kid, "embrace", {"anim": "idle", "with": parent})
-	_pose(parent, "embrace", {"anim": "idle", "with": kid})
+	if kid.model.age_scale < parent.model.age_scale * 0.85:
+		_pose(parent, "embrace", {"anim": "idle", "with": kid, "sit": "seiza", "lift": 0.0})   # çocuğa diz çöküp sarılır
+	else:
+		_pose(parent, "embrace", {"anim": "idle", "with": kid})
 	await _wait(1.0)
-	_say(parent, "Kızım! Sağsın, şükürler olsun...", 2.4)
+	_say(parent, String(lines[1]) if lines.size() > 1 else "Kızım! Sağsın, şükürler olsun...", 2.4)
 	await _wait(2.2)
 	if is_instance_valid(kid) and is_instance_valid(parent):
 		# kız babasının yanına geçer (ödeme sahnesine yer açılır)
@@ -2143,7 +2431,7 @@ func cheer(list: Array) -> void:
 ## Eşya adından sınıf: "" ise modeli yok (eski usul toplanır)
 static func item_class(name: String) -> String:
 	var n = name.to_lower()
-	for pair in [["balık ağı", "net"], ["yağ kabağı", ""], ["mantar", "mushroom"], ["pete", "honey"], ["nehir taşı", "stone"], ["yumurta", "eggs"], ["yuva", "nest"],
+	for pair in [["alın bandı", "band"], ["balık ağı", "net"], ["yağ kabağı", ""], ["mantar", "mushroom"], ["pete", "honey"], ["nehir taşı", "stone"], ["yumurta", "eggs"], ["yuva", "nest"],
 			["oyuncak", "toy"], ["kunai", "kunai"], ["kristal", "crystal"], ["kahraman suyu", "bottle"], ["şişe", "vial"], ["parşömen", "scroll"], ["harita", "map"],
 			["mühür kâğıdı", "tagpaper"], ["mektup", "letter"], ["makbuz", "letter"], ["kayd", "letter"], ["kayıt", "letter"], ["kil", "clay"], ["kukla", "puppet"], ["turna", "crane"],
 			["kurbağa", "frog"], ["pul", "skin"], ["cevher", "ore"], ["sandı", "cargo"], ["odun", "wood"], ["fener", "lantern"], ["pirinç", "rice"], ["tavuk", "hen"],
@@ -2219,6 +2507,16 @@ func _build_item(root: Node3D, name: String, rng: RandomNumberGenerator) -> void
 			r.add("cone", Vector3(0.22, 0.05, 0.1), Vector3(0.14, 0.1, 0.14), Color(0.3, 0.5, 0.75), Vector3(180, 0, 25), 8)
 			r.add("cyl", Vector3(0.24, 0.12, 0.1), Vector3(0.02, 0.08, 0.02), wood, Vector3(0, 0, 25), 5)
 			top_at = Vector3(0, 0.0, 0)
+		"band":
+			# düştüğü yerde: toprağa saplı kırık kunai, sapına dolanmış alın bandı; çevrede dövüş izleri
+			_band_parts(t, Vector3(0, 0.0, 0))
+			top_at = Vector3(0.12, 0.05, 0.05)
+			r.add("cone", Vector3(0, 0.02, 0), Vector3(0.07, 0.2, 0.025), Color(0.3, 0.3, 0.33), Vector3(180, 0, 12), 4)
+			r.add("cyl", Vector3(0.02, 0.17, 0), Vector3(0.026, 0.13, 0.026), Color(0.78, 0.74, 0.62), Vector3(0, 0, -12), 6)
+			r.add("sphere", Vector3(0.1, 0.0, 0.1), Vector3(0.9, 0.03, 0.7), Color(0.3, 0.24, 0.17), Vector3.ZERO, 8)
+			for i in 3:
+				r.add("cyl", Vector3(-0.3 + i * 0.25, 0.012, 0.35 - i * 0.2), Vector3(0.012, 0.22, 0.012), Color(0.75, 0.76, 0.8), Vector3(90, 30 + i * 50, 0), 4)
+			r.add("box", Vector3(0.45, 0.02, -0.25), Vector3(0.16, 0.012, 0.08), Color(0.15, 0.2, 0.4), Vector3(0, 40, 0))
 		"kunai":
 			# toprağa saplı, halkası yukarıda; yanında eskimiş hedef kütüğü
 			t.add("cone", Vector3(0, 0.0, 0), Vector3(0.07, 0.18, 0.025), Color(0.3, 0.3, 0.33), Vector3(180, 0, 0), 4)
@@ -2351,6 +2649,150 @@ func _build_item(root: Node3D, name: String, rng: RandomNumberGenerator) -> void
 	var top = _part(root, t, top_at)
 	top.name = "top"
 	_part(root, r)
+
+
+## Alın bandı: lacivert kumaş şerit (uçları sarkık) + çelik levha
+func _band_parts(b: MB, at: Vector3) -> void:
+	var cloth = Color(0.14, 0.2, 0.42)
+	b.add("box", at + Vector3(0, 0.02, 0), Vector3(0.34, 0.012, 0.07), cloth)
+	b.add("box", at + Vector3(-0.23, 0.014, 0.04), Vector3(0.16, 0.01, 0.05), cloth.darkened(0.1), Vector3(0, 35, 0))
+	b.add("box", at + Vector3(0.23, 0.014, -0.05), Vector3(0.18, 0.01, 0.05), cloth.darkened(0.1), Vector3(0, 25, 0))
+	b.add("box", at + Vector3(0, 0.03, 0), Vector3(0.17, 0.012, 0.062), Color(0.74, 0.76, 0.8))
+	for sx in [-1.0, 1.0]:
+		b.add("cyl", at + Vector3(sx * 0.07, 0.037, 0), Vector3(0.012, 0.006, 0.012), Color(0.4, 0.4, 0.44), Vector3.ZERO, 5)
+	b.add("cyl", at + Vector3(0, 0.037, 0), Vector3(0.04, 0.004, 0.04), Color(0.45, 0.46, 0.5), Vector3.ZERO, 8)
+
+
+# ====================================================================== yangın: yanan ev + kuyu + su taşıma
+var fire_d := {}
+
+
+## Yanan ev: sıvalı küçük ev (çatısı ve cephesi alev almış), yanında kuyu. Alevler tek tek söndürülür.
+func fire_site(c: Vector3, label: String) -> Dictionary:
+	if not fire_d.is_empty() and is_instance_valid(fire_d.get("root")):
+		return fire_d
+	c = clear_spot(c, 6.5, 4.5)
+	c.y = Game.ground_height(c.x, c.z)
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = c
+	_own(root, true)
+	var body = StaticBody3D.new()
+	root.add_child(body)
+	var solid = func(p: Vector3, size: Vector3) -> void:
+		var cs = CollisionShape3D.new()
+		var sh = BoxShape3D.new()
+		sh.size = size
+		cs.shape = sh
+		cs.position = p
+		body.add_child(cs)
+	var b = MB.new()
+	var wall = Color(0.86, 0.82, 0.72)
+	var beam = Color(0.36, 0.26, 0.18)
+	var soot = Color(0.1, 0.09, 0.08)
+	# gövde + ahşap çatkı + kapı + pencere + çatı
+	b.add("box", Vector3(-1.0, 1.2, 0), Vector3(4.0, 2.4, 3.2), wall)
+	for sx in [-3.0, -1.0, 1.0]:
+		b.add("box", Vector3(sx, 1.2, 1.61), Vector3(0.14, 2.4, 0.06), beam)
+	b.add("box", Vector3(-1.0, 2.36, 1.61), Vector3(4.1, 0.14, 0.06), beam)
+	b.add("box", Vector3(-1.0, 0.07, 1.61), Vector3(4.1, 0.14, 0.06), beam)
+	b.add("box", Vector3(0.0, 1.0, 1.62), Vector3(0.9, 1.9, 0.05), Color(0.2, 0.14, 0.1))
+	b.add("box", Vector3(-2.0, 1.45, 1.62), Vector3(0.9, 0.75, 0.05), Color(0.08, 0.07, 0.06))
+	b.add("box", Vector3(-2.0, 1.45, 1.64), Vector3(0.06, 0.75, 0.03), beam)
+	b.add("prism", Vector3(-1.0, 3.05, 0), Vector3(4.8, 1.3, 4.0), Color(0.5, 0.26, 0.2))
+	# is lekeleri (alevlerin yaladığı yerler)
+	b.add("box", Vector3(-2.0, 2.05, 1.615), Vector3(1.1, 0.5, 0.05), soot)
+	b.add("box", Vector3(0.6, 1.9, 1.615), Vector3(0.7, 0.9, 0.05), soot)
+	b.add("box", Vector3(-1.9, 3.2, 0.9), Vector3(1.6, 0.06, 1.2), soot, Vector3(33, 0, 0))
+	b.add("box", Vector3(0.1, 3.2, -0.9), Vector3(1.4, 0.06, 1.2), soot, Vector3(-33, 0, 0))
+	solid.call(Vector3(-1.0, 1.2, 0), Vector3(4.0, 2.4, 3.2))
+	# kuyu
+	var wp = Vector3(4.6, 0.0, 2.2)
+	wp.y = Game.ground_height(c.x + wp.x, c.z + wp.z) - c.y
+	for k in 10:
+		var a = TAU * k / 10.0
+		b.add("box", wp + Vector3(cos(a) * 0.7, 0.35, sin(a) * 0.7), Vector3(0.46, 0.7, 0.26), Color(0.58, 0.56, 0.52).darkened((k % 3) * 0.06), Vector3(0, -rad_to_deg(a) + 90.0, 0))
+	b.add("cyl", wp + Vector3(0, 0.5, 0), Vector3(1.2, 0.04, 1.2), Color(0.25, 0.45, 0.62), Vector3.ZERO, 10)
+	for sx in [-1.0, 1.0]:
+		b.add("box", wp + Vector3(sx * 0.85, 1.1, 0), Vector3(0.1, 2.2, 0.1), beam)
+	b.add("prism", wp + Vector3(0, 2.4, 0), Vector3(2.1, 0.5, 1.3), Color(0.35, 0.26, 0.2))
+	b.add("cyl", wp + Vector3(0, 1.9, 0), Vector3(0.1, 1.7, 0.1), beam.lightened(0.1), Vector3(0, 0, 90), 6)
+	solid.call(wp + Vector3(0, 0.4, 0), Vector3(1.6, 0.8, 1.6))
+	_part(root, b)
+	# alevler
+	var flames = []
+	var spots = [Vector3(-1.9, 3.2, 1.0), Vector3(0.1, 3.3, -0.6), Vector3(-2.0, 1.6, 1.8), Vector3(0.7, 1.5, 1.8)]
+	for i in spots.size():
+		var f = Node3D.new()
+		root.add_child(f)
+		f.position = spots[i]
+		# tek top değil: boyu ve yeri farklı birkaç alev dili (akış yukarı)
+		var big = 1.0 if i < 2 else 0.75
+		for k in 4:
+			var fb = VFX.fireball(big * [0.75, 0.6, 0.5, 0.42][k])
+			f.add_child(fb)
+			fb.rotation.x = deg_to_rad(-90.0)
+			fb.rotation.z = [0.0, 0.25, -0.3, 0.12][k]
+			fb.scale = Vector3(1.0, 1.0, [2.0, 2.4, 1.8, 2.8][k])
+			fb.position = Vector3([0.0, 0.45, -0.5, 0.15][k], [0.0, 0.1, -0.05, 0.5][k], [0.0, -0.15, 0.1, 0.05][k]) * big
+		var l = OmniLight3D.new()
+		l.light_color = Color(1.0, 0.55, 0.2)
+		l.light_energy = 2.2
+		l.omni_range = 7.0
+		f.add_child(l)
+		var ip = c + Vector3(spots[i].x, 0.3, 2.6)
+		var it = {"pos": ip, "radius": 2.6, "kind": "quest", "label": label, "qkey": Missions._key(), "qi": i, "work": "flame", "node": f, "well": c + wp + Vector3(0, 0, 1.25), "well_c": c + wp}
+		Interact.add(it)
+		f.tree_exiting.connect(func(): Interact.items.erase(it))
+		flames.append(f)
+	fire_d = {"root": root, "flames": flames, "door": c + Vector3(0.0, 0, 2.5), "npc_at": c + Vector3(2.4, 0, 4.2), "face": c + Vector3(-1.0, 0, 0)}
+	return fire_d
+
+
+## Kuyuya koş, kovayı doldur, aleve koş, suyu savur; alev tıslayarak söner
+func _act_douse(it: Dictionary) -> void:
+	var pl = Game.player
+	var f: Node3D = it["node"]
+	var well: Vector3 = it["well"]
+	well.y = pl.global_position.y
+	await _go_w(pl, well, 5.5, false, 0.25)
+	_look_at(pl, it["well_c"])
+	_pose(pl, "grab_low", {"anim": "idle", "at": (it["well_c"] as Vector3) + Vector3.UP * 0.45, "lift": 0.0})
+	await _wait(0.55)
+	Sfx.play("water", well, 0.9, 1.2)
+	paint_col = Color(0.35, 0.55, 0.75)   # kovadaki su
+	var bucket = _bucket()
+	pl.add_child(bucket)
+	bucket.position = Vector3(0.28, 0.62, -0.25)
+	FX.burst(it["well_c"] + Vector3.UP * 0.6, {"amount": 8, "life": 0.4, "size": 0.05, "vmin": 0.6, "vmax": 1.8, "gravity": Vector3(0, -6, 0), "colors": [Color(0.6, 0.8, 1.0, 1), Color(0.6, 0.8, 1.0, 0)]})
+	await _wait(0.35)
+	_clear_pose(pl)
+	if not is_instance_valid(f):
+		bucket.queue_free()
+		return
+	var tgt: Vector3 = it["pos"]
+	tgt.y = pl.global_position.y
+	await _go_w(pl, tgt, 5.5, false, 0.3)
+	if not is_instance_valid(f):
+		bucket.queue_free()
+		return
+	_look_at(pl, f.global_position)
+	var hand = pl.global_position + Vector3.UP * 1.1 + _fd(pl) * 0.4
+	_pose(pl, "slap", {"anim": "idle", "at": hand + _fd(pl) * 0.3 + Vector3.UP * 0.35})
+	await _wait(0.3)
+	bucket.queue_free()
+	var dir = (f.global_position - hand).normalized()
+	var dist = f.global_position.distance_to(hand)
+	FX.burst(hand, {"amount": 46, "life": 0.55, "size": 0.09, "dir": dir, "spread": 9.0, "vmin": dist * 2.2, "vmax": dist * 3.0, "damp": 0.4, "gravity": Vector3(0, -5, 0), "colors": [Color(0.65, 0.85, 1.0, 1), Color(0.6, 0.8, 1.0, 0.6), Color(0.6, 0.8, 1.0, 0)]})
+	Sfx.play("water", hand, 1.0, 0.9)
+	await _wait(0.35)
+	if is_instance_valid(f):
+		Sfx.play("th_steam", f.global_position, 1.0)
+		FX.burst(f.global_position, {"amount": 22, "life": 1.1, "size": 0.3, "dir": Vector3.UP, "spread": 35.0, "vmin": 1.0, "vmax": 3.0, "damp": 1.0, "gravity": Vector3(0, 1.5, 0), "colors": [Color(0.95, 0.95, 0.95, 0.8), Color(0.9, 0.9, 0.9, 0)]})
+		var tw = f.create_tween()
+		tw.tween_property(f, "scale", Vector3.ONE * 0.05, 0.5)
+		tw.tween_callback(f.queue_free)
+	await _wait(0.6)
 
 
 ## Çalınan belge: masadaki kitabın yerine harita / mektup destesi
@@ -2502,6 +2944,10 @@ func unload(npc: Node3D) -> void:
 ## [F] yazısından nokta türü: "" ise modeli yok (eski usul işaret)
 static func spot_class(label: String) -> String:
 	var l = label.to_lower()
+	if "hücre kab" in l:
+		return "pod"
+	if "zirve" in l or "bulut" in l:
+		return "peak"
 	if "sandı" in l:
 		return "chest"
 	if "parşömen" in l:
@@ -2568,6 +3014,81 @@ func _build_spot(root: Node3D, style: String, rng: RandomNumberGenerator) -> voi
 			paper.scale = Vector3(1, 1, 0.02)
 			sh.size = Vector3(0.7, 0.46, 0.52)
 			cs.position = Vector3(0, 0.23, 0)
+		"pod":
+			# hücre kabı: demir kaide, cam tüp içinde yeşil sıvıda soluk doku, üstte vanalı kapak, yanda borular
+			var iron2 = Color(0.3, 0.31, 0.34)
+			b.add("cyl", Vector3(0, 0.15, 0), Vector3(1.1, 0.3, 1.1), iron2, Vector3.ZERO, 12)
+			b.add("cyl", Vector3(0, 0.33, 0), Vector3(0.95, 0.06, 0.95), iron2.lightened(0.12), Vector3.ZERO, 12)
+			for k in 4:
+				var a3 = TAU * k / 4.0 + 0.78
+				b.add("cyl", Vector3(cos(a3) * 0.44, 1.05, sin(a3) * 0.44), Vector3(0.05, 1.4, 0.05), iron2, Vector3.ZERO, 5)
+			b.add("cyl", Vector3(-0.62, 0.7, -0.2), Vector3(0.09, 1.4, 0.09), iron2.darkened(0.1), Vector3.ZERO, 6)
+			b.add("cyl", Vector3(-0.42, 1.42, -0.14), Vector3(0.09, 0.5, 0.09), iron2.darkened(0.1), Vector3(0, 0, 70), 6)
+			b.add("box", Vector3(0, 0.2, 0.56), Vector3(0.34, 0.2, 0.03), Color(0.85, 0.8, 0.6))   # etiket
+			b.add("box", Vector3(0, 0.2, 0.578), Vector3(0.26, 0.03, 0.005), Color(0.15, 0.13, 0.12))
+			# doku: soluk yumru + kök gibi uzantılar
+			var tb = MB.new()
+			tb.add("sphere", Vector3(0, 0, 0), Vector3(0.3, 0.36, 0.28), Color(0.9, 0.86, 0.72), Vector3.ZERO, 9)
+			for k in 6:
+				var a4 = TAU * k / 6.0
+				tb.add("cyl", Vector3(cos(a4) * 0.12, -0.24, sin(a4) * 0.12), Vector3(0.035, 0.36, 0.035), Color(0.62, 0.5, 0.34), Vector3(sin(a4) * 24.0, 0, -cos(a4) * 24.0), 4)
+			tb.add("sphere", Vector3(0.08, 0.1, 0.1), Vector3(0.12, 0.1, 0.08), Color(0.8, 0.72, 0.56), Vector3.ZERO, 6)
+			var tis = _part(root, tb, Vector3(0, 1.05, 0))
+			tis.name = "tissue"
+			var liq = MeshInstance3D.new()
+			liq.name = "glow"
+			var lm = CylinderMesh.new()
+			lm.top_radius = 0.4
+			lm.bottom_radius = 0.4
+			lm.height = 1.36
+			lm.radial_segments = 14
+			liq.mesh = lm
+			var gm2 = StandardMaterial3D.new()
+			gm2.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			gm2.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			gm2.albedo_color = Color(0.3, 0.85, 0.45, 0.38)
+			liq.material_override = gm2
+			root.add_child(liq)
+			liq.position = Vector3(0, 1.05, 0)
+			var cap = Node3D.new()
+			cap.name = "lid"
+			root.add_child(cap)
+			cap.position = Vector3(0, 1.76, 0)
+			var cb = MB.new()
+			cb.add("cyl", Vector3(0, 0.06, 0), Vector3(1.0, 0.14, 1.0), iron2.lightened(0.08), Vector3.ZERO, 12)
+			cb.add("cyl", Vector3(0, 0.17, 0), Vector3(0.5, 0.1, 0.5), iron2, Vector3.ZERO, 10)
+			_part(cap, cb)
+			var valve = Node3D.new()
+			valve.name = "valve"
+			cap.add_child(valve)
+			valve.position = Vector3(0, 0.3, 0)
+			var vb = MB.new()
+			vb.add("cyl", Vector3(0, -0.04, 0), Vector3(0.06, 0.14, 0.06), iron2.darkened(0.2), Vector3.ZERO, 6)
+			for k in 3:
+				vb.add("box", Vector3.ZERO, Vector3(0.5, 0.035, 0.05), Color(0.7, 0.2, 0.16), Vector3(0, k * 60.0, 0))
+			for k in 12:
+				var a5 = TAU * k / 12.0
+				vb.add("box", Vector3(cos(a5) * 0.25, 0, sin(a5) * 0.25), Vector3(0.14, 0.04, 0.05), Color(0.7, 0.2, 0.16), Vector3(0, -rad_to_deg(a5) + 90.0, 0))
+			_part(valve, vb)
+			sh.size = Vector3(1.0, 1.9, 1.0)
+			cs.position = Vector3(0, 0.95, 0)
+		"peak":
+			# zirve işareti: üst üste dizilmiş yassı taşlar, tepesinde rüzgârda yıpranmış bez şerit
+			var rk = Color(0.52, 0.5, 0.47)
+			var y0 = 0.0
+			for k in 6:
+				var w6 = 0.95 - k * 0.12
+				var h6 = rng.randf_range(0.16, 0.24)
+				b.add("sphere", Vector3(rng.randf_range(-0.04, 0.04), y0 + h6 * 0.5, rng.randf_range(-0.04, 0.04)), Vector3(w6, h6 * 1.25, w6 * rng.randf_range(0.8, 1.0)), rk.darkened(rng.randf() * 0.18), Vector3(0, rng.randf() * 90.0, 0), 7)
+				y0 += h6 * 0.92
+			b.add("cyl", Vector3(0, y0 + 0.35, 0), Vector3(0.035, 0.8, 0.035), Color(0.4, 0.3, 0.2), Vector3(0, 0, 4), 5)
+			b.add("box", Vector3(0.17, y0 + 0.66, 0), Vector3(0.32, 0.1, 0.01), Color(0.8, 0.25, 0.18), Vector3(0, 0, -14))
+			b.add("box", Vector3(0.14, y0 + 0.52, 0), Vector3(0.24, 0.08, 0.01), Color(0.92, 0.9, 0.84), Vector3(0, 0, -24))
+			for k in 5:
+				var a6 = TAU * k / 5.0 + rng.randf()
+				b.add("sphere", Vector3(cos(a6) * 0.75, 0.08, sin(a6) * 0.75), Vector3(0.36, 0.2, 0.3), rk.darkened(0.12), Vector3(0, rng.randf() * 90.0, 0), 6)
+			sh.size = Vector3(0.9, y0, 0.9)
+			cs.position = Vector3(0, y0 * 0.5, 0)
 		_:
 			# dikili mühür taşı: yosunlu kaba kaya, beline kutsal ip, önünde oyulmuş mühür dairesi
 			var rock = Color(0.5, 0.5, 0.48)
@@ -2633,6 +3154,62 @@ func _act_spot(it: Dictionary) -> void:
 			await _wait(0.5)
 			FX.burst(w.global_position + front * 0.24 + Vector3.UP * 0.5, {"amount": 10, "life": 0.5, "size": 0.06, "vmin": 0.4, "vmax": 1.4, "gravity": Vector3(0, 2, 0), "colors": [Color(1.0, 0.4, 0.3, 1), Color(1.0, 0.3, 0.2, 0)]})
 			await _wait(0.8)
+		"pod":
+			# vanayı çevir, kapak kalkar, sıvı parlar; avucunu dokuya bastır
+			await _stand_at(w, 0.95, front)
+			_look_at(pl, w.global_position)
+			var cap2: Node3D = w.get_node("lid")
+			var valve2: Node3D = cap2.get_node("valve")
+			_pose(pl, "slap", {"anim": "idle", "at": valve2.global_position + front * 0.1})
+			await _wait(0.45)
+			Sfx.play("pickup", w.global_position, 0.9, 0.5)
+			var twv = valve2.create_tween()
+			twv.tween_property(valve2, "rotation:y", TAU * 1.5, 1.0).set_trans(Tween.TRANS_SINE)
+			await _wait(1.05)
+			_clear_pose(pl)
+			var twc = cap2.create_tween()
+			twc.tween_property(cap2, "position:y", cap2.position.y + 0.55, 0.7).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			var liq2: MeshInstance3D = w.get_node("glow")
+			var lmat: StandardMaterial3D = liq2.material_override
+			var twl = liq2.create_tween()
+			twl.tween_property(lmat, "albedo_color", Color(0.55, 1.0, 0.6, 0.62), 0.7)
+			Sfx.play("seal", w.global_position, 1.0, 0.7)
+			FX.burst(w.global_position + Vector3.UP * 1.8, {"amount": 14, "life": 0.7, "size": 0.05, "vmin": 0.5, "vmax": 1.6, "gravity": Vector3(0, -2.5, 0), "colors": [Color(0.5, 1.0, 0.6, 1), Color(0.4, 0.9, 0.5, 0)]})
+			await _wait(0.8)
+			var tis2: Node3D = w.get_node("tissue")
+			_pose(pl, "slap", {"anim": "idle", "at": tis2.global_position + Vector3.UP * 0.55 + front * 0.2})
+			await _wait(0.5)
+			var twt = tis2.create_tween()
+			twt.tween_property(tis2, "scale", Vector3.ONE * 1.25, 0.25)
+			twt.tween_property(tis2, "scale", Vector3.ONE * 0.6, 0.5)
+			FX.light(tis2.global_position, Color(0.5, 1.0, 0.6), 3.0, 6.0, 0.6)
+			await _wait(0.9)
+		"peak":
+			# taş yığınının yanında mühür yap, başını göğe kaldır, ateş topunu bulutlara üfle
+			await _stand_at(w, 1.5, front)
+			_look_at(pl, w.global_position)
+			_pose(pl, "blow", {"anim": "idle"})
+			await _wait(0.5)
+			Sfx.play("seal", pl.global_position, 1.0)
+			await _wait(0.45)
+			var mouth2 = pl.global_position + Vector3.UP * 1.75 * pl.model.age_scale + _fd(pl) * 0.3
+			var ball = VFX.fireball(0.5)
+			get_tree().current_scene.add_child(ball)
+			ball.global_position = mouth2
+			Sfx.play("fire", mouth2, 1.0)
+			var sky = mouth2 + Vector3.UP * 46.0 + _fd(pl) * 5.0
+			var twb = ball.create_tween()
+			twb.set_parallel(true)
+			twb.tween_property(ball, "global_position", sky, 1.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			twb.tween_property(ball, "scale", Vector3.ONE * 7.0, 1.5)
+			FX.light(mouth2, Color(1.0, 0.6, 0.25), 3.0, 8.0, 0.5)
+			await _wait(1.5)
+			if is_instance_valid(ball):
+				ball.queue_free()
+			FX.flash_sphere(sky, Color(1.0, 0.6, 0.2), 14.0, 0.6)
+			FX.light(sky, Color(1.0, 0.6, 0.25), 6.0, 60.0, 1.2)
+			FX.burst(sky, {"amount": 40, "life": 2.2, "size": 0.7, "vmin": 2.0, "vmax": 7.0, "gravity": Vector3(0, 1.0, 0), "colors": [Color(1.0, 0.75, 0.3, 1), Color(1.0, 0.35, 0.1, 0)]})
+			await _wait(0.6)
 		_:
 			var glow: Node3D = w.get_node_or_null("glow")
 			var at = w.global_position + front * 0.24 + Vector3.UP * 0.62
@@ -2669,3 +3246,1256 @@ func _act_spot(it: Dictionary) -> void:
 				tw3.tween_property(gm, "albedo_color", Color(0.45, 0.9, 1.0), 0.6)
 			FX.burst(at, {"amount": 10, "life": 0.6, "size": 0.06, "vmin": 0.4, "vmax": 1.3, "gravity": Vector3(0, 1.5, 0), "colors": [Color(0.6, 0.95, 1.0, 1), Color(0.5, 0.9, 1.0, 0)]})
 			await _wait(0.5)
+
+
+# ====================================================================== 5. adım: av, nöbet, haber zinciri
+## Yeni mekânlar: avcı kampı (askı, çardak, ateş), nöbet kulübesi, işaret ateşi kulesi
+func _site_more(kind: String, root: Node3D, b: MB, d: Dictionary, c: Vector3, gy: Callable, solid: Callable) -> void:
+	var wood = Color(0.46, 0.33, 0.21)
+	var dark = wood.darkened(0.3)
+	var stone = Color(0.56, 0.54, 0.5)
+	if kind == "hunt_camp":
+		# askı: iki çatal ayak + üstte yatay sırık
+		var rc = Vector3(-1.9, 0, -0.5)
+		var rg: float = gy.call(rc.x, rc.z)
+		for sx in [-1.25, 1.25]:
+			for sz in [-1.0, 1.0]:
+				b.add("cyl", Vector3(rc.x + sx, rg + 1.05, rc.z + sz * 0.38), Vector3(0.09, 2.3, 0.09), wood, Vector3(sz * 20.0, 0, 0), 6)
+			b.add("cyl", Vector3(rc.x + sx, rg + 2.02, rc.z), Vector3(0.13, 0.1, 0.13), Color(0.75, 0.68, 0.5), Vector3(0, 0, 90), 6)   # bağ ipi
+			solid.call(Vector3(rc.x + sx, rg + 1.0, rc.z), Vector3(0.2, 2.0, 0.8))
+		b.add("cyl", Vector3(rc.x, rg + 2.08, rc.z), Vector3(0.08, 3.0, 0.08), wood.lightened(0.08), Vector3(0, 0, 90), 6)
+		for k in 3:
+			b.add("cyl", Vector3(rc.x - 0.8 + k * 0.8, rg + 1.98, rc.z), Vector3(0.025, 0.2, 0.025), Color(0.3, 0.3, 0.32), Vector3.ZERO, 4)   # kanca
+		# çardak: iki direk + eğik post örtü
+		var lc = Vector3(2.4, 0, -1.3)
+		var lg: float = gy.call(lc.x, lc.z)
+		for sx in [-1.1, 1.1]:
+			b.add("cyl", Vector3(lc.x + sx, lg + 0.85, lc.z + 0.8), Vector3(0.09, 1.7, 0.09), wood, Vector3.ZERO, 6)
+		b.add("cyl", Vector3(lc.x, lg + 1.7, lc.z + 0.8), Vector3(0.07, 2.5, 0.07), wood, Vector3(0, 0, 90), 6)
+		b.add("box", Vector3(lc.x, lg + 0.9, lc.z - 0.25), Vector3(2.4, 0.06, 2.7), Color(0.5, 0.4, 0.28), Vector3(-38, 0, 0))
+		b.add("box", Vector3(lc.x - 0.5, lg + 0.93, lc.z - 0.2), Vector3(0.7, 0.07, 1.3), Color(0.42, 0.33, 0.24), Vector3(-38, 0, 0))   # yama
+		b.add("box", Vector3(lc.x, lg + 0.1, lc.z - 0.1), Vector3(1.7, 0.12, 0.8), Color(0.55, 0.5, 0.42))   # yatak
+		solid.call(Vector3(lc.x, lg + 0.5, lc.z - 0.6), Vector3(2.2, 1.0, 1.2))
+		# ateş çukuru
+		var fc = Vector3(1.0, gy.call(1.0, 1.2), 1.2)
+		for k in 8:
+			var a = TAU * k / 8.0
+			b.add("sphere", fc + Vector3(cos(a) * 0.42, 0.06, sin(a) * 0.42), Vector3(0.24, 0.18, 0.2), stone.darkened((k % 3) * 0.07), Vector3(0, k * 40.0, 0), 6)
+		for k in 3:
+			b.add("cyl", fc + Vector3(0, 0.1, 0), Vector3(0.09, 0.6, 0.09), Color(0.2, 0.15, 0.12), Vector3(78, k * 60.0, 0), 5)
+		var fb = VFX.fireball(0.42)
+		root.add_child(fb)
+		fb.position = fc + Vector3(0, 0.32, 0)
+		fb.rotation.x = deg_to_rad(-90.0)
+		fb.scale = Vector3(1, 1, 1.9)
+		var fl = OmniLight3D.new()
+		fl.light_color = Color(1.0, 0.6, 0.25)
+		fl.light_energy = 1.4
+		fl.omni_range = 6.0
+		fl.position = fc + Vector3(0, 0.7, 0)
+		root.add_child(fl)
+		# kütük + saplı balta, yay ve ok kılıfı çardağa dayalı
+		var sc2 = Vector3(-0.3, gy.call(-0.3, 1.9), 1.9)
+		b.add("cyl", sc2 + Vector3(0, 0.22, 0), Vector3(0.5, 0.44, 0.5), wood.darkened(0.1), Vector3.ZERO, 9)
+		b.add("cyl", sc2 + Vector3(0, 0.445, 0), Vector3(0.46, 0.01, 0.46), Color(0.74, 0.62, 0.42), Vector3.ZERO, 9)
+		b.add("cyl", sc2 + Vector3(0.05, 0.7, 0.0), Vector3(0.04, 0.6, 0.04), wood.lightened(0.1), Vector3(0, 0, -24), 5)
+		b.add("box", sc2 + Vector3(-0.07, 0.5, 0.0), Vector3(0.16, 0.12, 0.03), Color(0.5, 0.5, 0.54), Vector3(0, 0, -24))
+		solid.call(sc2 + Vector3(0, 0.22, 0), Vector3(0.5, 0.44, 0.5))
+		b.add("cyl", Vector3(lc.x + 1.3, lg + 0.7, lc.z + 0.9), Vector3(0.03, 1.4, 0.03), dark, Vector3(8, 0, 6), 5)   # yay
+		b.add("cyl", Vector3(lc.x + 1.5, lg + 0.4, lc.z + 0.95), Vector3(0.14, 0.7, 0.14), Color(0.4, 0.26, 0.18), Vector3(0, 0, 10), 7)   # ok kılıfı
+		for k in 4:
+			b.add("cyl", Vector3(lc.x + 1.44 + k * 0.03, lg + 0.86, lc.z + 0.93 + (k % 2) * 0.04), Vector3(0.012, 0.3, 0.012), Color(0.85, 0.8, 0.7), Vector3(0, 0, 10), 4)
+		d["rack"] = c + Vector3(rc.x, rg + 2.08, rc.z)
+		d["rack_front"] = c + Vector3(rc.x, 0, rc.z + 1.0)
+		d["npc_at"] = c + Vector3(0.1, 0, 0.6)
+		d["face"] = c + Vector3(1.0, 0, 1.2)
+		d["hung"] = 0
+		hunt_d = d
+	elif kind == "guard_post":
+		# nöbet kulübesi: önü açık ahşap kabin, içinde tezgâh, yanında mızraklık ve tabela
+		var g0: float = gy.call(0, 0)
+		var wl = Color(0.6, 0.47, 0.32)
+		b.add("box", Vector3(0, g0 + 1.1, -0.95), Vector3(2.4, 2.2, 0.1), wl)
+		for sx in [-1.0, 1.0]:
+			b.add("box", Vector3(sx * 1.15, g0 + 1.1, -0.2), Vector3(0.1, 2.2, 1.6), wl.darkened(0.06))
+			b.add("box", Vector3(sx * 1.15, g0 + 1.1, 0.62), Vector3(0.14, 2.2, 0.14), dark)
+		b.add("box", Vector3(0, g0 + 0.95, 0.5), Vector3(2.3, 0.1, 0.5), wood.lightened(0.1))   # tezgâh
+		b.add("box", Vector3(0, g0 + 0.47, 0.7), Vector3(2.3, 0.94, 0.08), wl.darkened(0.1))
+		b.add("prism", Vector3(0, g0 + 2.55, -0.1), Vector3(3.0, 0.75, 2.4), Color(0.28, 0.33, 0.3))
+		b.add("box", Vector3(-0.5, g0 + 1.02, 0.5), Vector3(0.42, 0.04, 0.3), Color(0.92, 0.9, 0.82))   # kayıt defteri
+		b.add("cyl", Vector3(0.6, g0 + 1.08, 0.45), Vector3(0.1, 0.16, 0.1), Color(0.75, 0.75, 0.7), Vector3.ZERO, 7)   # çay bardağı
+		solid.call(Vector3(0, g0 + 1.1, -0.2), Vector3(2.4, 2.2, 1.9))
+		var sp = Vector3(1.9, gy.call(1.9, -0.4), -0.4)
+		b.add("box", sp + Vector3(0, 0.5, 0), Vector3(0.9, 0.08, 0.3), dark)
+		b.add("box", sp + Vector3(0, 1.3, 0), Vector3(0.9, 0.08, 0.3), dark)
+		for sx in [-0.4, 0.4]:
+			b.add("box", sp + Vector3(sx, 0.7, 0), Vector3(0.08, 1.4, 0.28), dark)
+		for k in 3:
+			var mx = -0.25 + k * 0.25
+			b.add("cyl", sp + Vector3(mx, 1.2, 0), Vector3(0.035, 2.4, 0.035), wood.lightened(0.15), Vector3.ZERO, 5)
+			b.add("cone", sp + Vector3(mx, 2.52, 0), Vector3(0.09, 0.3, 0.03), Color(0.7, 0.72, 0.76), Vector3.ZERO, 4)
+		solid.call(sp + Vector3(0, 0.7, 0), Vector3(0.9, 1.4, 0.3))
+		var tp = Vector3(-2.0, gy.call(-2.0, 0.6), 0.6)
+		b.add("cyl", tp + Vector3(0, 0.8, 0), Vector3(0.08, 1.6, 0.08), dark, Vector3.ZERO, 6)
+		b.add("box", tp + Vector3(0, 1.45, 0.02), Vector3(0.9, 0.55, 0.05), Color(0.86, 0.8, 0.64))
+		for k in 3:
+			b.add("box", tp + Vector3(0, 1.58 - k * 0.14, 0.05), Vector3(0.62 - k * 0.12, 0.035, 0.01), Color(0.15, 0.13, 0.12))
+		d["npc_at"] = c + Vector3(0.9, 0, 1.5)
+		d["face"] = c + Vector3(0.9, 0, 8.0)
+		d["stand"] = c + Vector3(-0.4, 0, 2.4)
+	elif kind.begins_with("beacon"):
+		# işaret ateşi: taş kaide + demir mangal + odun; yanında odun istifi, basamak
+		var g1: float = gy.call(0, 0)
+		for ring in 3:
+			var rr = 1.25 - ring * 0.12
+			for k in 10:
+				var a = TAU * (k + ring * 0.5) / 10.0
+				b.add("box", Vector3(cos(a) * rr, g1 + 0.22 + ring * 0.42, sin(a) * rr), Vector3(0.78 - ring * 0.06, 0.42, 0.34), stone.darkened(((k + ring) % 3) * 0.07), Vector3(0, -rad_to_deg(a) + 90.0, 0))
+		b.add("cyl", Vector3(0, g1 + 0.65, 0), Vector3(2.2, 1.3, 2.2), stone.darkened(0.25), Vector3.ZERO, 10)
+		b.add("cyl", Vector3(0, g1 + 1.5, 0), Vector3(1.5, 0.34, 1.5), Color(0.16, 0.15, 0.15), Vector3.ZERO, 10)   # mangal
+		b.add("cyl", Vector3(0, g1 + 1.68, 0), Vector3(1.3, 0.04, 1.3), Color(0.08, 0.07, 0.07), Vector3.ZERO, 10)
+		for k in 3:
+			b.add("cyl", Vector3(cos(k * 2.1) * 0.55, g1 + 1.36, sin(k * 2.1) * 0.55), Vector3(0.06, 0.3, 0.06), Color(0.16, 0.15, 0.15), Vector3.ZERO, 5)
+		for k in 6:
+			b.add("cyl", Vector3(0, g1 + 1.82 + (k / 3) * 0.14, 0), Vector3(0.13, 1.05, 0.13), Color(0.4, 0.28, 0.18).darkened((k % 2) * 0.12), Vector3(84, k * 60.0 + (k / 3) * 30.0, 0), 6)
+		solid.call(Vector3(0, g1 + 0.85, 0), Vector3(2.3, 1.7, 2.3))
+		var wp = Vector3(-2.2, gy.call(-2.2, 0.4), 0.4)
+		for k in 7:
+			b.add("cyl", wp + Vector3(0, 0.12 + (k / 4) * 0.22, (k % 4) * 0.24 - 0.36 + (k / 4) * 0.12), Vector3(0.22, 1.1, 0.22), Color(0.42, 0.3, 0.2).darkened((k % 3) * 0.08), Vector3(0, 0, 90), 6)
+		solid.call(wp + Vector3(0, 0.25, 0), Vector3(1.1, 0.5, 1.0))
+		b.add("cyl", Vector3(2.2, gy.call(2.2, -1.6) + 2.4, -1.6), Vector3(0.08, 4.8, 0.08), dark, Vector3.ZERO, 6)
+		var vc = Color(0.78, 0.2, 0.16)
+		b.add("box", Vector3(2.85, gy.call(2.2, -1.6) + 4.3, -1.6), Vector3(1.2, 0.75, 0.03), vc)
+		d["fire_at"] = c + Vector3(0, g1 + 1.9, 0)
+		d["torch_at"] = c + Vector3(0.0, 0, 1.75)
+		d["npc_at"] = c + Vector3(1.9, 0, 2.2)
+		d["face"] = c + Vector3(1.9, 0, 9.0)
+
+
+## Konuşma sonrası olaylar (adımın "on_ok" anahtarı)
+func site_event(ev: String, npc: Node3D, s: Dictionary) -> void:
+	if ev == "beacon" and s.has("site"):
+		var key = "%s:%s" % [String(Missions.active().get("id", "")), String(s["site"])]
+		if sites.has(key):
+			await light_beacon(sites[key], npc)
+
+
+## Nöbetçi meşaleyi alır, mangala yürür, odunu tutuşturur: alev ve duman göğe yükselir (kalır)
+func light_beacon(d: Dictionary, npc: Node3D) -> void:
+	if d.get("lit", false) or not is_instance_valid(d.get("root")):
+		return
+	d["lit"] = true
+	var root: Node3D = d["root"]
+	var fire_at: Vector3 = d["fire_at"]
+	busy_run = true
+	_lock(14.0)
+	var torch: Node3D
+	if is_instance_valid(npc):
+		stop_busy(npc)
+		if npc is QuestNPC:
+			npc.set_physics_process(false)
+		var tb = MB.new()
+		tb.add("cyl", Vector3(0, 0, 0), Vector3(0.045, 0.7, 0.045), Color(0.4, 0.28, 0.18), Vector3.ZERO, 5)
+		tb.add("cyl", Vector3(0, 0.38, 0), Vector3(0.09, 0.14, 0.09), Color(0.2, 0.17, 0.14), Vector3.ZERO, 6)
+		torch = Node3D.new()
+		npc.model.add_child(torch)
+		torch.position = Vector3(0.24, 1.2, -0.34)
+		_part(torch, tb)
+		var tf = VFX.fireball(0.2)
+		torch.add_child(tf)
+		tf.position.y = 0.52
+		tf.rotation.x = deg_to_rad(-90.0)
+		tf.scale = Vector3(1, 1, 1.7)
+		var tp: Vector3 = d["torch_at"]
+		tp.y = npc.global_position.y
+		await _go_w(npc, tp, 2.6, false, 0.15)
+		if is_instance_valid(npc):
+			_look_at(npc, fire_at)
+			_look_at(Game.player, fire_at)
+			_pose(npc, "slap", {"anim": "idle", "at": fire_at + (npc.global_position - fire_at).normalized() * 0.7 - Vector3.UP * 0.1})
+			await _wait(0.75)
+	Sfx.play("fire", fire_at, 0.8)
+	var f = Node3D.new()
+	root.add_child(f)
+	f.global_position = fire_at
+	f.scale = Vector3.ONE * 0.1
+	for k in 5:
+		var fb = VFX.fireball([1.0, 0.8, 0.7, 0.6, 0.5][k])
+		f.add_child(fb)
+		fb.rotation.x = deg_to_rad(-90.0)
+		fb.rotation.z = [0.0, 0.22, -0.25, 0.1, -0.12][k]
+		fb.scale = Vector3(1.0, 1.0, [2.6, 3.0, 2.4, 3.6, 4.2][k])
+		fb.position = Vector3([0.0, 0.35, -0.38, 0.12, -0.1][k], [0.3, 0.4, 0.35, 0.9, 1.3][k], [0.0, -0.2, 0.15, 0.25, -0.1][k])
+	var l = OmniLight3D.new()
+	l.light_color = Color(1.0, 0.55, 0.2)
+	l.light_energy = 3.0
+	l.omni_range = 16.0
+	l.position.y = 1.0
+	f.add_child(l)
+	f.create_tween().tween_property(f, "scale", Vector3.ONE, 1.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# duman sütunu: işaret uzaktan görülsün
+	var smoke = func():
+		if is_instance_valid(f):
+			FX.burst(f.global_position + Vector3.UP * 2.4, {"amount": 6, "life": 6.0, "size": 1.3, "dir": Vector3(0.12, 1, 0.05), "spread": 5.0, "vmin": 4.0, "vmax": 6.0, "damp": 0.05, "gravity": Vector3(0.4, 0.5, 0), "colors": [Color(0.22, 0.21, 0.2, 0.8), Color(0.42, 0.41, 0.4, 0.0)]})
+	var tm = Timer.new()
+	tm.wait_time = 0.5
+	tm.autostart = true
+	f.add_child(tm)
+	tm.timeout.connect(smoke)
+	await _wait(1.3)
+	if is_instance_valid(torch):
+		torch.queue_free()
+	if is_instance_valid(npc):
+		_clear_pose(npc)
+		_look_at(npc, Game.player.global_position)
+		if npc is QuestNPC:
+			npc.set_physics_process(true)
+	_release_player()
+	busy_run = false
+
+
+# ---------------------------------------------------------------------- av
+## Av alanına hayvanları salar. kinds boşsa oranın biyomundan seçilir (geyik / yaban domuzu / tavşan)
+func hunt_begin(c: Vector3, n: int, label: String, want := "") -> void:
+	var WL = preload("res://scripts/world/wildlife.gd")
+	var kind = want
+	if kind == "":
+		var opts = (WL.BY_BIOME.get(Game.biome_at(c.x, c.z), []) as Array).filter(func(x): return Prey.DEF.has(x))
+		kind = opts.pick_random() if not opts.is_empty() else "tavşan"
+	hunt_d["kind"] = kind
+	hunt_d["label"] = label
+	hunt_d["prey"] = []
+	hunt_d["hung"] = int(hunt_d.get("hung", 0))
+	for i in n:
+		var a = TAU * i / float(n) + randf_range(-0.4, 0.4)
+		var q = Missions.open_ground(c + Vector3(cos(a), 0, sin(a)) * randf_range(6.0, 16.0), 12.0)
+		q.y = Game.terrain_height(q.x, q.z)
+		var p = Prey.new()
+		p.kind = kind
+		p.position = q
+		p.on_dead = _prey_dead
+		get_tree().current_scene.add_child(p)
+		Missions.pickups.append(p)
+		hunt_d["prey"].append(p)
+	if hunt_d.has("rack") and not hunt_d.has("rack_it"):
+		_rack_item()
+
+
+func _rack_item() -> void:
+	var it = {"pos": hunt_d["rack_front"] + Vector3.UP * 0.4, "radius": 2.6, "kind": "quest", "label": "[F] Avı askıya as", "qkey": Missions._key(), "qi": 90, "work": "rack", "node": hunt_d["root"]}
+	hunt_d["rack_it"] = it
+	Interact.add(it)
+
+
+func _prey_dead(p: Prey) -> void:
+	var it = {"pos": p.global_position + Vector3.UP * 0.3, "radius": 2.6, "kind": "quest", "label": "[F] Avı omuzla", "qkey": Missions._key(), "qi": 80, "work": "carcass", "node": p, "silent": true}
+	Interact.add(it)
+	p.tree_exiting.connect(func(): Interact.items.erase(it))
+	Hud.msg("%s yere serildi. Omuzlayıp avcının askısına götür." % p.display, Color(0.8, 1, 0.8))
+
+
+## Görev işareti: omuzda av varsa askı, yoksa en yakın yaşayan / yerdeki av
+func hunt_marker(fallback: Vector3) -> Vector3:
+	if hunt_d.is_empty():
+		return fallback
+	if rider_kind == "prey" and is_instance_valid(rider) and hunt_d.has("rack_front"):
+		return hunt_d["rack_front"]
+	var best = fallback
+	var bd = 1e9
+	for p in hunt_d.get("prey", []):
+		if is_instance_valid(p) and not p.has_meta("hung"):
+			var dd: float = p.global_position.distance_to(Game.player.global_position) * (0.3 if p.dead else 1.0)
+			if dd < bd:
+				bd = dd
+				best = p.global_position
+	return best
+
+
+## Diz çök, avı bacaklarından kavra, omzuna at
+func _act_carcass(it: Dictionary) -> void:
+	var pl = Game.player
+	var p: Prey = it["node"]
+	if is_instance_valid(rider):
+		Hud.msg("Omzun dolu: önce taşıdığını bırak.", Color(1, 0.8, 0.5))
+		Interact.add(it)
+		return
+	await _stand_at(p, 0.75)
+	_pose(pl, "grab_low", {"sit": "seiza", "anim": "idle", "at": p.global_position + Vector3.UP * 0.25, "lift": 0.0})
+	await _wait(0.6)
+	st[pl]["pop"] = st[pl]["t"]
+	Sfx.play("pickup", p.global_position, 0.7, 0.8)
+	p.set_physics_process(false)
+	var body_y: float = {"geyik": 1.12, "domuz": 0.62, "tavşan": 0.22}.get(p.kind, 0.6)
+	var sc: float = pl.model.age_scale
+	rider_off = Vector3(0.0, 1.36 if p.kind != "tavşan" else 1.05, -0.3 if p.kind != "tavşan" else 0.3)   # ense arkasında, omuzlara yatık
+	rider_yaw = PI * 0.5
+	var from = p.global_position
+	var an_from: Vector3 = p.an.rotation
+	var an_p0: Vector3 = p.an.position
+	var t := 0.0
+	while t < 0.7:
+		t += get_process_delta_time()
+		var k = smoothstep(0.0, 0.7, t)
+		var tgt = pl.global_position + Vector3.UP * rider_off.y * sc + _fd(pl) * rider_off.z * sc
+		p.global_position = from.lerp(tgt, k) + Vector3.UP * sin(k * PI) * 0.3
+		p.rotation.y = lerp_angle(p.rotation.y, pl.facing + rider_yaw, k)
+		# sırtüstü değil: karnı omuzda, bacaklar öne sarkar
+		p.an.rotation = an_from.lerp(Vector3(0, 0, 0), k)
+		p.an.position = an_p0.lerp(Vector3(0, -body_y + 0.12, 0), k)
+		await get_tree().process_frame
+	for lg in p.an.legs:
+		lg[0].rotation.x = 0.0
+		lg[0].rotation.z = 0.0
+	rider = p
+	rider_kind = "prey"
+	_clear_pose(pl)
+	Hud.float_text("Av omuzda", Color(0.8, 1, 0.8))
+
+
+## Avı askıya as: arka ayaklarından kancaya, baş aşağı
+func _act_rack(it: Dictionary) -> void:
+	var pl = Game.player
+	it["silent"] = true
+	if rider_kind != "prey" or not is_instance_valid(rider):
+		Hud.msg("Askı boş. Önce avı vur ve omuzla.", Color(1, 0.85, 0.6))
+		Interact.add(it)
+		return
+	var p: Prey = rider
+	var slot_i = int(hunt_d.get("hung", 0))
+	var bar: Vector3 = hunt_d["rack"] + Vector3((slot_i % 3 - 1) * 0.8, 0, 0)
+	var front: Vector3 = hunt_d["rack_front"] + Vector3((slot_i % 3 - 1) * 0.8, 0, -0.25)
+	front.y = pl.global_position.y
+	await _go_w(pl, front, 2.2, false, 0.12)
+	_look_at(pl, bar)
+	rider = null
+	rider_kind = ""
+	var body_y: float = {"geyik": 1.12, "domuz": 0.62, "tavşan": 0.22}.get(p.kind, 0.6)
+	var half: float = {"geyik": 0.75, "domuz": 0.6, "tavşan": 0.25}.get(p.kind, 0.5)
+	_pose(pl, "slap", {"anim": "idle", "at": bar - Vector3.UP * 0.35 + Vector3(0, 0, 0.25)})
+	var from = p.global_position
+	var from_rot = p.an.rotation
+	var from_p = p.an.position
+	var yaw0 = p.rotation.y
+	var tgt = bar - Vector3.UP * (half + 0.22)
+	var t := 0.0
+	while t < 0.8:
+		t += get_process_delta_time()
+		var k = smoothstep(0.0, 0.8, t)
+		p.global_position = from.lerp(tgt, k)
+		p.rotation.y = lerp_angle(yaw0, 0.0, k)
+		# baş aşağı: gövde ekseni dikleşir; gövde merkezi kancanın tam altına gelsin
+		p.an.rotation = from_rot.lerp(Vector3(-PI * 0.5, 0, 0), k)
+		p.an.position = from_p.lerp(Vector3(0, 0, body_y), k)
+		await get_tree().process_frame
+	for lg in p.an.legs:
+		lg[0].rotation.x = 0.35 if lg[0].position.z > 0.0 else -0.5
+	p.set_meta("hung", true)
+	Sfx.play("pickup", bar, 0.6, 1.0)
+	hunt_d["hung"] = slot_i + 1
+	# hafifçe sallanır
+	var tw = p.create_tween()
+	tw.tween_property(p, "rotation:z", 0.09, 0.4).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(p, "rotation:z", -0.06, 0.6).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(p, "rotation:z", 0.0, 0.5).set_trans(Tween.TRANS_SINE)
+	await _wait(0.5)
+	it["silent"] = false
+	var left = (hunt_d.get("prey", []) as Array).filter(func(x): return is_instance_valid(x) and not x.has_meta("hung")).size()
+	if left > 0:
+		_rack_item()
+	else:
+		hunt_d.erase("rack_it")
+
+
+# ---------------------------------------------------------------------- nöbet: fenerler
+## Yol feneri: direk + kol + kâğıt fener (sönük). Yakılınca ışır ve gece boyu yanar.
+func _build_lamp(root: Node3D) -> void:
+	var b = MB.new()
+	var wood = Color(0.3, 0.22, 0.16)
+	b.add("cyl", Vector3(0, 1.2, 0), Vector3(0.11, 2.4, 0.11), wood, Vector3.ZERO, 6)
+	b.add("box", Vector3(0, 0.08, 0), Vector3(0.36, 0.16, 0.36), Color(0.5, 0.48, 0.45))
+	b.add("box", Vector3(0.28, 2.3, 0), Vector3(0.7, 0.07, 0.07), wood)
+	b.add("box", Vector3(0.16, 2.12, 0), Vector3(0.05, 0.4, 0.05), wood, Vector3(0, 0, 40))
+	b.add("cyl", Vector3(0.55, 2.2, 0), Vector3(0.012, 0.16, 0.012), Color(0.15, 0.15, 0.15), Vector3.ZERO, 4)
+	b.add("box", Vector3(0.55, 2.11, 0), Vector3(0.3, 0.04, 0.3), Color(0.12, 0.1, 0.09))
+	b.add("box", Vector3(0.55, 1.67, 0), Vector3(0.26, 0.04, 0.26), Color(0.12, 0.1, 0.09))
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			b.add("box", Vector3(0.55 + sx * 0.125, 1.89, sz * 0.125), Vector3(0.02, 0.42, 0.02), Color(0.12, 0.1, 0.09))
+	_part(root, b)
+	var pm = StandardMaterial3D.new()
+	pm.albedo_color = Color(0.62, 0.58, 0.5)
+	pm.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	var paper = MeshInstance3D.new()
+	var bm = BoxMesh.new()
+	bm.size = Vector3(0.24, 0.4, 0.24)
+	paper.mesh = bm
+	paper.material_override = pm
+	paper.position = Vector3(0.55, 1.89, 0)
+	root.add_child(paper)
+	root.set_meta("paper", paper)
+	var body = StaticBody3D.new()
+	var cs = CollisionShape3D.new()
+	var sh = BoxShape3D.new()
+	sh.size = Vector3(0.24, 2.4, 0.24)
+	cs.shape = sh
+	cs.position.y = 1.2
+	body.add_child(cs)
+	root.add_child(body)
+
+
+## Fenerin altına geç, çakmak taşını çak, fitili tutuştur
+func _act_lamp(it: Dictionary) -> void:
+	var pl = Game.player
+	var root: Node3D = it["node"]
+	var paper: MeshInstance3D = root.get_meta("paper")
+	var lp = paper.global_position
+	var under = Vector3(lp.x, pl.global_position.y, lp.z) + (pl.global_position - lp).slide(Vector3.UP).normalized() * 0.55
+	await _go_w(pl, under, 2.4, false, 0.1)
+	_look_at(pl, lp)
+	_pose(pl, "slap", {"anim": "idle", "at": lp - Vector3.UP * 0.28})
+	await _wait(0.45)
+	for k in 2:
+		Sfx.play("pickup", lp, 1.9, 0.5)
+		FX.burst(lp - Vector3.UP * 0.25, {"amount": 7, "life": 0.25, "size": 0.035, "vmin": 0.8, "vmax": 2.4, "gravity": Vector3(0, -6, 0), "colors": [Color(1, 0.9, 0.5, 1), Color(1, 0.6, 0.2, 0)]})
+		await _wait(0.22)
+	var pm: StandardMaterial3D = paper.material_override
+	pm.emission_enabled = true
+	pm.emission = Color(1.0, 0.72, 0.36)
+	pm.emission_energy_multiplier = 0.0
+	pm.albedo_color = Color(1.0, 0.86, 0.6)
+	var l = OmniLight3D.new()
+	l.light_color = Color(1.0, 0.72, 0.4)
+	l.light_energy = 0.0
+	l.omni_range = 9.0
+	paper.add_child(l)
+	var tw = paper.create_tween().set_parallel(true)
+	tw.tween_property(pm, "emission_energy_multiplier", 2.4, 0.5)
+	tw.tween_property(l, "light_energy", 1.6, 0.5)
+	await _wait(0.55)
+
+
+# ---------------------------------------------------------------------- nöbet: yük arama
+## Yolcu bohçasını yere indirir; oyuncu diz çöküp açar, içindeki ortaya çıkar (what: "rice" / "cloth" / "fish" / "tags")
+func search_pack(npc: Node3D, what: String) -> void:
+	var pl = Game.player
+	if not is_instance_valid(npc):
+		return
+	busy_run = true
+	_lock(16.0)
+	if npc is QuestNPC:
+		npc.set_physics_process(false)
+	var to = (pl.global_position - npc.global_position).slide(Vector3.UP).normalized()
+	var gp = npc.global_position + to * 0.75
+	gp.y = Game.ground_height(gp.x, gp.z)
+	_look_at(npc, pl.global_position)
+	var pack = Node3D.new()
+	get_tree().current_scene.add_child(pack)
+	_own(pack, true)
+	var cloth = Color(0.32, 0.42, 0.55) if what != "tags" else Color(0.3, 0.3, 0.34)
+	var b = MB.new()
+	b.add("sphere", Vector3(0, 0.2, 0), Vector3(0.62, 0.42, 0.56), cloth, Vector3.ZERO, 10)
+	var knot = Node3D.new()
+	pack.add_child(knot)
+	var kb = MB.new()
+	kb.add("sphere", Vector3(0, 0.44, 0), Vector3(0.16, 0.12, 0.16), cloth.lightened(0.12), Vector3.ZERO, 7)
+	for sx in [-1.0, 1.0]:
+		kb.add("cone", Vector3(sx * 0.12, 0.5, 0), Vector3(0.1, 0.2, 0.04), cloth.lightened(0.12), Vector3(0, 0, -50.0 * sx), 4)
+	_part(knot, kb)
+	_part(pack, b)
+	# npc sırtından indirir
+	pack.global_position = npc.global_position + Vector3.UP * 1.1 - _fd(npc) * 0.25
+	npc.model.play("pickup", 0.15, 1.0, true)
+	var from = pack.global_position
+	var t := 0.0
+	while t < 0.6:
+		t += get_process_delta_time()
+		pack.global_position = from.lerp(gp, smoothstep(0.0, 0.6, t))
+		await get_tree().process_frame
+	var sp = gp + to * 0.7
+	sp.y = pl.global_position.y
+	await _go_w(pl, sp, 2.0, false, 0.1)
+	_look_at(pl, gp)
+	_pose(pl, "grab_low", {"sit": "seiza", "anim": "idle", "at": gp + Vector3.UP * 0.3, "lift": 0.0})
+	await _wait(0.7)
+	Sfx.play("pickup", gp, 0.8, 1.2)
+	knot.create_tween().tween_property(knot, "scale", Vector3(1.6, 0.2, 1.6), 0.25)
+	# içindekiler: bohça açılır, mallar görünür
+	var inside = Node3D.new()
+	pack.add_child(inside)
+	var ib = MB.new()
+	match what:
+		"tags":
+			pass
+		"fish":
+			for k in 3:
+				ib.add("sphere", Vector3(-0.12 + k * 0.12, 0.42, 0.02 * k), Vector3(0.1, 0.07, 0.34), Color(0.62, 0.68, 0.74).darkened(k * 0.06), Vector3(0, 12.0 * k - 10.0, 0), 7)
+				ib.add("cone", Vector3(-0.12 + k * 0.12, 0.42, 0.2 + 0.02 * k), Vector3(0.1, 0.1, 0.02), Color(0.5, 0.56, 0.62), Vector3(90, 0, 0), 4)
+		"cloth":
+			for k in 3:
+				ib.add("cyl", Vector3(-0.14 + k * 0.14, 0.44, 0), Vector3(0.13, 0.4, 0.13), [Color(0.75, 0.25, 0.3), Color(0.9, 0.8, 0.5), Color(0.3, 0.5, 0.45)][k], Vector3(90, 0, 0), 8)
+		_:
+			for k in 2:
+				ib.add("sphere", Vector3(-0.1 + k * 0.2, 0.44, 0), Vector3(0.24, 0.2, 0.3), Color(0.88, 0.84, 0.72), Vector3.ZERO, 8)
+				ib.add("cyl", Vector3(-0.1 + k * 0.2, 0.55, 0), Vector3(0.07, 0.06, 0.07), Color(0.7, 0.6, 0.4), Vector3.ZERO, 6)
+	_part(inside, ib)
+	if what == "tags":
+		for k in 5:
+			var tg = _tag_mesh()
+			inside.add_child(tg)
+			tg.position = Vector3(-0.16 + k * 0.08, 0.46 + (k % 2) * 0.012, 0.03 * (k % 3))
+			tg.rotation = Vector3(deg_to_rad(-80.0), deg_to_rad(k * 9.0 - 18.0), 0)
+	inside.scale = Vector3(1, 0.05, 1)
+	inside.create_tween().tween_property(inside, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await _wait(0.9)
+	if what == "tags":
+		Hud.float_text("Patlayıcı mühürler!", Color(1, 0.5, 0.4))
+		Sfx.play("alarm", gp, 1.0, 0.6)
+	else:
+		Hud.float_text({"fish": "Kurutulmuş balık", "cloth": "Top top kumaş"}.get(what, "Pirinç keseleri"), Color(0.8, 1, 0.8))
+	await _wait(0.6)
+	_clear_pose(pl)
+	pl.model.play("idle", 0.25)
+	if npc is QuestNPC and is_instance_valid(npc):
+		npc.set_physics_process(true)
+	_release_player()
+	busy_run = false
+
+
+# ====================================================================== 5. adım (2): balık, onarım, inşaat, ders
+static var test_auto := false   # testte olta kendiliğinden çekilir
+
+
+func _site_jobs(kind: String, root: Node3D, b: MB, d: Dictionary, c: Vector3, gy: Callable, solid: Callable) -> void:
+	var wood = Color(0.5, 0.37, 0.24)
+	var dark = wood.darkened(0.3)
+	if kind == "fish_dock":
+		# iskele suya doğru uzanır (en alçak yön = su)
+		var best_a := 0.0
+		var low := 1e9
+		for k in 16:
+			var a = TAU * k / 16.0
+			var h = Game.terrain_height(c.x + cos(a) * 9.0, c.z + sin(a) * 9.0)
+			if h < low:
+				low = h
+				best_a = a
+		var dir = Vector3(cos(best_a), 0, sin(best_a))
+		var piv = Node3D.new()
+		root.add_child(piv)
+		piv.rotation.y = atan2(-dir.x, -dir.z)   # yerel -Z = su
+		var wl = maxf(Game.water_level(c.x + dir.x * 7.0, c.z + dir.z * 7.0), 0.0)
+		var dy = maxf(wl + 0.5 - c.y, 0.14)
+		var pb = MB.new()
+		for i in 10:
+			pb.add("box", Vector3(0, dy, 1.4 - i * 1.0), Vector3(1.9, 0.08, 0.93), wood.darkened((i % 3) * 0.07))
+		for sx in [-0.88, 0.88]:
+			pb.add("box", Vector3(sx, dy - 0.1, -3.1), Vector3(0.12, 0.14, 10.0), dark)
+			for z in [0.6, -1.8, -4.2, -6.6, -7.9]:
+				pb.add("cyl", Vector3(sx, dy - 0.75, z), Vector3(0.16, 2.3, 0.16), dark, Vector3.ZERO, 6)
+		pb.add("cyl", Vector3(0.75, dy + 0.4, -7.7), Vector3(0.2, 0.8, 0.2), dark.lightened(0.1), Vector3.ZERO, 7)   # bağlama babası
+		pb.add("cyl", Vector3(0.75, dy + 0.3, -7.7), Vector3(0.34, 0.14, 0.34), Color(0.78, 0.7, 0.5), Vector3.ZERO, 8)   # halat
+		# sepet (iskele ucunda) + kova + olta sehpası (kıyıda)
+		var bk = Vector3(-0.6, dy + 0.04, -5.6)
+		pb.add("cyl", bk + Vector3(0, 0.2, 0), Vector3(0.56, 0.4, 0.56), Color(0.72, 0.6, 0.38), Vector3.ZERO, 10)
+		pb.add("cyl", bk + Vector3(0, 0.39, 0), Vector3(0.5, 0.03, 0.5), Color(0.3, 0.24, 0.16), Vector3.ZERO, 10)
+		pb.add("cyl", bk + Vector3(0, 0.1, 0), Vector3(0.6, 0.05, 0.6), Color(0.5, 0.4, 0.25), Vector3.ZERO, 10)
+		var ry = Game.ground_height(c.x, c.z) - c.y
+		for sx in [-0.5, 0.5]:
+			pb.add("cyl", Vector3(2.0 + sx, ry + 0.5, 2.2), Vector3(0.07, 1.0, 0.07), dark, Vector3(0, 0, sx * 30.0), 5)
+		pb.add("cyl", Vector3(2.0, ry + 0.92, 2.2), Vector3(0.05, 1.3, 0.05), dark, Vector3(0, 0, 90), 5)
+		for k in 2:
+			pb.add("cyl", Vector3(1.8 + k * 0.4, ry + 1.5, 1.6), Vector3(0.03, 2.6, 0.03), Color(0.72, 0.62, 0.3), Vector3(28, 0, 0), 5)
+		_part(piv, pb)
+		var body = StaticBody3D.new()
+		piv.add_child(body)
+		var cs = CollisionShape3D.new()
+		var sh = BoxShape3D.new()
+		sh.size = Vector3(1.9, 0.3, 10.0)
+		cs.shape = sh
+		cs.position = Vector3(0, dy - 0.11, -3.1)
+		body.add_child(cs)
+		d["piv"] = piv
+		d["dy"] = dy
+		d["dir"] = dir
+		d["wl"] = wl
+		d["start"] = piv.to_global(Vector3(0, dy + 0.04, 1.2))
+		d["cast_at"] = piv.to_global(Vector3(0.15, dy + 0.04, -7.0))
+		d["mid"] = piv.to_global(Vector3(0, dy + 0.04, -3.0))
+		d["basket"] = piv.to_global(bk + Vector3(0, 0.42, 0))
+		d["npc_at"] = piv.to_global(Vector3(-2.0, 0, 2.0))
+		d["face"] = piv.to_global(Vector3(-2.0, 0, -8.0))
+		d["kind"] = kind
+		job_d = d
+	elif kind == "repair_house":
+		# fırtınanın hırpaladığı kulübe: ön duvarda kırık tahtalar, yanda kereste istifi
+		var g0: float = gy.call(0, 0)
+		var wall = Color(0.62, 0.5, 0.36)
+		b.add("box", Vector3(0, g0 + 1.2, -1.6), Vector3(4.4, 2.4, 0.12), wall)
+		for sx in [-2.2, 2.2]:
+			b.add("box", Vector3(sx, g0 + 1.2, -0.1), Vector3(0.12, 2.4, 3.0), wall.darkened(0.06))
+		b.add("box", Vector3(0, g0 + 0.06, -0.1), Vector3(4.4, 0.12, 3.0), dark)
+		b.add("prism", Vector3(0, g0 + 2.95, -0.1), Vector3(5.2, 1.1, 3.8), Color(0.34, 0.3, 0.28))
+		for sx in [-2.2, 2.2]:
+			b.add("box", Vector3(sx, g0 + 1.2, 1.4), Vector3(0.18, 2.4, 0.18), dark)
+		b.add("box", Vector3(0, g0 + 2.34, 1.4), Vector3(4.5, 0.16, 0.16), dark)
+		b.add("box", Vector3(0, g0 + 0.1, 1.4), Vector3(4.5, 0.16, 0.16), dark)
+		# ön duvar: 8 tahta, 4'ü kırık (kalan yarım parça + boşluk)
+		var gaps = []
+		for i in 8:
+			var x = -1.925 + i * 0.55
+			if i in [1, 3, 4, 6]:
+				b.add("box", Vector3(x, g0 + 0.45 + (i % 2) * 0.2, 1.4), Vector3(0.5, 0.7 + (i % 2) * 0.4, 0.07), wall.darkened(0.12), Vector3(0, 0, (i % 3 - 1) * 5.0))
+				gaps.append(c + Vector3(x, g0, 1.4))
+			else:
+				b.add("box", Vector3(x, g0 + 1.2, 1.4), Vector3(0.5, 2.2, 0.07), wall.darkened((i % 3) * 0.05))
+		# yere saçılmış kırık parçalar
+		for k in 5:
+			b.add("box", Vector3(-1.6 + k * 0.8, gy.call(-1.6 + k * 0.8, 2.3) + 0.04, 2.1 + (k % 2) * 0.5), Vector3(0.45, 0.05, 0.14), wall.darkened(0.2), Vector3(0, k * 37.0, 0))
+		solid.call(Vector3(0, g0 + 1.2, -0.1), Vector3(4.4, 2.4, 3.1))
+		var lp = Vector3(4.2, gy.call(4.2, 2.6), 2.6)
+		for k in 6:
+			b.add("box", lp + Vector3((k / 3) * 0.06, 0.05 + (k / 3) * 0.09, (k % 3) * 0.56 - 0.56), Vector3(2.2, 0.07, 0.5), Color(0.8, 0.66, 0.44).darkened((k % 2) * 0.06))
+		for sz in [-0.9, 0.9]:
+			b.add("box", lp + Vector3(0, 0.0, sz * 0.5), Vector3(0.14, 0.1, 0.14), dark)
+		solid.call(lp + Vector3(0, 0.12, 0), Vector3(2.2, 0.24, 1.7))
+		d["gaps"] = gaps
+		d["nrm"] = Vector3(0, 0, 1)
+		d["pile"] = c + lp
+		d["npc_at"] = c + Vector3(-3.4, 0, 2.6)
+		d["face"] = c + Vector3(0, 0, 1.4)
+		d["kind"] = kind
+		job_d = d
+	elif kind == "build_lot":
+		# inşaat alanı: kazıklarla çevrili temel, köşe taşları, tomruk istifi, testere tezgâhı
+		var g1: float = gy.call(0, 0)
+		for sx in [-1.5, 1.5]:
+			for sz in [-1.5, 1.5]:
+				b.add("box", Vector3(sx, g1 + 0.1, sz), Vector3(0.5, 0.22, 0.5), Color(0.58, 0.56, 0.52))
+				b.add("cyl", Vector3(sx * 1.5, gy.call(sx * 1.5, sz * 1.5) + 0.3, sz * 1.5), Vector3(0.05, 0.6, 0.05), dark, Vector3.ZERO, 4)
+		for k in 4:
+			var a = k * PI * 0.5
+			b.add("box", Vector3(cos(a) * 2.25, g1 + 0.5, sin(a) * 2.25), Vector3(0.015, 0.015, 4.5), Color(0.85, 0.8, 0.6), Vector3(0, -rad_to_deg(a), 0))   # ip
+		var lp2 = Vector3(4.6, gy.call(4.6, 0.5), 0.5)
+		for k in 7:
+			b.add("cyl", lp2 + Vector3(0, 0.14 + (k / 4) * 0.25, (k % 4) * 0.3 - 0.45 + (k / 4) * 0.15), Vector3(0.27, 3.0, 0.27), Color(0.55, 0.4, 0.26).darkened((k % 3) * 0.06), Vector3(0, 0, 90), 7)
+		solid.call(lp2 + Vector3(0, 0.25, 0), Vector3(3.0, 0.5, 1.3))
+		var sp = Vector3(-4.2, gy.call(-4.2, 1.5), 1.5)
+		for sx in [-0.6, 0.6]:
+			for sz in [-1.0, 1.0]:
+				b.add("box", sp + Vector3(sx, 0.35, sz * 0.2), Vector3(0.07, 0.75, 0.07), dark, Vector3(sz * 16.0, 0, 0))
+			b.add("box", sp + Vector3(sx, 0.7, 0), Vector3(0.1, 0.08, 0.7), dark)
+		b.add("box", sp + Vector3(0, 0.78, 0), Vector3(1.9, 0.07, 0.3), Color(0.8, 0.66, 0.44))
+		solid.call(sp + Vector3(0, 0.4, 0), Vector3(1.6, 0.8, 0.6))
+		d["stage"] = 0
+		d["g"] = g1
+		d["pile"] = c + lp2 + Vector3(0, 0, 1.2)
+		d["npc_at"] = c + Vector3(-2.6, 0, 2.8)
+		d["face"] = c
+		d["kind"] = kind
+		job_d = d
+	elif kind == "class_yard":
+		# eğitim alanı: üç hedef kütüğü, önlerinde atış çizgisi, yanda kunai sehpası
+		var tg = []
+		for i in 3:
+			var x = -3.0 + i * 3.0
+			var g2: float = gy.call(x, -4.0)
+			b.add("cyl", Vector3(x, g2 + 0.9, -4.0), Vector3(0.5, 1.8, 0.5), wood, Vector3.ZERO, 9)
+			b.add("cyl", Vector3(x, g2 + 1.81, -4.0), Vector3(0.46, 0.02, 0.46), Color(0.78, 0.66, 0.46), Vector3.ZERO, 9)
+			# hedef tahtası: iç içe halkalar
+			b.add("cyl", Vector3(x, g2 + 1.25, -3.72), Vector3(0.62, 0.05, 0.62), Color(0.92, 0.9, 0.84), Vector3(90, 0, 0), 14)
+			b.add("cyl", Vector3(x, g2 + 1.25, -3.69), Vector3(0.42, 0.05, 0.42), Color(0.15, 0.14, 0.14), Vector3(90, 0, 0), 12)
+			b.add("cyl", Vector3(x, g2 + 1.25, -3.66), Vector3(0.24, 0.05, 0.24), Color(0.92, 0.9, 0.84), Vector3(90, 0, 0), 10)
+			b.add("cyl", Vector3(x, g2 + 1.25, -3.63), Vector3(0.1, 0.05, 0.1), Color(0.8, 0.16, 0.12), Vector3(90, 0, 0), 8)
+			solid.call(Vector3(x, g2 + 0.9, -4.0), Vector3(0.5, 1.8, 0.5))
+			tg.append(c + Vector3(x, g2 + 1.25, -3.6))
+		b.add("box", Vector3(0, gy.call(0, 1.5) + 0.02, 1.5), Vector3(8.4, 0.03, 0.14), Color(0.9, 0.88, 0.8))   # atış çizgisi
+		var kp = Vector3(5.0, gy.call(5.0, 1.8), 1.8)
+		b.add("box", kp + Vector3(0, 0.75, 0), Vector3(1.1, 0.07, 0.5), wood)
+		for sx in [-0.45, 0.45]:
+			b.add("box", kp + Vector3(sx, 0.37, 0), Vector3(0.08, 0.74, 0.44), dark)
+		for k in 5:
+			b.add("box", kp + Vector3(-0.36 + k * 0.18, 0.8, 0.02 * (k % 2)), Vector3(0.05, 0.015, 0.3), Color(0.25, 0.25, 0.28), Vector3(0, k * 7.0 - 14.0, 0))
+		solid.call(kp + Vector3(0, 0.4, 0), Vector3(1.1, 0.8, 0.5))
+		d["targets"] = tg
+		var kids = []
+		var knames = ["Öğrenci Mako", "Öğrenci Tsubame", "Öğrenci Kota", "Öğrenci Hibari", "Öğrenci Nobu"]
+		knames.shuffle()
+		for i in 3:
+			var spec = Missions._npc("ogrenci%d" % i, knames[i], "kid")
+			var kp0 = c + Vector3(-2.2 + i * 2.2, 0, 4.4)
+			var kn = Missions._make_npc(spec, kp0)
+			place_worker(kn, kp0, c + Vector3(-2.2 + i * 2.2, 0, -4.0))
+			kids.append(kn)
+		d["kids"] = kids
+		d["line_z"] = 1.5
+		d["c"] = c
+		d["npc_at"] = c + Vector3(-5.2, 0, 2.6)
+		d["face"] = c + Vector3(0, 0, 1.5)
+		d["kind"] = kind
+		job_d = d
+
+
+## Nokta adımı başlar: iş yerindeki [F] noktalarını açar; yapılacak iş sayısını döndürür
+func job_begin(work: String, n: int, label: String) -> int:
+	if job_d.is_empty() or not is_instance_valid(job_d.get("root")):
+		return n
+	var root: Node3D = job_d["root"]
+	var add = func(i: int, pos: Vector3, node: Node3D, extra: Dictionary, radius := 2.4) -> void:
+		var it = {"pos": pos, "radius": radius, "kind": "quest", "label": label, "qkey": Missions._key(), "qi": i, "work": work, "node": node}
+		it.merge(extra)
+		Interact.add(it)
+		node.tree_exiting.connect(func(): Interact.items.erase(it))
+	match work:
+		"fish":
+			var dir: Vector3 = job_d["dir"]
+			for i in n:
+				var sp = Node3D.new()
+				get_tree().current_scene.add_child(sp)
+				Missions.step_nodes.append(sp)
+				var q: Vector3 = job_d["cast_at"] + dir.rotated(Vector3.UP, [-0.55, 0.1, 0.6][i % 3]) * (4.4 + (i % 2) * 1.2)
+				q.y = float(job_d["wl"]) + 0.03
+				sp.global_position = q
+				var ring = MeshInstance3D.new()
+				var tm = TorusMesh.new()
+				tm.inner_radius = 0.3
+				tm.outer_radius = 0.36
+				tm.rings = 20
+				tm.ring_segments = 4
+				ring.mesh = tm
+				var rm = StandardMaterial3D.new()
+				rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				rm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				rm.albedo_color = Color(1, 1, 1, 0.55)
+				ring.material_override = rm
+				ring.scale = Vector3(1, 0.1, 1)
+				sp.add_child(ring)
+				var tw = ring.create_tween().set_loops()
+				tw.tween_property(ring, "scale", Vector3(2.0, 0.1, 2.0), 1.6).from(Vector3(0.5, 0.1, 0.5))
+				var orb = Node3D.new()
+				sp.add_child(orb)
+				var fm = _fish_mesh(0.42, Color(0.08, 0.12, 0.16))
+				orb.add_child(fm)
+				fm.position = Vector3(0.55, -0.14, 0)
+				var tw2 = orb.create_tween().set_loops()
+				tw2.tween_property(orb, "rotation:y", -TAU, 3.4 + i * 0.5).from(0.0)
+				add.call(i, job_d["mid"], sp, {}, 5.0)
+		"plank":
+			var gaps: Array = job_d["gaps"]
+			n = mini(n, gaps.size())
+			for i in n:
+				var gp = Node3D.new()
+				root.add_child(gp)
+				gp.global_position = gaps[i]
+				add.call(i, gaps[i] + Vector3(0, 0.4, 0.9), gp, {})
+		"build":
+			n = 4
+			var st0 = Node3D.new()
+			root.add_child(st0)
+			job_d["label"] = label
+			add.call(0, root.global_position + Vector3(0, 0.4, 2.6), st0, {}, 3.4)
+		"teach":
+			var kids: Array = job_d.get("kids", [])
+			n = mini(n, kids.size())
+			for i in n:
+				add.call(i, kids[i].global_position + Vector3.UP * 0.4, kids[i], {"ti": i})
+	return n
+
+
+func _fish_mesh(len: float, col: Color) -> MeshInstance3D:
+	var b = MB.new()
+	b.add("sphere", Vector3.ZERO, Vector3(len * 0.24, len * 0.3, len), col, Vector3.ZERO, 8)
+	b.add("sphere", Vector3(0, -len * 0.04, 0), Vector3(len * 0.2, len * 0.22, len * 0.9), col.lightened(0.35), Vector3.ZERO, 8)
+	b.add("cone", Vector3(0, 0, len * 0.6), Vector3(len * 0.06, len * 0.34, len * 0.36), col.darkened(0.15), Vector3(-90, 0, 0), 4)
+	b.add("cone", Vector3(0, len * 0.16, 0), Vector3(len * 0.03, len * 0.16, len * 0.3), col.darkened(0.15), Vector3(-20, 0, 0), 4)
+	b.add("sphere", Vector3(len * 0.1, len * 0.04, -len * 0.36), Vector3(len * 0.05, len * 0.05, len * 0.05), Color(0.05, 0.05, 0.05), Vector3.ZERO, 5)
+	b.add("sphere", Vector3(-len * 0.1, len * 0.04, -len * 0.36), Vector3(len * 0.05, len * 0.05, len * 0.05), Color(0.05, 0.05, 0.05), Vector3.ZERO, 5)
+	var m = MeshInstance3D.new()
+	m.mesh = b.build(mat)
+	return m
+
+
+func _stretch(mi: Node3D, a: Vector3, b2: Vector3) -> void:
+	var dv = b2 - a
+	var ln = dv.length()
+	if ln < 0.01:
+		return
+	var up = Vector3.UP if absf(dv.normalized().y) < 0.98 else Vector3.RIGHT
+	mi.global_transform = Transform3D(Basis.looking_at(dv / ln, up), (a + b2) * 0.5)
+	mi.scale = Vector3(1, 1, ln)
+
+
+func _splash(at: Vector3, big := false) -> void:
+	FX.burst(at, {"amount": 22 if big else 10, "life": 0.5, "size": 0.07, "dir": Vector3.UP, "spread": 40.0, "vmin": 1.5, "vmax": 4.5 if big else 2.6, "gravity": Vector3(0, -9, 0), "colors": [Color(0.85, 0.95, 1.0, 1), Color(0.7, 0.85, 1.0, 0)]})
+	Sfx.play("water", at, 1.3 if not big else 1.0, 0.7)
+
+
+## Balık tutma: iskelenin ucuna yürü, oltayı savur, şamandırayı izle; şamandıra batınca [F] ile çek.
+## Erken çekersen balık ürker, geç kalırsan yemi alıp kaçar (nokta yeniden açılır).
+func _act_fish(it: Dictionary) -> void:
+	var pl = Game.player
+	var spot: Node3D = it["node"]
+	var d = job_d
+	var caught := false
+	if pl.global_position.distance_to(d["cast_at"]) > 1.5:
+		if pl.global_position.y < float(d["cast_at"].y) - 0.3 or pl.global_position.distance_to(d["start"]) < pl.global_position.distance_to(d["cast_at"]):
+			var s0: Vector3 = d["start"]
+			s0.y = pl.global_position.y
+			await _go_w(pl, s0, 2.6, false, 0.2)
+			pl.global_position.y = float(d["start"].y)
+		await _go_w(pl, d["cast_at"], 2.4, false, 0.15)
+	pl.global_position.y = float(d["cast_at"].y)
+	var sp = spot.global_position
+	_look_at(pl, sp)
+	_pose(pl, "give", {"anim": "idle", "w": 0.07})
+	# olta: kamış + misina + şamandıra
+	var rod = Node3D.new()
+	add_child(rod)
+	rod.top_level = true
+	var rb = MB.new()
+	rb.add("cyl", Vector3(0, 0, -1.3), Vector3(0.035, 2.9, 0.035), Color(0.74, 0.64, 0.3), Vector3(90, 0, 0), 5)
+	rb.add("cyl", Vector3(0, 0, 0.0), Vector3(0.05, 0.4, 0.05), Color(0.3, 0.22, 0.16), Vector3(90, 0, 0), 5)
+	_part(rod, rb)
+	var line = MeshInstance3D.new()
+	var lm = BoxMesh.new()
+	lm.size = Vector3(0.008, 0.008, 1.0)
+	line.mesh = lm
+	var lmat = StandardMaterial3D.new()
+	lmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	lmat.albedo_color = Color(0.92, 0.92, 0.9)
+	line.material_override = lmat
+	add_child(line)
+	line.top_level = true
+	var bob = Node3D.new()
+	add_child(bob)
+	bob.top_level = true
+	var bb = MB.new()
+	bb.add("sphere", Vector3(0, 0.03, 0), Vector3(0.1, 0.1, 0.1), Color(0.9, 0.16, 0.12), Vector3.ZERO, 7)
+	bb.add("sphere", Vector3(0, -0.02, 0), Vector3(0.1, 0.08, 0.1), Color(0.95, 0.95, 0.92), Vector3.ZERO, 7)
+	bb.add("cyl", Vector3(0, 0.12, 0), Vector3(0.012, 0.12, 0.012), Color(0.9, 0.16, 0.12), Vector3.ZERO, 4)
+	_part(bob, bb)
+	var rs = {"pitch": 0.6, "tip": Vector3.ZERO}
+	var fd = _fd(pl)
+	var place = func():
+		var hand = _held(pl) if st.has(pl) and st[pl].has("hold") else pl.global_position + Vector3.UP * 1.05 + fd * 0.35
+		var ax = (fd * cos(float(rs["pitch"])) + Vector3.UP * sin(float(rs["pitch"]))).normalized()
+		rod.global_transform = Transform3D(Basis.looking_at(ax, Vector3.UP if absf(ax.y) < 0.98 else -fd), hand)
+		rs["tip"] = hand + ax * 2.75
+	place.call()
+	bob.global_position = rs["tip"]
+	# savurma: geri çek, öne fırlat
+	var t := 0.0
+	while t < 0.9:
+		t += get_process_delta_time()
+		rs["pitch"] = lerpf(0.6, 1.9, smoothstep(0.0, 0.4, t)) if t < 0.45 else lerpf(1.9, 0.45, smoothstep(0.45, 0.7, t))
+		place.call()
+		var k = smoothstep(0.5, 0.9, t)
+		bob.global_position = rs["tip"].lerp(sp, k) + Vector3.UP * sin(k * PI) * 1.6
+		_stretch(line, rs["tip"], bob.global_position + Vector3.UP * 0.1)
+		await get_tree().process_frame
+	_splash(sp)
+	# bekleme: şamandıra hafifçe oynar; erken çekme = ürkütme
+	var wait_t = randf_range(1.6, 3.4)
+	var early := false
+	t = 0.0
+	await get_tree().process_frame
+	while t < wait_t:
+		t += get_process_delta_time()
+		place.call()
+		bob.global_position = sp + Vector3.UP * sin(t * 3.0) * 0.02
+		_stretch(line, rs["tip"], bob.global_position + Vector3.UP * 0.1)
+		if t > 0.3 and Input.is_action_just_pressed("interact") and not test_auto:
+			early = true
+			break
+		await get_tree().process_frame
+	if early:
+		Hud.msg("Erken çektin: balık ürktü. Şamandıranın batmasını bekle.", Color(1, 0.85, 0.6))
+	else:
+		# vurdu: şamandıra batar
+		_splash(sp, true)
+		Hud.float_text("ÇEK!  [F]", Color(1, 0.9, 0.4))
+		var win := 1.15
+		t = 0.0
+		while t < win:
+			t += get_process_delta_time()
+			place.call()
+			bob.global_position = sp + Vector3.DOWN * (0.14 + sin(t * 26.0) * 0.04) + Vector3(sin(t * 17.0), 0, cos(t * 13.0)) * 0.06
+			_stretch(line, rs["tip"], bob.global_position + Vector3.UP * 0.1)
+			if Input.is_action_just_pressed("interact") or (test_auto and t > 0.35):
+				caught = true
+				break
+			await get_tree().process_frame
+		if not caught:
+			Hud.msg("Geç kaldın: balık yemi alıp kaçtı.", Color(1, 0.85, 0.6))
+	if caught:
+		# asıl: kamış dikilir, balık sudan fırlar, sepete düşer
+		var ln = randf_range(0.34, 0.56)
+		var fish = _fish_mesh(ln, [Color(0.5, 0.58, 0.66), Color(0.62, 0.5, 0.3), Color(0.42, 0.56, 0.5)].pick_random())
+		add_child(fish)
+		fish.top_level = true
+		fish.global_position = sp
+		_splash(sp, true)
+		var basket: Vector3 = d["basket"]
+		t = 0.0
+		while t < 1.5:
+			t += get_process_delta_time()
+			rs["pitch"] = lerpf(0.45, 1.35, smoothstep(0.0, 0.3, t))
+			place.call()
+			var k = smoothstep(0.0, 0.75, t)
+			var hang: Vector3 = rs["tip"] + Vector3.DOWN * 0.9
+			var fp = sp.lerp(hang, k) + Vector3.UP * sin(k * PI) * 0.8
+			if t > 0.95:
+				var k2 = smoothstep(0.95, 1.45, t)
+				fp = hang.lerp(basket, k2) + Vector3.UP * sin(k2 * PI) * 0.3
+			fish.global_position = fp
+			fish.rotation = Vector3(-PI * 0.5 + sin(t * 30.0) * 0.25, pl.facing, sin(t * 24.0) * 0.4)
+			bob.global_position = fp + Vector3.UP * 0.25
+			_stretch(line, rs["tip"], bob.global_position)
+			await get_tree().process_frame
+		fish.rotation = Vector3(0, randf() * TAU, PI * 0.5)
+		fish.global_position = basket + Vector3(randf_range(-0.1, 0.1), 0.02 * int(d.get("fish_n", 0)), randf_range(-0.1, 0.1))
+		d["fish_n"] = int(d.get("fish_n", 0)) + 1
+		_own(fish, true)
+		Sfx.play("pickup", basket, 0.9, 0.9)
+		Hud.float_text("+1 balık (%d cm)" % int(ln * 100.0), Color(0.6, 1, 0.6))
+		spot.queue_free()
+	rod.queue_free()
+	line.queue_free()
+	bob.queue_free()
+	_clear_pose(pl)
+	it["silent"] = not caught
+	if not caught:
+		await _wait(0.4)
+		Interact.add(it)
+
+
+## Onarım: istiften tahta al, boşluğa yerleştir, çekiçle üç kez çak
+func _act_plank(it: Dictionary) -> void:
+	var pl = Game.player
+	var gap: Node3D = it["node"]
+	var d = job_d
+	var pile: Vector3 = d["pile"]
+	var pp = pile + Vector3(0, 0, 1.3)
+	pp.y = pl.global_position.y
+	await _go_w(pl, pp, 3.0, false, 0.2)
+	_look_at(pl, pile)
+	_pose(pl, "grab_low", {"anim": "idle", "at": pile + Vector3.UP * 0.3, "lift": 0.0})
+	await _wait(0.45)
+	st[pl]["pop"] = st[pl]["t"]
+	Sfx.play("pickup", pile, 0.7, 0.9)
+	var plank = Node3D.new()
+	add_child(plank)
+	plank.top_level = true
+	var pb = MB.new()
+	pb.add("box", Vector3(0, 1.1, 0), Vector3(0.5, 2.2, 0.07), Color(0.82, 0.68, 0.45))
+	pb.add("box", Vector3(0.1, 1.3, 0.036), Vector3(0.04, 0.5, 0.005), Color(0.7, 0.56, 0.36))
+	_part(plank, pb)
+	plank.global_position = pile + Vector3.UP * 0.3
+	plank.rotation = Vector3(PI * 0.5, 0, 0)
+	var t := 0.0
+	while t < 0.5:
+		t += get_process_delta_time()
+		plank.global_position = plank.global_position.lerp(_held(pl) + Vector3.DOWN * 0.1, 0.3)
+		plank.rotation.y = pl.facing
+		await get_tree().process_frame
+	# kucağında taşı
+	var gp = gap.global_position
+	var front = gp + Vector3(0, 0, 0.75)
+	front.y = pl.global_position.y
+	var carry = {"on": true}
+	var follow = func():
+		while carry["on"] and is_instance_valid(plank):
+			plank.global_position = pl.global_position + Vector3.UP * 0.75 * pl.model.age_scale + _fd(pl) * 0.32 - _fd(pl).cross(Vector3.UP).normalized() * 0.9
+			plank.rotation = Vector3(0, pl.facing + PI * 0.5, PI * 0.5)
+			await get_tree().process_frame
+	follow.call()
+	_clear_pose(pl)
+	await _go_w(pl, front, 2.6, false, 0.12)
+	carry["on"] = false
+	_look_at(pl, gp)
+	# yerine kaldır
+	var from = plank.global_position
+	var from_b = plank.global_transform.basis
+	t = 0.0
+	_pose(pl, "give", {"anim": "idle", "w": 0.2})
+	while t < 0.55:
+		t += get_process_delta_time()
+		var k = smoothstep(0.0, 0.55, t)
+		plank.global_transform = Transform3D(from_b.slerp(Basis.IDENTITY, k), from.lerp(gp + Vector3(0, 0.08, 0.04), k))
+		await get_tree().process_frame
+	# çekiç
+	var ham = Node3D.new()
+	pl.model.add_child(ham)
+	var hb = MB.new()
+	hb.add("cyl", Vector3(0, 0, 0), Vector3(0.035, 0.34, 0.035), Color(0.45, 0.32, 0.2), Vector3.ZERO, 5)
+	hb.add("box", Vector3(0, 0.17, 0), Vector3(0.08, 0.08, 0.2), Color(0.35, 0.35, 0.38))
+	_part(ham, hb)
+	for k in 3:
+		var nail = gp + Vector3([-0.12, 0.1, -0.05][k], [1.7, 1.2, 0.6][k], 0.1)
+		_pose(pl, "slap", {"anim": "idle", "at": nail + Vector3(0, 0, 0.12)})
+		t = 0.0
+		while t < 0.46:
+			t += get_process_delta_time()
+			ham.global_position = _bone(pl, "RightHand")
+			ham.global_rotation = Vector3(-0.9 + smoothstep(0.25, 0.42, t) * 1.3, pl.facing, 0)
+			await get_tree().process_frame
+		Sfx.play("hit", nail, 1.5, 0.6)
+		FX.burst(nail, {"amount": 6, "life": 0.3, "size": 0.04, "vmin": 0.6, "vmax": 1.8, "gravity": Vector3(0, -6, 0), "colors": [Color(0.85, 0.75, 0.55, 1), Color(0.85, 0.75, 0.55, 0)]})
+		var nb = MeshInstance3D.new()
+		var nm = SphereMesh.new()
+		nm.radius = 0.022
+		nm.height = 0.03
+		nb.mesh = nm
+		plank.add_child(nb)
+		nb.global_position = nail - Vector3(0, 0, 0.055)
+		plank.global_position.z -= 0.012
+		await _wait(0.16)
+	ham.queue_free()
+	plank.top_level = false
+	var keep = plank.global_transform
+	remove_child(plank)
+	d["root"].add_child(plank)
+	plank.global_transform = keep
+	gap.queue_free()
+
+
+## İnşaat: her [F] bir aşama — tomruğu omuzla, yerine dik / çat, usta çakarken tut. Yapı aşama aşama yükselir.
+func _act_build(it: Dictionary) -> void:
+	var pl = Game.player
+	var d = job_d
+	var root: Node3D = d["root"]
+	var stage = int(d.get("stage", 0))
+	var g: float = d["g"]
+	var c = root.global_position
+	var pile: Vector3 = d["pile"]
+	var pp = pile
+	pp.y = pl.global_position.y
+	await _go_w(pl, pp, 3.0, false, 0.25)
+	_look_at(pl, pile - Vector3(0, 0, 1.2))
+	_pose(pl, "grab_low", {"anim": "idle", "at": pile - Vector3(0, -0.3, 1.0), "lift": 0.0})
+	await _wait(0.5)
+	st[pl]["pop"] = st[pl]["t"]
+	Sfx.play("pickup", pile, 0.6, 1.0)
+	# omuzda tomruk / kalas
+	var log = Node3D.new()
+	add_child(log)
+	log.top_level = true
+	var lb = MB.new()
+	lb.add("cyl", Vector3.ZERO, Vector3(0.24, 2.8, 0.24), Color(0.56, 0.41, 0.27), Vector3(90, 0, 0), 7)
+	lb.add("cyl", Vector3(0, 0, 1.41), Vector3(0.22, 0.01, 0.22), Color(0.8, 0.68, 0.48), Vector3(90, 0, 0), 7)
+	lb.add("cyl", Vector3(0, 0, -1.41), Vector3(0.22, 0.01, 0.22), Color(0.8, 0.68, 0.48), Vector3(90, 0, 0), 7)
+	_part(log, lb)
+	var carry = {"on": true}
+	var follow = func():
+		while carry["on"] and is_instance_valid(log):
+			log.global_position = pl.global_position + Vector3.UP * 1.47 * pl.model.age_scale + _fd(pl).cross(Vector3.UP).normalized() * 0.2
+			log.rotation = Vector3(0.08, pl.facing, 0)
+			await get_tree().process_frame
+	follow.call()
+	_clear_pose(pl)
+	var front = c + Vector3(0, 0, 2.5)
+	front.y = pl.global_position.y
+	await _go_w(pl, front, 2.3, false, 0.15)
+	_look_at(pl, c)
+	carry["on"] = false
+	# usta yardıma gelir
+	var boss = Missions.npcs.get("usta")
+	if is_instance_valid(boss):
+		stop_busy(boss)
+		boss.set_physics_process(false)
+		var bp = c + Vector3(-2.3, 0, 2.3)
+		bp.y = boss.global_position.y
+		_go_w(boss, bp, 2.6, false, 0.2)
+	# aşamanın parçaları yerden yükselir
+	var part = Node3D.new()
+	root.add_child(part)
+	var b = MB.new()
+	var wood = Color(0.6, 0.45, 0.3)
+	var dark = wood.darkened(0.25)
+	match stage:
+		0:
+			for sx in [-1.5, 1.5]:
+				for sz in [-1.5, 1.5]:
+					b.add("cyl", Vector3(sx, g + 1.5, sz), Vector3(0.26, 2.8, 0.26), wood, Vector3.ZERO, 7)
+		1:
+			for k in 4:
+				var a = k * PI * 0.5
+				b.add("box", Vector3(cos(a) * 1.5, g + 2.85, sin(a) * 1.5), Vector3(0.2, 0.2, 3.4), dark, Vector3(0, -rad_to_deg(a), 0))
+				b.add("box", Vector3(cos(a) * 1.5, g + 0.42, sin(a) * 1.5), Vector3(0.16, 0.16, 3.2), dark, Vector3(0, -rad_to_deg(a), 0))
+			b.add("box", Vector3(0, g + 0.5, 0), Vector3(3.0, 0.08, 3.0), Color(0.78, 0.64, 0.44))
+		2:
+			for k in [1, 2, 3]:
+				var a = k * PI * 0.5
+				for j in 5:
+					b.add("box", Vector3(cos(a) * 1.5 - sin(a) * (j - 2) * 0.58, g + 1.65, sin(a) * 1.5 + cos(a) * (j - 2) * 0.58), Vector3(0.06, 2.2, 0.54), Color(0.8, 0.67, 0.46).darkened((j % 2) * 0.06), Vector3(0, -rad_to_deg(a), 0))
+			for sx in [-1.0, 1.0]:
+				b.add("box", Vector3(sx * 1.05, g + 1.65, 1.5), Vector3(0.8, 2.2, 0.06), Color(0.8, 0.67, 0.46))
+		_:
+			b.add("prism", Vector3(0, g + 3.55, 0), Vector3(4.2, 1.3, 4.0), Color(0.36, 0.3, 0.26))
+			for sx in [-1.0, 1.0]:
+				b.add("box", Vector3(sx * 1.05, g + 3.25, 0), Vector3(1.9, 0.05, 4.1), Color(0.3, 0.25, 0.22), Vector3(0, 0, -sx * 31.0))
+			b.add("box", Vector3(0, g + 4.22, 0), Vector3(0.2, 0.14, 4.2), dark)
+	_part(part, b)
+	part.position.y = -3.2 if stage < 3 else 2.5
+	if stage == 3:
+		part.scale = Vector3.ONE * 0.6
+	var from = log.global_position
+	_pose(pl, "give", {"anim": "idle", "w": 0.25})
+	var t := 0.0
+	Sfx.play("pickup", c, 0.5, 1.0)
+	while t < 1.3:
+		t += get_process_delta_time()
+		var k = smoothstep(0.0, 1.3, t)
+		part.position.y = lerpf(-3.2 if stage < 3 else 2.5, 0.0, k)
+		if stage == 3:
+			part.scale = Vector3.ONE * lerpf(0.6, 1.0, k)
+		log.global_position = from.lerp(c + Vector3(0, g + 1.2, 1.5), k)
+		log.scale = Vector3.ONE * (1.0 - k * 0.95)
+		await get_tree().process_frame
+	log.queue_free()
+	FX.burst(c + Vector3(0, g + 0.2, 0), {"amount": 18, "life": 0.7, "size": 0.16, "dir": Vector3.UP, "spread": 80.0, "vmin": 0.8, "vmax": 2.4, "gravity": Vector3(0, -1.0, 0), "colors": [Color(0.6, 0.5, 0.38, 0.7), Color(0.6, 0.5, 0.38, 0)]})
+	# usta çakar, oyuncu tutar
+	if is_instance_valid(boss):
+		_look_at(boss, c)
+	for k in 3:
+		var hp2 = c + Vector3(-1.5, g + 1.2, 1.5)
+		if is_instance_valid(boss):
+			_pose(boss, "slap", {"anim": "idle", "at": hp2})
+		await _wait(0.42)
+		Sfx.play("hit", hp2, 1.3, 0.7)
+		FX.burst(hp2, {"amount": 5, "life": 0.3, "size": 0.04, "vmin": 0.6, "vmax": 1.6, "gravity": Vector3(0, -6, 0), "colors": [Color(0.85, 0.75, 0.55, 1), Color(0.85, 0.75, 0.55, 0)]})
+		await _wait(0.2)
+	if stage == 0:
+		var body = StaticBody3D.new()
+		root.add_child(body)
+		for sx in [-1.5, 1.5]:
+			for sz in [-1.5, 1.5]:
+				var cs = CollisionShape3D.new()
+				var sh = BoxShape3D.new()
+				sh.size = Vector3(0.3, 2.8, 0.3)
+				cs.shape = sh
+				cs.position = Vector3(sx, g + 1.5, sz)
+				body.add_child(cs)
+	if stage == 2:
+		var body2 = StaticBody3D.new()
+		root.add_child(body2)
+		for k in [1, 2, 3]:
+			var a = k * PI * 0.5
+			var cs2 = CollisionShape3D.new()
+			var sh2 = BoxShape3D.new()
+			sh2.size = Vector3(0.12, 2.4, 3.0)
+			cs2.shape = sh2
+			cs2.position = Vector3(cos(a) * 1.5, g + 1.6, sin(a) * 1.5)
+			cs2.rotation.y = -a
+			body2.add_child(cs2)
+	_clear_pose(pl)
+	if is_instance_valid(boss):
+		_clear_pose(boss)
+		_look_at(boss, pl.global_position)
+		_say(boss, ["Direkler dimdik. Şimdi kirişler!", "Güzel, çatkı tamam. Duvar tahtalarını getir!", "Bir çatısı kaldı. Son tomruk!", "İşte bu! Köyün yeni ambarı hazır."][stage], 3.0)
+		boss.set_physics_process(true)
+	d["stage"] = stage + 1
+	if stage + 1 < 4:
+		var nx = Node3D.new()
+		root.add_child(nx)
+		var it2 = {"pos": it["pos"], "radius": it["radius"], "kind": "quest", "label": it["label"], "qkey": it["qkey"], "qi": stage + 1, "work": "build", "node": nx}
+		Interact.add(it2)
+		nx.tree_exiting.connect(func(): Interact.items.erase(it2))
+	(it["node"] as Node3D).queue_free()
+
+
+## Kunai: düz uçar, hedefe saplanır (kalır)
+func _throw_kunai(from: Vector3, to: Vector3, owner_root: Node3D) -> void:
+	var k = Node3D.new()
+	get_tree().current_scene.add_child(k)
+	var kb = MB.new()
+	kb.add("cone", Vector3(0, 0, -0.1), Vector3(0.05, 0.2, 0.014), Color(0.3, 0.3, 0.33), Vector3(-90, 0, 0), 4)
+	kb.add("cyl", Vector3(0, 0, 0.06), Vector3(0.022, 0.12, 0.022), Color(0.85, 0.82, 0.7), Vector3(90, 0, 0), 5)
+	kb.add("cyl", Vector3(0, 0, 0.15), Vector3(0.05, 0.012, 0.05), Color(0.3, 0.3, 0.33), Vector3.ZERO, 6)
+	_part(k, kb)
+	k.global_position = from
+	k.look_at(to, Vector3.UP)
+	Sfx.play("throw", from, 1.2, 0.6)
+	var t := 0.0
+	var dur = from.distance_to(to) / 26.0
+	while t < dur:
+		t += get_process_delta_time()
+		k.global_position = from.lerp(to, minf(1.0, t / dur))
+		await get_tree().process_frame
+	k.global_position = to
+	Sfx.play("hit", to, 1.7, 0.5)
+	var keep = k.global_transform
+	k.get_parent().remove_child(k)
+	owner_root.add_child(k)
+	k.global_transform = keep
+
+
+## Ders: önce sen atarsın (hedefin tam ortası); öğrenci dener, ıskalar; duruşunu düzeltirsin; yeniden atar, tutturur
+func _act_teach(it: Dictionary) -> void:
+	var pl = Game.player
+	var kid: Node3D = it["node"]
+	var d = job_d
+	var i = int(it.get("ti", 0))
+	var tg: Vector3 = d["targets"][i % 3]
+	var root: Node3D = d["root"]
+	var c: Vector3 = d["c"]
+	var line_p = Vector3(tg.x - 0.7, pl.global_position.y, c.z + float(d["line_z"]))
+	await _go_w(pl, line_p, 2.6, false, 0.12)
+	_look_at(pl, tg)
+	_look_at(kid, pl.global_position)
+	_say(pl, ["Önce izle: bilek gevşek, omuz hedefe dönük.", "Nefesini tut, bırakırken at.", "Gözün hedefte, elin gözünü izlesin."][i % 3], 2.4)
+	await _wait(0.5)
+	_pose(pl, "slap", {"anim": "idle", "at": pl.global_position + Vector3.UP * 1.35 + _fd(pl) * 0.75})
+	await _wait(0.34)
+	await _throw_kunai(pl.global_position + Vector3.UP * 1.35 + _fd(pl) * 0.6, tg, root)
+	_clear_pose(pl)
+	await _wait(0.3)
+	# öğrenci çizgiye gelir, atar, ıskalar
+	if kid is QuestNPC:
+		kid.set_physics_process(false)
+	var kp = Vector3(tg.x + 0.5, kid.global_position.y, c.z + float(d["line_z"]))
+	await _go_w(kid, kp, 2.8, false, 0.12)
+	_look_at(kid, tg)
+	_look_at(pl, kid.global_position)
+	var ksc: float = kid.model.age_scale
+	var khand = func(): return kid.global_position + Vector3.UP * 1.3 * ksc + _fd(kid) * 0.5
+	_pose(kid, "slap", {"anim": "idle", "at": khand.call() + _fd(kid) * 0.2})
+	await _wait(0.34)
+	var miss = tg + Vector3([0.42, -0.38, 0.3][i % 3], [0.34, 0.3, -0.42][i % 3], -0.35)
+	await _throw_kunai(khand.call(), miss, root)
+	_clear_pose(kid)
+	_say(kid, ["Ah! Yine kenara gitti...", "Olmuyor işte!", "Neden hep sola kaçıyor?"][i % 3], 2.2)
+	await _wait(0.9)
+	# düzeltme: yanına geç, dirseğini ve omzunu düzelt
+	var side = kid.global_position + _fd(kid).cross(Vector3.UP).normalized() * 0.55 - _fd(kid) * 0.25
+	side.y = pl.global_position.y
+	await _go_w(pl, side, 1.8, false, 0.08)
+	_look_at(pl, kid.global_position)
+	_pose(kid, "slap", {"anim": "idle", "at": khand.call() + Vector3.UP * 0.1})
+	st[kid]["t"] = 0.5
+	var arm = kid.global_position + Vector3.UP * 1.15 * ksc + _fd(kid) * 0.25
+	_pose(pl, "grab_low", {"anim": "idle", "at": arm - Vector3.UP * 0.18, "lift": 0.0})
+	_say(pl, ["Dirseğini içeri al. Böyle.", "Omzun düşmüş, kaldır.", "Ayağını hedefe çevir, sonra kolunu."][i % 3], 2.2)
+	var t := 0.0
+	while t < 1.5:
+		t += get_process_delta_time()
+		if st.has(kid):
+			st[kid]["t"] = 0.5   # kol havada, atış anında donuk
+		await get_tree().process_frame
+	_clear_pose(pl)
+	var back = side - _fd(kid) * 0.9
+	await _go_w(pl, back, 1.6, false, 0.1)
+	_look_at(pl, tg)
+	_pose(kid, "slap", {"anim": "idle", "at": khand.call() + _fd(kid) * 0.2})
+	await _wait(0.34)
+	await _throw_kunai(khand.call(), tg + Vector3(0.05, 0.04, 0), root)
+	_clear_pose(kid)
+	FX.burst(tg, {"amount": 10, "life": 0.4, "size": 0.05, "vmin": 0.8, "vmax": 2.2, "gravity": Vector3(0, -5, 0), "colors": [Color(1, 0.9, 0.5, 1), Color(1, 0.9, 0.5, 0)]})
+	_look_at(kid, pl.global_position)
+	_pose(kid, "cheer", {"anim": "idle", "ph": 0.0})
+	_say(kid, ["Tam ortasından! Gördün mü sensei?!", "Oldu! OLDU!", "Bir daha, bir daha atayım!"][i % 3], 2.6)
+	await _wait(1.4)
+	kid.set_meta("taught", true)
+	var kd = kid
+	get_tree().create_timer(2.6).timeout.connect(func():
+		if is_instance_valid(kd):
+			_clear_pose(kd)
+			kd.model.play("idle", 0.3))

@@ -61,12 +61,13 @@ const ESCORT := [
 	["Elçi Mektubu", "Daimyō elçisi %s gizli bir mektup taşıyor.", "Mektubun içeriğini sorma. Sadece beni oraya ulaştır.", "Görev tamam. Daimyō bu hizmeti unutmaz."],
 ]
 const RESCUE := [
-	["Kaçırılan Çırak", "Demircinin çırağı %s haydutlarca kaçırıldı."],
-	["Kayıp Avcı", "Avcı %s günlerdir dönmedi; bir kampta esir tutulduğu söyleniyor."],
-	["Rehin Tüccar", "Tüccar %s fidye için kaçırıldı."],
-	["Kaçırılan Şifacı", "Köyün tek şifacısı %s yaralı haydutları tedavi etsin diye kaçırıldı."],
-	["Kayıp Öğrenci", "Akademi öğrencisi %s gizli antrenmana çıktı ve bir çeteye yakalandı."],
-	["Esir Muhabir", "Gezgin muhabir %s bir çetenin sırlarını öğrenince yakalandı."],
+	# başlık, özet, köyde bekleyen yakını, kavuşunca rehinenin sözü, yakınının sözü, teşekkür
+	["Kaçırılan Çırak", "Demircinin çırağı %s haydutlarca kaçırıldı.", "Demirci", "Usta!", "Evlat! Örsün başı sensiz bomboştu...", "Çırağımı sağ getirdin. Körüğü yeniden yakarız artık. Al, hak ettin."],
+	["Kayıp Avcı", "Avcı %s günlerdir dönmedi; bir kampta esir tutulduğu söyleniyor.", "Avcının Eşi", "Döndüm, buradayım!", "Günlerdir kapıda bekliyorum... Döndün!", "Onu bana geri getirdin. Evde ne varsa topladım, lütfen al."],
+	["Rehin Tüccar", "Tüccar %s fidye için kaçırıldı.", "Tüccarın Kardeşi", "Kardeşim!", "Fidyeyi toplayamamıştık... Yaşıyorsun!", "Fidyeye ayırdığımız para senin hakkın. Al."],
+	["Kaçırılan Şifacı", "Köyün tek şifacısı %s yaralı haydutları tedavi etsin diye kaçırıldı.", "Muhtar", "Muhtar, hastalar nasıl?", "Şifacımız döndü! Hastalar seni bekliyor.", "Köy şifacısız kalsaydı kışı çıkaramazdık. Herkes bir şeyler koydu, al."],
+	["Kayıp Öğrenci", "Akademi öğrencisi %s gizli antrenmana çıktı ve bir çeteye yakalandı.", "Akademi Hocası", "Sensei!", "Seni afacan! Bir daha izinsiz çıkmak yok... İyi ki sağsın.", "Öğrencimi kurtardın. Bu, hocaların kendi arasında topladığı. Kabul et."],
+	["Esir Muhabir", "Gezgin muhabir %s bir çetenin sırlarını öğrenince yakalandı.", "Matbaacı", "Usta, haberi kaçırmadım!", "Haber de neymiş, canın sağ ya!", "Yarınki baskının ilk satırı senin adın olacak. Bu da emeğinin karşılığı."],
 ]
 const CHASE := [
 	["Yankesici", "Pazarda bir yankesici %s'in kesesini çaldı!", "Yankesici"],
@@ -186,7 +187,7 @@ static func _one(here: String, r: String, rng: RandomNumberGenerator) -> Diction
 		"rescue":
 			var rs: Array = _rand(RESCUE, rng)
 			var h = _name(rng)
-			sp.merge({"t": rs[0], "b": rs[1] % h + " Esir tutulduğu kamp %s yakınında." % _rand(PLACES, rng), "hostage": h, "n": {"C": 3, "B": 4, "A": 5}.get(r, 4),
+			sp.merge({"t": rs[0], "b": rs[1] % h + " Esir tutulduğu kamp %s yakınında." % _rand(PLACES, rng), "hostage": h, "kin": "%s %s" % [rs[2], _name(rng)], "k1": rs[3], "k2": rs[4], "s2": rs[5], "n": {"C": 3, "B": 4, "A": 5}.get(r, 4),
 				"s": "Geldin! İpleri çöz, buradan gidelim!"})
 		"patrol":
 			sp.merge({"t": "%s Devriyesi" % String(_rand(PLACES, rng)).capitalize(), "b": "Son günlerde %s çevresinde şüpheli izler görüldü. Devriye rotasını yürü." % _rand(PLACES, rng),

@@ -43,7 +43,7 @@ static func P(id) -> Dictionary:
 
 
 static func _ok(p: Dictionary) -> bool:
-	return not p.is_empty() and WorldPeople.alive(p) and not WorldPeople.is_rogue(p)
+	return not p.is_empty() and WorldPeople.alive(p) and not WorldPeople.is_rogue(p) and not p.get("missing", false)
 
 
 static func spouse_of(p: Dictionary) -> Dictionary:

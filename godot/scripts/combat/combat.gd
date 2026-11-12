@@ -263,6 +263,9 @@ func foe_count(cap: int) -> int:
 func hostile(a: Node, b: Node) -> bool:
 	if a == b or b == null or a == null:
 		return false
+	if a is Prey or b is Prey:   # av hayvanı: yalnız oyuncu (ve klonu / çağrısı) avlar; köy takımları, haydutlar karışmaz
+		var o = b if a is Prey else a
+		return o == Game.player or o is ShadowClone or (o is Summon and o.get("owner_f") == Game.player)
 	var ta = a.get("team"); var tb = b.get("team")
 	if ta == null or tb == null:
 		return false

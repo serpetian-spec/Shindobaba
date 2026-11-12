@@ -761,4 +761,281 @@ func _ready() -> void:
 			_camw(n8.global_position + Vector3(0.9, 1.0, 1.9), n8.global_position + Vector3(0, 0.5, 0))
 			await _shot("spots_%d_done" % k)
 			print("MW spot done ", k, " t=", snappedf(t8, 0.1))
+	if "clues2" in which:
+		var cks = ["rice", "vial", "rag", "bag", "puppet", "clay", "receipt", "sandal", "skin", "needle"]
+		var base3 = MissionWork.I().clear_spot(pl.global_position + Vector3(20, 0, 0), 9.0, 4.0, 80.0)
+		for k in cks.size():
+			var q = base3 + Vector3((k % 5 - 2) * 2.6, 0, (k / 5) * 4.0 - 2.0)
+			MissionWork.I().make("clue", q, 0.0, k, "[F] İzi incele", {"clue": k, "ck": cks[k], "find": MissionWork.clue_find(cks[k])})
+		pl.global_position = base3 + Vector3(0, 0.3, 9)
+		await get_tree().create_timer(1.0).timeout
+		for k in cks.size():
+			var q = base3 + Vector3((k % 5 - 2) * 2.6, 0, (k / 5) * 4.0 - 2.0)
+			_camw(q + Vector3(0.5, 1.5, 1.9), q + Vector3(0, 0.1, 0))
+			await _shot("clues2_%02d_%s" % [k, cks[k]])
+		var itc = Interact.items.filter(func(x): return x.get("ck", "") == "puppet")[0]
+		pl.global_position = itc["node"].global_position + Vector3(0.3, 0.2, 1.6)
+		await get_tree().create_timer(0.3).timeout
+		MissionWork.I().run(itc)
+		await get_tree().create_timer(1.0).timeout
+		_camw(itc["node"].global_position + Vector3(2.0, 1.2, 1.6), itc["node"].global_position + Vector3(0, 0.5, 0.4))
+		await _shot("clues2_examine")
+		await _wait_work()
+
+	if "sites2" in which:
+		var kinds = ["well_poisoned", "barn_robbed", "stable_burnt", "workbench", "notice"]
+		var base4 = pl.global_position + Vector3(30, 0, 0)
+		for k in kinds.size():
+			var sd2: Dictionary = MissionWork.I().site(kinds[k], base4 + Vector3(k * 14.0, 0, 0))
+			var r2: Node3D = sd2["root"]
+			var who = Missions._make_npc(Missions._npc("s%d" % k, "Mağdur", "merchant"), sd2["npc_at"])
+			MissionWork.I().place_worker(who, sd2["npc_at"], sd2["face"])
+			MissionWork.I().busy(who, "fret")
+			pl.global_position = r2.global_position + Vector3(0, 0.3, 9)
+			await get_tree().create_timer(0.8).timeout
+			print("MW site ", kinds[k], " at=", r2.global_position, " npc d=", snappedf(who.global_position.distance_to(r2.global_position), 0.1))
+			_camw(r2.global_position + Vector3(3.6, 2.6, 5.6), r2.global_position + Vector3.UP * 1.0)
+			await _shot("sites2_%s_a" % kinds[k])
+			_camw(r2.global_position + Vector3(-4.2, 1.8, 3.4), r2.global_position + Vector3.UP * 1.0)
+			await _shot("sites2_%s_b" % kinds[k])
+
+	if "spots2" in which:
+		var labs2 = ["[F] Hücre kabını aç ve nakle gir", "[F] Zirvede bulutları ısıt"]
+		var base5 = MissionWork.I().clear_spot(Missions._w(Missions._spot(vid, 150, 300)), 6.0, 4.0, 80.0)
+		for k in labs2.size():
+			MissionWork.I().make("spot", base5 + Vector3((k - 0.5) * 6.0, 0, 0), 0.0, k, labs2[k], {"style": MissionWork.spot_class(labs2[k])})
+			print("MW spot2 ", labs2[k], " -> ", MissionWork.spot_class(labs2[k]))
+		for k in labs2.size():
+			var it9 = Interact.items.filter(func(x): return x.get("work", "") == "spot" and x.get("label", "") == labs2[k])[0]
+			var n9: Node3D = it9["node"]
+			pl.global_position = n9.global_position + Vector3(0.3, 0.2, 2.2)
+			await get_tree().create_timer(0.5).timeout
+			_camw(n9.global_position + Vector3(1.6, 1.4, 2.6), n9.global_position + Vector3(0, 0.9, 0))
+			await _shot("spots2_%d_idle" % k)
+			MissionWork.I().run(it9)
+			var t9 := 0.0
+			var j9 := 0
+			var times9 = [0.9, 1.6, 2.6, 3.4] if k == 0 else [0.7, 0.95, 1.5, 2.3]
+			while MissionWork.active() and t9 < 9.0:
+				if j9 < times9.size() and t9 >= times9[j9]:
+					if k == 1 and j9 >= 2:
+						_camw(n9.global_position + Vector3(12.0, 2.0, 26.0), n9.global_position + Vector3(0, 24.0, 0))
+					else:
+						_camw(n9.global_position + Vector3(2.2 if j9 % 2 == 0 else -2.2, 1.4, 2.4), n9.global_position + Vector3(0, 1.0, 0.6))
+					await _shot("spots2_%d_%d" % [k, j9])
+					j9 += 1
+				t9 += 0.05
+				await get_tree().create_timer(0.05).timeout
+			print("MW spot2 done ", k, " t=", snappedf(t9, 0.1))
+
+	if "poolresc" in which:
+		var rng2 = RandomNumberGenerator.new()
+		rng2.seed = 11
+		var sp2 = {}
+		for k in 200:
+			sp2 = MissionGen._one(vid, "C", rng2)
+			if sp2.get("p", "") == "rescue":
+				break
+		var q2 = Missions._from_spec(vid, sp2)
+		print("MW poolresc spec kin=", sp2.get("kin"), " steps=", q2["steps"].map(func(x): return x["kind"]))
+		await _start(q2, "C")
+		await get_tree().create_timer(1.0).timeout
+		print("MW poolresc lair=", Missions.st.get("lair"), " lair_h=", Missions.active().get("lair_h"))
+		var h3 = Missions.npcs.get("rehine")
+		if h3 == null:
+			# in: kapıdan gir, rehine içeride
+			var door3 = Interact.items.filter(func(x): return String(x.get("room", "")).begins_with("lair_"))
+			print("MW poolresc doors=", door3.size())
+			if not door3.is_empty():
+				pl.global_position = door3[0]["pos"] + Vector3(0, 0.3, 0)
+				await get_tree().create_timer(0.3).timeout
+				Interiors.inst.enter(door3[0])
+				await get_tree().create_timer(2.5).timeout
+				h3 = Missions.npcs.get("rehine")
+		print("MW poolresc hostage=", h3 != null, " inside=", Interiors.inst.inside if Interiors.inst else "?")
+		for e in Missions.step_nodes:
+			if is_instance_valid(e) and e is Enemy:
+				e.queue_free()
+		await get_tree().create_timer(0.2).timeout
+		Missions._next_step()
+		await get_tree().create_timer(0.5).timeout
+		if h3:
+			pl.global_position = h3.global_position + h3.face_dir() * 1.8 + Vector3.UP * 0.2
+			await get_tree().create_timer(0.4).timeout
+			_camw(h3.global_position + h3.face_dir() * 2.6 + Vector3(1.0, 1.2, 0), h3.global_position + Vector3.UP * 0.6)
+			await _shot("poolresc_bound")
+			Missions._after_talk(h3, Missions._cur())
+			await _wait_work()
+			await get_tree().create_timer(0.5).timeout
+			print("MW poolresc mode=", h3.mode, " step=", Missions._cur().get("text"))
+			if Interiors.inst and Interiors.inst.inside != "":
+				Interiors.inst.exit()
+				await get_tree().create_timer(2.5).timeout
+				print("MW poolresc out: host-player d=", snappedf(h3.global_position.distance_to(pl.global_position), 0.1), " host y-ground=", snappedf(h3.global_position.y - Game.ground_height(h3.global_position.x, h3.global_position.z), 0.1))
+			var kin3 = Missions.npcs.get("yakin")
+			print("MW poolresc kin=", kin3 != null, " name=", kin3.display if kin3 else "")
+			if kin3:
+				pl.global_position = kin3.global_position + kin3.face_dir() * 1.7 + Vector3.UP * 0.2
+				h3.global_position = kin3.global_position + kin3.face_dir() * 3.5 + Vector3(1.5, 0.2, 0)
+				await get_tree().create_timer(0.5).timeout
+				kin3.talk()
+				await get_tree().create_timer(0.2).timeout
+				Missions._after_talk(kin3, Missions._cur())
+				for i in 4:
+					await get_tree().create_timer(1.2).timeout
+					if not is_instance_valid(kin3) or not is_instance_valid(h3):
+						break
+					var c6 = (h3.global_position + kin3.global_position) * 0.5
+					var d6 = (h3.global_position - kin3.global_position)
+					d6.y = 0
+					_camw(c6 + d6.normalized().cross(Vector3.UP) * 2.8 + Vector3.UP * 1.3, c6 + Vector3.UP * 1.0)
+					await _shot("poolresc_reunion_%d" % i)
+				await _wait_work()
+				await get_tree().create_timer(0.5).timeout
+				print("MW poolresc done=", Missions.active().is_empty())
+
+	if "poolinv" in which:
+		var rng3 = RandomNumberGenerator.new()
+		for sd3 in [3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 15, 16]:
+			rng3.seed = sd3
+			var sp3 = {}
+			for k in 300:
+				sp3 = MissionGen._one(vid, "C", rng3)
+				if sp3.get("p", "") == "investigate":
+					break
+			var q3 = Missions._from_spec(vid, sp3)
+			print("MW poolinv ", sp3["t"], " item=", sp3["item"], " site=", q3["steps"][0].get("site", "-"), " clues=", q3["steps"][3].get("clues"))
+		for lp in (MissionLocal.POOL.get("suna", []) as Array) + (MissionLocal.POOL.get("iwa", []) as Array) + (MissionLocal.POOL.get("ame", []) as Array):
+			if lp["p"] == "investigate":
+				var q4 = Missions._from_spec(vid, lp)
+				print("MW poolinv local ", lp["t"], " site=", q4["steps"][0].get("site", "-"), " clues=", q4["steps"][3].get("clues"))
+		rng3.seed = 3
+		var sp5 = {}
+		for k in 300:
+			sp5 = MissionGen._one(vid, "C", rng3)
+			if sp5.get("p", "") == "investigate":
+				break
+		await _start(Missions._from_spec(vid, sp5), "C")
+		await get_tree().create_timer(1.0).timeout
+		await _npc_shots("veren", "poolinv_victim", 1)
+		for k in 3:
+			if Missions._cur().get("kind", "") == "collect":
+				break
+			Missions._next_step()
+			await get_tree().create_timer(0.4).timeout
+		var cl2 = _works("clue")
+		print("MW poolinv step=", Missions._cur().get("text"), " clues=", cl2.size(), " kinds=", cl2.map(func(x): return x.get("ck")))
+		for k in cl2.size():
+			await _do(cl2[k], "poolinv_clue%d" % k, [1.2] if k == 1 else [])
+			await _wait_work()
+			await get_tree().create_timer(0.3).timeout
+		print("MW poolinv after clues step=", Missions._cur().get("kind"), " ", Missions._cur().get("text"))
+
+	if "snake" in which or "puppet" in which:
+		Game.profile["rank"] = 5
+		var ts = Missions._templates("S", vid)
+		print("MW S titles=", ts.map(func(x): return x["title"]))
+		for q5 in ts:
+			if ("snake" in which and "Yılan" in q5["title"]) or ("puppet" in which and "Kukla" in q5["title"]):
+				await _start(q5, "S")
+				await get_tree().create_timer(1.0).timeout
+				main.world.env.time_of_day = 0.45
+				var first = "anne" if "Yılan" in q5["title"] else "tanik"
+				await _npc_shots(first, "S_%s" % first, 1)
+				if Missions._cur().get("kind", "") != "collect":
+					Missions._next_step()
+					await get_tree().create_timer(0.6).timeout
+				var cl3 = _works("clue")
+				print("MW S clues=", cl3.size(), " kinds=", cl3.map(func(x): return x.get("ck")), " step=", Missions._cur().get("text"))
+				for k in cl3.size():
+					await _do(cl3[k], "S_%s_clue%d" % [first, k], [1.2])
+					await _wait_work()
+					await get_tree().create_timer(0.3).timeout
+				main.world.env.time_of_day = 0.45
+				print("MW S after clues step=", Missions._cur().get("kind"), " ", Missions._cur().get("text"), " lair=", Missions.st.get("lair"), " lair_h=", Missions.active().get("lair_h"))
+				if first == "tanik":
+					var bs = Missions.step_nodes.filter(func(x): return is_instance_valid(x) and x is Boss)
+					print("MW S boss=", bs.size())
+					for b2 in bs:
+						b2.queue_free()
+					Missions._next_step()
+					await get_tree().create_timer(0.5).timeout
+					print("MW S puppet step=", Missions._cur().get("text"), " npc=", is_instance_valid(Missions.npcs.get("tanik")))
+					await _talk_scene("S_tanik_pay", 2)
+					print("MW S puppet done=", Missions.active().is_empty())
+					continue
+				var door4 = Interact.items.filter(func(x): return String(x.get("room", "")).begins_with("lair_"))
+				print("MW S doors=", door4.size())
+				if door4.is_empty():
+					continue
+				pl.global_position = door4[0]["pos"] + Vector3(0, 0.3, 0)
+				await get_tree().create_timer(0.3).timeout
+				Interiors.inst.enter(door4[0])
+				await get_tree().create_timer(2.5).timeout
+				var kid2 = Missions.npcs.get("rehine")
+				print("MW S inside=", Interiors.inst.inside, " kid=", kid2 != null, " enemies=", Missions.step_nodes.filter(func(x): return is_instance_valid(x) and x is Enemy).size())
+				if kid2 == null:
+					continue
+				print("MW S kid pos rel=", kid2.global_position - Interiors.inst.origin, " bound=", MissionWork.I().bound_d.has(kid2))
+				for e in Missions.step_nodes:
+					if is_instance_valid(e) and e is Enemy:
+						e.queue_free()
+				await get_tree().create_timer(0.2).timeout
+				pl.global_position = kid2.global_position + kid2.face_dir() * 2.2 + Vector3.UP * 0.2
+				await get_tree().create_timer(0.5).timeout
+				_camw(kid2.global_position + kid2.face_dir() * 3.2 + Vector3(1.4, 1.3, 0), kid2.global_position + Vector3.UP * 0.5)
+				await _shot("S_kid_bound")
+				# içeriden çıkıp geri gir: rehine saklanıp yeniden görünmeli
+				Interiors.inst.exit()
+				await get_tree().create_timer(2.5).timeout
+				print("MW S out: kid vis=", kid2.visible, " valid=", is_instance_valid(kid2))
+				Interiors.inst.enter(door4[0])
+				await get_tree().create_timer(2.5).timeout
+				print("MW S re-in: kid vis=", kid2.visible, " same=", Missions.npcs.get("rehine") == kid2)
+				for e in Missions.step_nodes:
+					if is_instance_valid(e) and e is Enemy:
+						e.queue_free()
+				Missions._next_step()
+				await get_tree().create_timer(1.0).timeout
+				print("MW S talk step=", Missions._cur().get("text"), " kid valid=", is_instance_valid(kid2), " same=", Missions.npcs.get("rehine") == kid2)
+				pl.global_position = kid2.global_position + kid2.face_dir() * 1.8 + Vector3.UP * 0.2
+				await get_tree().create_timer(0.4).timeout
+				Missions._after_talk(kid2, Missions._cur())
+				await get_tree().create_timer(1.6).timeout
+				_camw(kid2.global_position + kid2.face_dir() * 2.4 + Vector3(1.2, 1.1, 0), kid2.global_position + Vector3.UP * 0.5)
+				await _shot("S_kid_untie")
+				await _wait_work()
+				await get_tree().create_timer(0.5).timeout
+				print("MW S kid mode=", kid2.mode, " step=", Missions._cur().get("text"))
+				Interiors.inst.exit()
+				await get_tree().create_timer(3.0).timeout
+				print("MW S out2: kid-player d=", snappedf(kid2.global_position.distance_to(pl.global_position), 0.1), " kid y-ground=", snappedf(kid2.global_position.y - Game.ground_height(kid2.global_position.x, kid2.global_position.z), 0.1))
+				var mom2 = Missions.npcs.get("anne")
+				print("MW S mom=", mom2 != null and is_instance_valid(mom2))
+				if mom2 and is_instance_valid(mom2):
+					pl.global_position = mom2.global_position + mom2.face_dir() * 1.7 + Vector3.UP * 0.2
+					kid2.global_position = mom2.global_position + mom2.face_dir() * 3.5 + Vector3(1.5, 0.2, 0)
+					await get_tree().create_timer(0.6).timeout
+					mom2.talk()
+					await get_tree().create_timer(0.2).timeout
+					Missions._after_talk(mom2, Missions._cur())
+					for i in 3:
+						await get_tree().create_timer(1.3).timeout
+						if not is_instance_valid(mom2) or not is_instance_valid(kid2):
+							break
+						var c7 = (kid2.global_position + mom2.global_position) * 0.5
+						var d7 = (kid2.global_position - mom2.global_position)
+						d7.y = 0
+						_camw(c7 + d7.normalized().cross(Vector3.UP) * 2.8 + Vector3.UP * 1.3, c7 + Vector3.UP * 0.9)
+						await _shot("S_reunion_%d" % i)
+					await _wait_work()
+					await get_tree().create_timer(0.5).timeout
+					for w in 40:
+						if Missions.active().is_empty():
+							break
+						await get_tree().create_timer(0.5).timeout
+						if w % 8 == 0:
+							print("MW S wait w=", w, " work=", MissionWork.active(), " busy_run=", MissionWork.I().busy_run, " step=", Missions._cur().get("text"), " dlg=", Hud.dialog_open() if Hud.has_method("dialog_open") else "?")
+					print("MW S snake done=", Missions.active().is_empty())
+
 	get_tree().quit()

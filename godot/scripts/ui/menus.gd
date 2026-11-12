@@ -2732,6 +2732,15 @@ static func mission_board(village_id: String) -> void:
 			tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 			tw.tween_interval(0.05 * i)
 			tw.tween_property(sc, "modulate:a", 1.0, 0.2)
+	# son haberler: almadığın ilanlara kim gitti, ne oldu
+	var nw: Array = WorldNews.recent()
+	if not nw.is_empty():
+		var news = UI.label("Son haber:  " + String(nw[nw.size() - 1]), 13, Color(1, 0.86, 0.6), HORIZONTAL_ALIGNMENT_CENTER)
+		news.set_anchors_preset(Control.PRESET_CENTER_TOP)
+		news.position = Vector2(-560, 78)
+		news.size = Vector2(1120, 20)
+		news.clip_text = true
+		board.add_child(news)
 	_close_button(bg, func(): Hud.close_dialog())
 
 
@@ -2770,6 +2779,13 @@ static func _hanging_scroll(m: Dictionary, cb: Callable) -> Button:
 	t.position = Vector2(20, 104)
 	t.size = Vector2(160, 80)
 	b.add_child(t)
+	if m.get("dyn", false):
+		# dünyada olmuş bir olay: süresi dolarsa başka takım gider
+		var dl = UI.label("◆ olay  •  ~%d dk" % maxi(1, WorldNews.left_min(String(m.get("news", "")))), 12, Color(0.7, 0.12, 0.08), HORIZONTAL_ALIGNMENT_CENTER, true)
+		dl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
+		dl.position = Vector2(20, 186)
+		dl.size = Vector2(160, 16)
+		b.add_child(dl)
 	if m.get("local", false):
 		var loc = UI.label("★ köye özgü", 12, Color(0.6, 0.15, 0.1), HORIZONTAL_ALIGNMENT_CENTER, true)
 		loc.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
