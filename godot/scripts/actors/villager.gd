@@ -69,6 +69,10 @@ var bubble_t := 0.0
 var kick_t := -1.0
 var nav := {}               # NpcNav durumu (engelden dolaşma, takılma)
 var fading := false
+var dest := Vector3.INF      # uzun yol hedefi (kapı, görev masası): sokak noktalarından geçerek gider, varınca kaybolur
+var follow: Node3D = null    # takım: liderin arkasında yürür
+var follow_off := Vector3.ZERO
+var bow_t := 0.0
 
 
 func _ready() -> void:
@@ -138,7 +142,10 @@ func _ready() -> void:
 	# rol kıyafet seti (özel görünüm verilmişse — Kage, ANBU... — dokunma)
 	if look_extra.is_empty():
 		lk.merge(Outfits.roll(_outfit_arch(), Outfits.village_near()), true)
+	if look_extra.get("whole", false):
+		lk = {}   # gerçek kişi (dünya ninjası): rol kalıbından hiçbir şey sızmaz
 	lk.merge(look_extra, true)
+	lk.erase("whole")
 	Aging.dress_civil(lk, {"builder": 0.9, "farmer": 0.7, "trainee": 0.6, "teacher": 0.5, "vendor": 0.1, "keeper": 0.1, "drunk": 0.0}.get(role, 0.25), role == "sitter")
 	if look_extra.is_empty():
 		lk["npc"] = true   # CharacterModel: hazır saç önbelleğini tercih et (kurulum donması olmasın)
@@ -205,6 +212,10 @@ func talk() -> void:
 	line = Talk.fit(self, Talk.localize(String(line)))
 	if fid != "" and Friends.all().has(fid):
 		line = Friends.greeting(fid)
+	elif has_meta("world_person"):
+		var rg: Dictionary = WorldDay.regard_node(self)
+		if String(rg.get("k", "")) in ["nefret", "minnet", "kage"]:
+			line = String(rg["line"])   # aranızda yaşanan, sıradan sözün önüne geçer
 	var extra = []
 	if has_meta("jinchuriki_of"):   # köyün jinchūriki'si: saldırılabilir; yenilince canavar bedeninden fışkırır (mühürle / salıver)
 		extra.append({"label": "Saldır! (içindeki canavarı al — köyde suç)", "cb": func(): TailedBeasts.attack_host(self)})
@@ -223,6 +234,13 @@ func say(text: String, dur := 2.6) -> void:
 		bubble.outline_modulate = Color(0.08, 0.06, 0.06)
 		add_child(bubble)
 	bubble.position = Vector3(0, 2.15 * (model.age_scale if model else 1.0), 0)
+	# uzun söz: satıra bölünür ve küçülür (tek satır ekrandan taşıyordu)
+	var long = text.length() > 26
+	bubble.font_size = 34 if long else 56
+	if long and name_tag != null:
+		bubble.position.y += 0.75   # ad etiketinin üstünde dursun
+	bubble.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if long else TextServer.AUTOWRAP_OFF
+	bubble.width = 520.0
 	bubble.text = text
 	bubble.visible = true
 	bubble_t = dur
@@ -288,7 +306,7 @@ func _physics_process(dt: float) -> void:
 		return
 	var pl = Game.player
 	var dist = global_position.distance_to(pl.global_position)
-	if dist > 65.0:
+	if dist > (100.0 if role == "team" else 65.0):
 		# uzaktakiler: animasyon ve hareket durur (performans)
 		if model.anim.is_playing():
 			# durdurmadan önce mevcut kareyi iskelete uygula (yoksa yeni doğan NPC T-pozda kalır)
@@ -357,6 +375,9 @@ func _physics_process(dt: float) -> void:
 		"teacher", "nurse":
 			_wander_small(dt)
 			return
+	if follow != null:
+		_follow(dt)
+		return
 	if wait > 0.0:
 		wait -= dt
 		step_move(Vector3.ZERO, dt)
@@ -379,6 +400,58 @@ func _physics_process(dt: float) -> void:
 	model.play("run" if speed > 5.0 else "walk", 0.2, 0.75 if role == "drunk" else 1.0)
 	if NpcNav.stuck(self, goal, dt):
 		_unstick(dist)
+
+
+## Takım üyesi: liderin arkasındaki yerini tutar; lider gidince o da gider
+func _follow(dt: float) -> void:
+	if not is_instance_valid(follow) or follow.fading:
+		vanish()
+		return
+	var f: float = follow.facing
+	var want = follow.global_position + Vector3(sin(f), 0, cos(f)) * follow_off.z + Vector3(cos(f), 0, -sin(f)) * follow_off.x
+	var tv = want - global_position
+	tv.y = 0
+	if tv.length() < 0.4:
+		step_move(Vector3.ZERO, dt)
+		model.play("idle", 0.3)
+		return
+	step_move(NpcNav.steer(self, tv.normalized(), dt) * minf(speed * 1.3, tv.length() * 2.5 + 0.6), dt)
+	model.play("walk", 0.2)
+
+
+## Uzun yol: hedefe yaklaştıran, düz hattı açık sokak noktası; hedef yakınsa doğrudan
+func _dest_goal() -> void:
+	wait = 0.0
+	var dd = dest - global_position
+	dd.y = 0
+	var left = dd.length()
+	if left < 3.0:
+		vanish()
+		return
+	var cands: Array = []
+	if left < 45.0:
+		cands.append(dest)
+	var near: Array = []
+	for q in points:
+		var qp: Vector3 = q["front"] if q is Dictionary else q
+		var dq = qp.distance_to(global_position)
+		if dq > 10.0 and dq < 55.0 and qp.distance_to(dest) < left - 6.0:
+			near.append(qp)
+	near.sort_custom(func(a, b): return a.distance_to(dest) < b.distance_to(dest))
+	cands.append_array(near.slice(0, 6))
+	var pq = NpcNav.pick_clear(self, cands)
+	if pq != null:
+		goal = pq
+	else:
+		# sokak noktası yok: hedef yönünde yelpaze, düz hattı açık ilk yön (binaya doğru yürüyüp duvar boyunca sürüklenmesin)
+		var base = dd.normalized()
+		goal = global_position + base * minf(left, 28.0)
+		for ang in [0.0, 0.5, -0.5, 1.0, -1.0, 1.5, -1.5]:
+			var q = global_position + base.rotated(Vector3.UP, ang) * minf(left, 26.0)
+			if NpcNav.ray_clear(self, global_position, q):
+				goal = q
+				break
+	NpcNav.reset(self)
 
 
 func _wander_small(dt: float) -> void:
@@ -418,6 +491,10 @@ func _social(dt: float, dist: float) -> void:
 		bubble_t -= dt
 		if bubble_t <= 0.0:
 			bubble.visible = false
+	if bow_t > 0.0:
+		bow_t -= dt
+		if bow_t <= 0.0:
+			model.overlay.set_pose("bow", 0.0)
 	var pl = Game.player
 	var pv = Vector2(pl.velocity.x, pl.velocity.z).length()
 	if dist < radius + 0.8 and pv > 6.5 and bump_cd <= 0.0 and role != "roof":
@@ -430,10 +507,48 @@ func _social(dt: float, dist: float) -> void:
 		wait = maxf(wait, 0.8)
 		anim_t = maxf(anim_t, 0.8)
 		return
+	if dist < 5.5 and greet_cd <= 0.0 and has_meta("world_person") and not has_meta("friend_id") and role != "roof" and follow == null:
+		# dünya ninjası seni tanır: yaşananlara göre eğilir, sırtını döner ya da adınla seslenir
+		greet_cd = randf_range(45.0, 80.0)
+		var rg: Dictionary = WorldDay.regard_node(self)
+		if not rg.is_empty():
+			react(rg)
+			return
 	if dist < 4.5 and greet_cd <= 0.0 and role not in ["roof", "spar", "student"]:
 		greet_cd = randf_range(20.0, 40.0)
 		if randf() < 0.35:
 			say(_greeting())
+
+
+## Sana tepki: söz + beden (eğilme / sırt çevirme)
+func react(rg: Dictionary) -> void:
+	say(String(rg["line"]), 3.6)
+	var to = Game.player.global_position - global_position
+	to.y = 0
+	if role in ["sitter", "customer"] or to.length() < 0.1:
+		return
+	match String(rg.get("act", "")):
+		"bow":
+			facing = atan2(-to.x, -to.z)
+			if not fixed_face:
+				stand_face = facing
+			model.rotation.y = facing
+			model.overlay.set_pose("bow", 1.0)
+			bow_t = 1.7
+			wait = maxf(wait, 2.4)
+			anim_t = maxf(anim_t, 2.4)
+		"turn":
+			facing = atan2(to.x, to.z)
+			if not fixed_face:
+				stand_face = facing
+			model.rotation.y = facing
+			wait = maxf(wait, 3.0)
+			anim_t = maxf(anim_t, 3.0)
+		_:
+			if role != "spar":
+				facing = atan2(-to.x, -to.z)
+				model.rotation.y = facing
+				wait = maxf(wait, 1.8)
 
 
 func _greeting() -> String:
@@ -598,6 +713,9 @@ func kick_ball() -> void:
 
 
 func _new_goal() -> void:
+	if dest != Vector3.INF:
+		_dest_goal()
+		return
 	match role:
 		"kid":
 			# kovalamaca: ev noktası etrafında hızlı koşuşturma (düz hattı açık nokta)
@@ -642,6 +760,13 @@ func _new_goal() -> void:
 ## sıkışıksa oraya yerleş (duvara yapışık kalmasın)
 func _unstick(dist: float) -> void:
 	var k = int(nav.get("n", 0))
+	if dest != Vector3.INF:
+		if k >= 4:
+			vanish()
+		else:
+			_new_goal()
+			nav["n"] = k
+		return
 	if going_home:
 		if k >= 2:
 			vanish()  # kapıya ulaşamadı: yine de "eve girdi"

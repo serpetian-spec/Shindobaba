@@ -407,6 +407,10 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 				a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 				var sh2 = _mmi(node, Props.vegetation_shadow(t, vi), buf, n, 0.0, minf(near_end, 200.0))
 				sh2.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+				if t in [9, 5]:
+					# orman devleri: gölge OPAK atılır. Yaprak kartlarının saydamlık kesmeli gölgesi ormanda ekran kartı süresinin
+					# ~%40'ıydı (16 -> 10 ms); sık ormanda zemin zaten baştan sona gölgede, görüntü aynı
+					sh2.material_override = _shadow_mat()
 		if has_lod and not lod_done.has(t):
 			lod_done[t] = true
 			var all_buf := PackedFloat32Array()
@@ -460,6 +464,17 @@ func _proxy(t: int) -> ArrayMesh:
 	var m = b.build(Props.foliage())
 	_proxies[t] = m
 	return m
+
+
+var _sh_mat: StandardMaterial3D
+
+
+func _shadow_mat() -> StandardMaterial3D:
+	if _sh_mat == null:
+		_sh_mat = StandardMaterial3D.new()
+		_sh_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		_sh_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	return _sh_mat
 
 
 func _mmi(parent: Node3D, mesh: Mesh, buf: PackedFloat32Array, n: int, begin: float, end: float) -> MultiMeshInstance3D:

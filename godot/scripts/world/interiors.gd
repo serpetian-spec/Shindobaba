@@ -1339,7 +1339,10 @@ func _hospital() -> void:
 				bx(x + sx * 0.92, 0.22, d + sz * 0.42, 0.05, 0.44, 0.05, Color(0.6, 0.6, 0.65))
 		bx(x - 1.3, 1.6, d + 0.9, 0.04, 2.6, 0.04, Color(0.7, 0.7, 0.72))
 		bx(x - 1.3, 1.5, d + 0.6, 0.02, 1.8, 0.65, Color(0.78, 0.88, 0.9))
-		if k % 2 == 0:
+		var sick: Dictionary = WorldDay.patient(String(door.get("vid", WorldDay.village_of(origin))), k)
+		if not sick.is_empty():
+			person("patient", x - 1.15, d, -90.0, String(sick["name"]), WorldDay.lines(sick, "hasta"), {"look_extra": WorldDay.dress(sick, "hasta")["look_extra"]})
+		elif k % 2 == 0:
 			person("patient", x - 1.15, d, -90.0, "Hasta", ["Bir görevde kolumu kırdım...", "Tıbbi ninjalar mucize yaratıyor."])
 	shelf(-W * 0.5 + 0.3, 8.5, 4.0, 1.6, 1.0, [Color(0.95, 0.95, 0.95), Color(0.5, 0.75, 0.55), Color(0.8, 0.4, 0.35)])
 	for k in 3:

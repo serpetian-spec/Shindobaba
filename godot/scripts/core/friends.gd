@@ -203,6 +203,8 @@ static func options_for(v: Node) -> Array:
 		return SchoolVisit.opts(v)   # akademi avlusundaki çocuğun
 	if String(v.role) == "kid" and v.interior:
 		return HomeLife.kid_opts(v)   # kendi çocuğun: dersler, oyun
+	if v.has_meta("world_person"):
+		return [{"label": "Kendini tanıt", "cb": func(): WorldDay.meet(v)}]   # dünya ninjası: gerçek kimliğiyle tanışılır
 	if not is_ninja(v):
 		return []   # sıradan köylüler, çocuklar, özel kişiler (Kage, hocalar) dost/takım olmaz
 	return [{"label": "Kendini tanıt", "cb": func(): _meet(v)}]

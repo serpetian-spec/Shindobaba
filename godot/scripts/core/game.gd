@@ -682,6 +682,16 @@ func apply_graphics() -> void:
 		if env.post:
 			env.post.visible = bool(settings["outline"])
 		env.set_dreamy(bool(settings.get("dreamy", true)))
+		# dolgu yükü (yaprak kartları üst üste biner: ormanda kare hızını çözünürlük + kenar yumuşatma + ortam gölgesi belirler):
+		# Yüksek aynen; Orta'da kenar yumuşatma hafif yönteme geçer, ortam gölgesi kapanır; Düşük'te ayrıca %75 çözünürlük
+		var vp = world.get_viewport()
+		if vp:
+			vp.msaa_3d = Viewport.MSAA_2X if q == 2 else Viewport.MSAA_DISABLED
+			vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED if q == 2 else Viewport.SCREEN_SPACE_AA_FXAA
+			vp.scaling_3d_scale = 0.75 if q == 0 else 1.0
+		var ee = env.get("env")
+		if ee:
+			ee.ssao_enabled = q == 2
 	var grass = world.get_node_or_null("Grass")
 	if grass:
 		grass.visible = q > 0

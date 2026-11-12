@@ -218,6 +218,7 @@ func mission_done(m: Dictionary, ok: bool) -> void:
 			var q = WorldPeople.get_p(String(inc.get("kin", "")))
 			if not q.is_empty() and WorldPeople.alive(q):
 				q["grief"] = false   # yasını tutabildi: acısı köyüne öfkeye dönmez
+				q["band_by_player"] = true
 				WorldPeople.log_event(q, "%s alın bandı %s tarafından geri getirildi" % [sfx(String(p.get("name", "Yakını")), "in"), me])
 		"fire":
 			headline("%s: yangın %s sayesinde büyümeden söndürüldü." % [vn, me], Color(0.7, 1.0, 0.7))

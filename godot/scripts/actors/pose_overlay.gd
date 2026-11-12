@@ -94,6 +94,7 @@ func _ready() -> void:
 			"LeftUpperArm": e.call(0, 0, 0), "RightUpperArm": e.call(0, 0, 0),
 			"_LeftArmBack": 1, "Chest": e.call(18, 0, 0), "Neck": e.call(-15, 0, 0),
 		},
+		"bow": {"Spine": e.call(26, 0, 0), "Chest": e.call(20, 0, 0), "Neck": e.call(12, 0, 0)},   # selam: belden eğilme
 		"seal": {"_Seal": 1},
 		"kick": {"_Kick": 1},
 		"guard": {"_Guard": 1},
@@ -140,6 +141,12 @@ func _process_modification() -> void:
 		_flat_hand(sk, "Right", Vector3(-0.2, -0.16, -0.97), w_run)
 		_add_local(sk, "Spine", Vector3(deg_to_rad(16), 0, 0), w_run)
 		_add_local(sk, "Neck", Vector3(deg_to_rad(-14), 0, 0), w_run)
+	var w_bow: float = weights.get("bow", 0.0)
+	if w_bow > 0.0:
+		# selam: belden öne eğilir, baş da iner
+		_add_local(sk, "Spine", Vector3(deg_to_rad(24), 0, 0), w_bow)
+		_add_local(sk, "Chest", Vector3(deg_to_rad(14), 0, 0), w_bow)
+		_add_local(sk, "Neck", Vector3(deg_to_rad(8), 0, 0), w_bow)
 	_t += dt
 	var w_charge: float = weights.get("charge", 0.0)
 	if w_charge > 0.0:

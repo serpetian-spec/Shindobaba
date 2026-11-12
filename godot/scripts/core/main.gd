@@ -594,10 +594,31 @@ var _vram_t := -100.0
 
 
 ## Loga dakikada bir ekran belleği satırı (çöküş loglarında "kart doldu mu, ne zaman" görülsün)
+var _fps_n := 0
+var _fps_t := 0.0
+var _fps_worst := 0.0
+
+
 func _vram_log(dt: float) -> void:
+	_fps_n += 1
+	_fps_t += dt
+	_fps_worst = maxf(_fps_worst, dt)
 	_vram_t -= dt
 	if _vram_t > 0.0:
 		return
+	if _fps_t > 5.0 and mode == "game" and player:
+		# kare hızı + nerede (köy / biyom) + ayar: "nerede kasıyor" loglardan okunsun
+		var pp = player.global_position
+		var vid = WorldDay.village_of(pp)
+		var where = vid if vid != "" else ("biyom %d" % int(Game.biome_at(pp.x, pp.z)))
+		if Interiors.inst and Interiors.inst.inside != "":
+			where = "iç mekân " + String(Interiors.inst.inside)
+		var ws = get_window().size
+		print("FPS %d dk: ort %.0f, en uzun kare %.0f ms | %s | kalite %d, görüş %.2f | %dx%d" % [int(Time.get_ticks_msec() / 60000.0), _fps_n / _fps_t, _fps_worst * 1000.0, where,
+			int(Game.settings.get("quality", 2)), float(Game.settings.get("view", 1.0)), ws.x, ws.y])
+	_fps_n = 0
+	_fps_t = 0.0
+	_fps_worst = 0.0
 	var first = _vram_t < -50.0
 	_vram_t = 60.0 if not first else 20.0
 	var mb = 1048576.0

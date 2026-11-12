@@ -34,6 +34,7 @@ func _ready() -> void:
 	interiors.name = "Interiors"
 	add_child(interiors)
 	_add_village_trainers()
+	WorldDay.vl = self
 
 
 func _village_at(p: Vector3) -> Dictionary:
@@ -163,6 +164,7 @@ func _process(dt: float) -> void:
 		phase = new_phase
 		if phase == "aksam" or phase == "gece":
 			_send_home(v)
+		_world_shift(p)
 	# uzaklaşanları temizle (karede birkaç tane). Köy içindeyken uzaklaşan sokak NPC'si silinmez,
 	# oyuncunun yakınına taşınır (_recycle): koşarken her karede yeni karakter modeli kurmak (25-130 ms) takılma yapıyordu
 	var freed = 0
@@ -271,6 +273,8 @@ func _recycle(n: Node3D, streets: Array, roofs: Array, p: Vector3, prefiltered :
 	if n is Villager:
 		if n.fading or n.going_home or n.role in ["shopper"]:
 			return false
+		if n.has_meta("world_person") and not WorldDay.still(n):
+			return false   # günün dilimi değişti: artık başka yerde
 		if n.role == "roof":
 			var nr: Array = roofs.filter(func(q): return q.distance_to(p) < 110.0 and q.distance_to(p) > 40.0)
 			if nr.size() < 4:
@@ -364,6 +368,35 @@ func _send_home(v: Dictionary) -> void:
 			n.wait = 0.0
 
 
+## Günün dilimi değişti: işi biten dünya ninjaları çekilir (sokaktakiler evine yürür; uzaktaki mekânlar yeni kişilerle açılır)
+func _world_shift(p: Vector3) -> void:
+	var ds: Array = doors.get(current, [])
+	for n in npcs:
+		if is_instance_valid(n) and n is Villager and n.has_meta("world_person") and not n.fading and not WorldDay.still(n):
+			if ds.is_empty() or n.role == "roof":
+				if n.global_position.distance_to(p) > 30.0:
+					n.vanish()
+				continue
+			var best: Vector3 = ds[0]
+			for k in 12:
+				var q: Vector3 = ds.pick_random()
+				if q.distance_to(n.global_position) < best.distance_to(n.global_position):
+					best = q
+			n.role = "walker"
+			n.going_home = true
+			n.goal = best
+			n.wait = 0.0
+	for key in active_sites.keys():
+		var info: Dictionary = active_sites[key]
+		if (info["site"]["pos"] as Vector3).distance_to(p) < 30.0:
+			continue
+		if (info["nodes"] as Array).any(func(n): return is_instance_valid(n) and n is Villager and n.has_meta("world_person") and not WorldDay.still(n)):
+			for n in info["nodes"]:
+				if is_instance_valid(n):
+					n.queue_free()
+			active_sites.erase(key)
+
+
 func _pick_role() -> String:
 	var roles: Array = PHASE_ROLES[phase]
 	var total = 0
@@ -418,6 +451,14 @@ func _site_pos(vid: String, type: String) -> Vector3:
 
 
 func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", fid := "") -> Villager:
+	# bu işi şu an yapan gerçek bir dünya ninjası varsa o gelir (adı, yüzü, hayatı kendi)
+	var wp := {}
+	var wact = String(WorldDay.ROLE_ACT.get(role, ""))
+	if wact != "" and fid == "" and not extra.has("look_extra") and not extra.has("display_override"):
+		wp = WorldDay.cast(WorldDay.village_of(at), wact, at)
+		if not wp.is_empty():
+			extra = extra.duplicate()
+			extra.merge(WorldDay.dress(wp, wact), true)
 	var vg = Villager.new()
 	vg.role = role
 	vg.points = pts
@@ -432,7 +473,10 @@ func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", f
 	at.y = Game.ground_height(at.x, at.z) if role != "roof" else at.y
 	vg.global_position = at
 	vg.home = at
+	vg.goal = at   # _ready konum verilmeden çalışır: hedef dünya sıfırında kalıyor, herkes ilk anda oraya yürüyordu
 	npcs.append(vg)
+	if not wp.is_empty():
+		WorldDay.on_stage(wp, vg, wact)
 	return vg
 
 
@@ -545,6 +589,7 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 			if n != vg and n is Villager and n.role == "spar":
 				n.buddy = vg
 				vg.buddy = n
+				WorldDay.paired(n, vg)
 	if role == "ball" and d.has("game") and is_instance_valid(d["game"]):
 		d["game"].kids.append(vg)
 

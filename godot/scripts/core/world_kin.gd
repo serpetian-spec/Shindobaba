@@ -302,6 +302,8 @@ static func couple_in(vid2: String) -> Array:
 		var sp = spouse_of(p)
 		if not _ok(sp):
 			continue
+		if [p, sp].any(func(q): return WorldDay.away(q) or WorldDay.hurt(q) or WorldDay.staged(String(q["id"])) != null):
+			continue   # biri görevde / hastanede / köyde başka işte
 		if kids_of(p).any(func(k): return float(k["age"]) >= KID_WALK):
 			best.append([p, sp])
 		else:
@@ -337,7 +339,7 @@ static func _villager(p: Dictionary, at: Vector3, lines: Array) -> Villager:
 	m.home = at
 	m.goal = at
 	m.set_physics_process(false)
-	m.set_meta("world_person", String(p["id"]))
+	WorldDay.on_stage(p, m, "takim")   # aynı kişi köyde ikinci kez doğmasın; tanışılabilir
 	return m
 
 

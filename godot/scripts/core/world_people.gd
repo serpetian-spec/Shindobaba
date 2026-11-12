@@ -59,6 +59,7 @@ func _process(dt: float) -> void:
 	Aging.tick(dt)
 	WorldKin.tick(dt)
 	WorldNews.tick(dt)
+	WorldDay.tick(dt)
 	_t -= dt
 	if _t > 0.0:
 		return
@@ -257,8 +258,8 @@ func world_tick() -> void:
 
 
 static func _life(p: Dictionary) -> void:
-	if p.get("missing", false):
-		return   # kayıp: kaderi WorldNews'te (kurtarılır ya da ölür)
+	if p.get("missing", false) or p.has("run"):
+		return   # kayıp: kaderi WorldNews'te (kurtarılır ya da ölür); görevde: kaderi dönüşte (WorldDay)
 	var r = randf()
 	var rank = int(p["rank"])
 	if is_rogue(p):
@@ -279,10 +280,7 @@ static func _life(p: Dictionary) -> void:
 			_second_element(p)
 			_learn(p)
 			log_event(p, "İkinci doğasını uyandırdı (%s)" % ", ".join(p["els"]))
-	elif r < 0.33:
-		if not WorldNews.went_missing(p):
-			_die(p, "Bir görevden dönmedi")
-	elif r < 0.33 + _defect_p(p):
+	elif r < 0.30 + _defect_p(p):   # görev ölümleri artık yaşanan görevden gelir (WorldDay.resolve)
 		defect(p, _defect_reason(p))
 	elif r < 0.37 and _try_path(p):
 		pass
@@ -290,8 +288,6 @@ static func _life(p: Dictionary) -> void:
 		pass
 	elif r < 0.62:
 		WorldKin.life(p)   # evlilik, çocuk
-	elif r < 0.66:
-		log_event(p, ["Bir A-rütbe görevi tamamladı", "Sınırda bir çatışmadan sağ döndü", "Bir daimyo kervanını korudu", "Genin takımı eğitti"][randi() % 4])
 
 
 static func _make_look_keep(p: Dictionary) -> Dictionary:
@@ -324,6 +320,7 @@ static func _die(p: Dictionary, why: String) -> void:
 	p["missing"] = false
 	log_event(p, why)
 	WorldKin.on_death(p)   # aile yası, intikam
+	WorldDay.on_death(p, why)
 	WorldNews.on_death(p, why)
 	var cid = String(p.get("close", ""))
 	if cid == "" or not all().has(cid):
