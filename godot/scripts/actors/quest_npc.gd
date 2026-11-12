@@ -24,6 +24,7 @@ func _ready() -> void:
 	if look.is_empty():
 		look = Outfits.roll("civ", Outfits.village_near())
 		look.merge({"gender": ["m", "f"].pick_random(), "hair_style": ["kısa", "uzun", "kase"].pick_random(), "age": "adult"}, true)
+	Aging.dress_civil(look)
 	super._ready()
 	add_to_group("talkers")
 	if team == "neutral":

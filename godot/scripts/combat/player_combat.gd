@@ -11,7 +11,7 @@ const COMBO := [
 	{"anim": "hook", "speed": 1.6, "hit": 0.16, "dur": 0.4, "dmg": 4.8, "reach": 1.4, "lunge": 4.5, "knock": 3.0},
 	{"anim": "idle", "kick": true, "speed": 1.0, "hit": 0.14, "dur": 0.38, "dmg": 5.4, "reach": 1.7, "lunge": 5.0, "knock": 4.0},
 	{"anim": "hook", "speed": 1.75, "hit": 0.15, "dur": 0.38, "dmg": 5.0, "reach": 1.4, "lunge": 4.5, "knock": 3.0},
-	{"anim": "slash_c", "speed": 1.4, "hit": 0.22, "dur": 0.6, "dmg": 9.0, "reach": 1.8, "lunge": 6.0, "knock": 16.0, "launch": 5.0, "heavy": true},
+	{"anim": "fin_c", "speed": 1.4, "hit": 0.22, "dur": 0.6, "dmg": 9.0, "reach": 1.8, "lunge": 6.0, "knock": 16.0, "launch": 5.0, "heavy": true},
 ]
 ## 6 vuruşluk kombo, 5 elemanlı eski listeler (silah stili animasyonları, Samehada/Gunbai anahtarları) için indeks:
 ## 5. vuruş 2. vuruşun tekrarı, 6. vuruş (bitiriş) listenin sonu
@@ -368,20 +368,25 @@ func _do_attack(dt: float) -> bool:
 	# hedefe atıl (homing)
 	if t < c["hit"]:
 		var lunge: float = c["lunge"]
+		var stand = maxf(0.6, float(c["reach"]) * 0.55)   # vuruş mesafesi: yumruk kol boyunda, bitiriş bir adım geride durur (hedefin içine girmez)
+		var near: float = float(c["reach"]) * 0.8
+		if String(c["anim"]) == "fin_c":   # yumruk bitirişi yerinde klip: gövdeyi kapsül taşır, kol boyuna kadar sokulur
+			stand = 0.6
+			near = 0.6
 		if tgt:
 			var dist = tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius
 			if dist > 5.0:
 				pass   # uzaktaki hedefe kayarak yaklaşmak yok (savaşta Shift'siz koşu gibi görünüyordu): normal adım
-			elif dist > c["reach"] * 0.8 and float(c["lunge"]) > 0.0:   # lunge 0: yerinde (Samehada dönüşü kaymasın)
-				lunge = minf(9.0, dist / maxf(0.05, c["hit"] - t) * 0.9)
+			elif dist > near and float(c["lunge"]) > 0.0:   # lunge 0: yerinde (Samehada dönüşü kaymasın)
+				lunge = minf(9.0, maxf(0.0, dist - stand) / maxf(0.05, c["hit"] - t))
 			else:
 				lunge = 0.0
-		var rv0: Vector3 = p.model.overlay.root_vel if (tgt == null or tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius > 0.9) else Vector3.ZERO   # hedefe değince adım durur (içinden geçmesin)
+		var rv0: Vector3 = p.model.overlay.root_vel if (tgt == null or tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius > maxf(0.9, stand)) else Vector3.ZERO   # hedefe değince adım durur (içinden geçmesin)
 		var v = p.face_dir() * lunge + rv0   # adımla ilerleme: basan ayak yerinde kalır
 		p.velocity.x = v.x; p.velocity.z = v.z
 	else:
 		var rv: Vector3 = p.model.overlay.root_vel
-		if tgt and tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius < 0.9:
+		if tgt and tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius < maxf(0.9, float(c["reach"]) * 0.55):
 			rv = Vector3.ZERO
 		if rv.length() > 0.05:
 			p.velocity.x = rv.x; p.velocity.z = rv.z
@@ -425,6 +430,7 @@ func _do_attack(dt: float) -> bool:
 			_on_hit_fx(pt, c)
 			var armed_m = String(Gear.weapon(Game.profile).get("style", "fist")) != "fist" and bool(Game.profile.get("weapon_drawn", false))
 			Mastery.gain(Game.profile, "kenjutsu" if armed_m else "taijutsu", 0.02 * hits.size())
+			Aging.train(0.0015 * hits.size())
 			for h in hits:
 				Progress.on_hit_landed(h)
 				_special_hit(h, pt, c)

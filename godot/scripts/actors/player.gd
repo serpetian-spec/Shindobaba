@@ -119,6 +119,7 @@ func _ready() -> void:
 
 
 func spend_stamina(n: float) -> void:
+	Aging.effort(n)
 	stamina = maxf(0.0, stamina - n)
 	_stam_rest = 0.0
 
@@ -1303,6 +1304,8 @@ static func age_for_rank(rank: int) -> String:
 func _look_with_age() -> Dictionary:
 	var look: Dictionary = (Game.profile.get("look", {}) if not Game.profile.is_empty() else {}).duplicate()
 	look["age"] = age_for_rank(int(Game.profile.get("rank", 0)))
+	if not Game.profile.is_empty():
+		Aging.dress_player(look)
 	look["own_hair"] = true   # oyuncunun seçtiği saç (NPC saç eşlemesi uygulanmaz)
 	return look
 

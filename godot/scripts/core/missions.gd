@@ -871,6 +871,8 @@ func board_limits(vid: String) -> Dictionary:
 
 ## Görev masası verisi: [{id, title, rank, village, giver, brief, objectives, rewards{ryo,xp,gear_chance,rep}, local, steps}]
 func board_missions(vid: String, refresh := false) -> Array:
+	if vid == RogueJobs.BOARD:
+		return RogueJobs.board(refresh)   # yeraltı panosu
 	var now = Time.get_ticks_msec()
 	if not refresh and _boards.has(vid) and now - int(_boards[vid]["t"]) < 600000 and int(_boards[vid]["rank"]) == int(Game.profile["rank"]) and _boards[vid].get("ranks", []) == board_limits(vid)["ranks"] and int(_boards[vid].get("stamp", 0)) == WorldNews.stamp(vid):
 		# en yüksek rütbeli görev alındıysa (terfi şartı: ör. 3 A-rank) pano beklemeden yenilenir
@@ -1154,6 +1156,8 @@ func _begin_step() -> void:
 		if tod > 0.25 and tod < 0.78:
 			Game.world.env.time_of_day = 0.86
 			Hud.msg("Gece çökmesini bekledin...", Color(0.7, 0.8, 1.0))
+	if s.has("setup"):
+		MissionWork.I().call_deferred("step_setup", String(s["setup"]), s)
 	var root = get_tree().current_scene
 	match s["kind"]:
 		"goto":
@@ -1387,11 +1391,13 @@ func _begin_step() -> void:
 						MissionWork.I().place_worker(own, fd2["npc_at"], fd2["face"])
 						MissionWork.I().busy(own, "fret")
 						MissionWork.I()._say(own, "Yardım edin! Çocuğum içeride!", 4.0)
-			if String(s.get("work", "")) in ["fish", "plank", "build", "teach"]:
+			if String(s.get("work", "")) in ["fish", "plank", "build", "teach", "block", "stash", "cage", "pack", "decoy", "rob"]:
 				s["n0"] = int(s.get("n0", s["n"]))
 				s["n"] = MissionWork.I().job_begin(String(s["work"]), int(s["n0"]), s["label"])
 				if is_instance_valid(MissionWork.inst.job_d.get("root")):
 					target_marker = MissionWork.inst.job_d["root"].global_position
+			if String(s.get("work", "")) == "haul":
+				MissionWork.I().haul_begin(s["label"])
 			if String(s.get("work", "")) == "hunt":
 				MissionWork.I().hunt_begin(c, int(s["n"]), s["label"], String(s.get("prey", "")))
 			if String(s.get("work", "")) == "lamp":
@@ -2326,6 +2332,8 @@ func complete() -> void:
 	if m.get("flags", {}).get("wrong", false):
 		bonus -= 0.25
 	var ryo = int(rw[0] * bonus)
+	if m.get("no_pay", false):
+		ryo = 0   # parası iş içinde elden ödendi
 	_cleanup()
 	Game.profile["active_mission"] = {}
 	Game.profile["missions_done"][m["rank"]] = int(Game.profile["missions_done"].get(m["rank"], 0)) + 1
@@ -2363,6 +2371,9 @@ func _call_hook(hk: String, m: Dictionary, ok: bool) -> void:
 		n = Friends.inst()
 	if n == null and parts[0] == "RogueBonds":
 		n = RogueBonds.new()
+	if parts[0] == "RogueJobs":
+		RogueJobs.done(m, ok)
+		return
 	if n == null and parts[0] == "WorldNews":
 		WorldNews.new().mission_done(m, ok)   # düğüm değil: ertelenmiş çağrıya kadar yaşamaz
 		return
@@ -2579,7 +2590,19 @@ func on_quest_talk(npc: QuestNPC) -> bool:
 				if c.has("search"):
 					Hud.close_dialog()
 					await MissionWork.I().search_pack(npc, String(c["search"]))   # bohçayı açtır
-				Hud.dialog(npc.display, c.get("reply", ""), [{"label": "Devam", "cb": func():
+				# kaçak işleri: rüşvet (kese yetmezse tutmaz), küfe araması, kafa tutma
+				var bad: bool = c.get("fight", false)
+				if c.has("cost"):
+					if int(Game.profile.get("ryo", 0)) >= int(c["cost"]):
+						Progress.add_ryo(-int(c["cost"]))
+					else:
+						bad = true
+				if c.get("inspect", false):
+					Hud.close_dialog()
+					bad = not await MissionWork.I().inspect_load(npc)
+				if c.has("pass_flag") and not bad:
+					m["flags"][String(c["pass_flag"])] = true
+				Hud.dialog(npc.display, String(c.get("reply_bad", c.get("reply", ""))) if bad else String(c.get("reply", "")), [{"label": "Devam", "cb": func():
 					if not c.get("ok", true) and c.get("wrong", "") == "ambush":
 						_spawn("rogue", npc.global_position + Vector3(6, 0, 6), 3, 6.0)   # tek güçlü suikastçı
 						Hud.banner("PUSU!", "Casus olduğunu sandılar!", Color(1, 0.4, 0.3))
@@ -2604,7 +2627,7 @@ func _after_talk(npc: QuestNPC, s: Dictionary) -> void:
 		npc.team = "player"
 	if s.has("give") and is_instance_valid(npc):
 		await MissionWork.I().give(npc, String(s["give"]))   # elden teslim
-	if is_instance_valid(npc) and is_instance_valid(MissionWork.inst) and MissionWork.inst.rider_kind == "load":
+	if is_instance_valid(npc) and is_instance_valid(MissionWork.inst) and MissionWork.inst.rider_kind == "load" and not s.get("keep_load", false):
 		await MissionWork.inst.unload(npc)   # küfeyi önüne indir
 	if s.has("pay") and is_instance_valid(npc):
 		await MissionWork.I().receive(npc, String(s["pay"]))   # teşekkür / ödeme elden

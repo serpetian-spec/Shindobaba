@@ -14,6 +14,7 @@ uniform float shade_floor = 0.5;   // karakter gölgesi (dünyadan biraz açık:
 // Byakugan: gözlerin çevresinde, şakaklara uzanan kabarık damarlar (yüz derisi)
 uniform float byakugan_veins = 0.0;
 uniform float seal_marks = 0.0;
+uniform float age_lines = 0.0;    // yaş çizgileri 0..1: önce burun-ağız çizgisi, sonra göz altı, alın, göz kenarı
 uniform float juin_marks = 0.0;   // lanet mührü: yüze yayılan kara alev lekeleri   // Byakugō / Sōzō Saisei: alında elmas + yanaklarda kara mühür çizgileri
 uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
 uniform vec3 eye_c_l = vec3(0.032, 1.62, 0.08);
@@ -73,6 +74,23 @@ void fragment() {
 		float j = fract(sin(dot(floor(lp.xy * 70.0), vec2(12.9898, 78.233))) * 43758.5453);
 		float band = sin(lp.x * 120.0 + lp.y * 40.0) * 0.5 + 0.5;
 		if (lp.y < ec2.y + 0.02 && abs(lp.x - ec2.x) > 0.02 && band > 0.55 && j > 0.25 && lp.z > ec2.z - 0.06) c = mix(c, vec3(0.04, 0.02, 0.05), juin_marks);
+	}
+	if (age_lines > 0.0) {
+		vec3 ea = (eye_c_r + eye_c_l) * 0.5;
+		float aax = abs(lp.x - ea.x);
+		float ay = lp.y - ea.y;
+		float ln = 0.0;
+		if (lp.z > ea.z - 0.05) {
+			float k1 = smoothstep(0.1, 0.35, age_lines);
+			if (ay < -0.030 && ay > -0.058) ln = max(ln, k1 * (1.0 - smoothstep(0.0006, 0.0014, abs(aax - (0.015 + (-0.030 - ay) * 0.34 + (-0.030 - ay) * (-0.030 - ay) * 6.0)))));
+			float k2 = smoothstep(0.3, 0.55, age_lines);
+			if (aax > 0.019 && aax < 0.041) ln = max(ln, k2 * (1.0 - smoothstep(0.0005, 0.0012, abs(ay + 0.0165 - (aax - 0.030) * (aax - 0.030) * 14.0))));
+			float k3 = smoothstep(0.5, 0.75, age_lines);
+			if (ay > 0.040 && ay < 0.076 && aax < 0.042 - (ay - 0.040) * 0.3) ln = max(ln, k3 * (1.0 - smoothstep(0.06, 0.13, abs(fract((ay + aax * aax * 3.0) * 82.0) - 0.5))));
+			float k4 = smoothstep(0.65, 0.9, age_lines);
+			if (aax > 0.050 && aax < 0.063 && abs(ay) < 0.013) ln = max(ln, k4 * (1.0 - smoothstep(0.07, 0.14, abs(fract((ay - (aax - 0.050) * 0.6 * sign(ay)) * 105.0) - 0.5))));
+		}
+		c = mix(c, c * vec3(0.6, 0.47, 0.45), ln * 0.75);
 	}
 	if (seal_marks > 0.0) {
 		vec3 ec = (eye_c_r + eye_c_l) * 0.5;

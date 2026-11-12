@@ -425,7 +425,8 @@ func _ready() -> void:
 				_camw(sc + Vector3(5.5, 2.6, 6.0), sc + Vector3.UP * 2.2)
 				await _shot("beacon_lit")
 				await get_tree().create_timer(3.0).timeout
-				_camw(sc + Vector3(5.0, 1.2, 6.0), sc + Vector3.UP * 6.5)
+				await get_tree().create_timer(5.0).timeout
+				_camw(sc + Vector3(7.0, 2.0, 8.5), sc + Vector3.UP * 7.0)
 				await _shot("beacon_far")
 			await _wait_work()
 			print("MN beacon ", i, " lit=", W.sites[key].get("lit", false), " step=", Missions.active().get("step", -1))

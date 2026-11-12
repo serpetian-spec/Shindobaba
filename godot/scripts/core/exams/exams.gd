@@ -122,7 +122,7 @@ func spawn_teammates(at: Vector3, n := 2, level := 8) -> Array:
 		a["look"]["hair_style"] = nm[2]
 		a["look"]["band"] = hi["band"]
 		a["look"]["village"] = Progress.home()
-		a["look"]["age"] = Player.age_for_rank(int(p().get("rank", 1)))   # sınav takım arkadaşları oyuncuyla yaşıt
+		a["look"]["age"] = Aging.player_stage()   # sınav takım arkadaşları oyuncuyla yaşıt
 		e.setup(a)
 		e.team = "player"
 		e.set_meta("teammate", true)

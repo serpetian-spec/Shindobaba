@@ -15,6 +15,15 @@ var bulk := {}          # kemik -> kalınlık (Gōsuiwan: kol kasları suyla şi
 var fist := {}          # "Left"/"Right" -> 0..1 yumruk (parmaklar avuca kıvrılır; Bubun Baika dev yumruğu)
 var grow := {}          # kemik -> düzgün büyüme (Akimichi Bubun Baika / Chōharite: gerçek kol ve el devleşir; çocuk kemikler de büyür)
 var leg_len = 1.0       # çocuk: kısa bacaklar (model yere indirilir)
+# vücut tipi (Aging / CharacterModel.apply_shape): gerçek kemik ölçeği, yaş oranlarının üstüne çarpılır
+var b_arm = 1.0         # kol kalınlığı
+var b_leg = 1.0         # bacak kalınlığı
+var b_chest = 1.0       # omuz / üst göğüs genişliği
+var b_rib = 1.0         # göğüs kafesi
+var b_belly := Vector2.ONE   # bel: (yan, ön-arka)
+var b_neck = 1.0
+var b_face = 1.0        # yüz dolgunluğu
+var stoop = 0.0         # yaşlılık kamburu (radyan)
 var foot_pitch = 0.0    # VRoid kadın ayağı (topuklu ayakkabı kalıbı): ayağı düzle (derece)
 var toe_pitch = 0.0     # VRoid: içe aktarıcı ayak parmağı kemiğini yükseltiyor; parmakları yere indirir (derece)
 ## Jutsu atma koreografisi (CastAnim her kare doldurur):
@@ -179,10 +188,35 @@ func _process_modification() -> void:
 		hit_t += dt
 		_hit_pose(sk)
 	# yaş oranları (kemik ölçeği çocuk kemiklere de geçer: saç/bant kafayla büyür)
-	if head_scale != 1.0:
+	var shaped = b_arm != 1.0 or b_leg != 1.0 or b_chest != 1.0 or b_rib != 1.0 or b_belly != Vector2.ONE or b_neck != 1.0 or b_face != 1.0
+	if head_scale != 1.0 or shaped:
 		var hb = sk.find_bone("Head")
 		if hb >= 0:
-			sk.set_bone_pose_scale(hb, Vector3.ONE * head_scale / chest_scale)
+			var hx = head_scale * b_face / (chest_scale * b_neck)
+			sk.set_bone_pose_scale(hb, Vector3(hx, head_scale / chest_scale, hx))
+	if shaped:
+		# bel -> göğüs kafesi -> boyun: her kemik üstündekinin ölçeğini geri alır, kendi payını koyar
+		var sp_i = sk.find_bone("Spine")
+		if sp_i >= 0:
+			sk.set_bone_pose_scale(sp_i, Vector3(b_belly.x, 1.0, b_belly.y))
+		var ch_i = sk.find_bone("Chest")
+		if ch_i >= 0:
+			sk.set_bone_pose_scale(ch_i, Vector3(b_rib / b_belly.x, 1.0, b_rib / b_belly.y))
+		var nk_i = sk.find_bone("Neck")
+		if nk_i >= 0:
+			var nx = b_neck / (b_rib * b_chest)
+			sk.set_bone_pose_scale(nk_i, Vector3(nx, 1.0, nx))
+		for hn in ["LeftHand", "RightHand"]:
+			var hd_i = sk.find_bone(hn)
+			if hd_i >= 0 and b_arm != 1.0:
+				sk.set_bone_pose_scale(hd_i, Vector3(1.0 / b_arm, 1.0, 1.0 / b_arm))   # el kolla şişmez
+	if stoop != 0.0:
+		# kambur: bel az, sırtın üstü çok yuvarlanır; baş öne uzar ama yüz karşıya bakar
+		_add_local(sk, "Spine", Vector3(stoop * 0.15, 0, 0), 1.0)
+		_add_local(sk, "Chest", Vector3(stoop * 0.4, 0, 0), 1.0)
+		_add_local(sk, "UpperChest", Vector3(stoop * 0.45, 0, 0), 1.0)
+		_add_local(sk, "Neck", Vector3(-stoop * 0.45, 0, 0), 1.0)
+		_add_local(sk, "Head", Vector3(-stoop * 0.45, 0, 0), 1.0)
 	if key_t >= 0.0 and not key_anim.is_empty():
 		_apply_keys(sk, dt)
 	if foot_pitch != 0.0:
@@ -195,16 +229,16 @@ func _process_modification() -> void:
 			var ti = sk.find_bone(b)
 			if ti >= 0:
 				sk.set_bone_pose_rotation(ti, sk.get_bone_rest(ti).basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, deg_to_rad(toe_pitch)))
-	if limb_scale != 1.0 or leg_len != 1.0:
+	if limb_scale != 1.0 or leg_len != 1.0 or shaped:
 		for b in ["LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg"]:
 			var li = sk.find_bone(b)
 			if li >= 0:
-				sk.set_bone_pose_scale(li, Vector3(limb_scale, leg_len if b.ends_with("Leg") else 1.0, limb_scale))
+				sk.set_bone_pose_scale(li, _limb_base(b))
 	for bb in bulk.keys():
 		var bi2 = sk.find_bone(String(bb))
 		var sv = float(bulk[bb])
 		if bi2 >= 0 and absf(sv - 1.0) > 0.001:
-			sk.set_bone_pose_scale(bi2, Vector3(sv, 1.0, sv))
+			sk.set_bone_pose_scale(bi2, _limb_base(String(bb)) * Vector3(sv, 1.0, sv))
 			var hand_b = String(bb).replace("UpperArm", "Hand").replace("UpperLeg", "Foot")
 			var hi2 = sk.find_bone(hand_b)
 			if hi2 >= 0 and hand_b != String(bb):
@@ -213,10 +247,10 @@ func _process_modification() -> void:
 		var hi3 = sk.find_bone(String(hb))
 		if hi3 >= 0:
 			sk.set_bone_pose_scale(hi3, Vector3.ONE * 0.001)
-	if chest_scale != 1.0:
+	if chest_scale != 1.0 or b_chest != 1.0:
 		var cb = sk.find_bone("UpperChest")
 		if cb >= 0:
-			sk.set_bone_pose_scale(cb, Vector3(chest_scale, 1.0, chest_scale))
+			sk.set_bone_pose_scale(cb, Vector3(chest_scale * b_chest, 1.0, chest_scale * b_chest))
 	for fs in fist.keys():
 		var fv = clampf(float(fist[fs]), -1.0, 1.0)
 		var sgn = 1.0 if String(fs) == "Left" else -1.0
@@ -226,12 +260,12 @@ func _process_modification() -> void:
 				for seg in FINGER_SEG:
 					var fi = sk.find_bone(String(fs) + FINGERS[i] + seg)
 					if fi >= 0:
-						var tq = sk.get_bone_rest(fi).basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, -float(segang[seg]) * sgn)
+						var tq = sk.get_bone_rest(fi).basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, float(segang[seg]))   # iki elde de aynı yön (sol elde işaret ters dönünce parmaklar geriye açılıp pençe oluyordu)
 						sk.set_bone_pose_rotation(fi, sk.get_bone_pose_rotation(fi).slerp(tq, fv))
 			for seg in THUMB_SEG:
 				var ti = sk.find_bone(String(fs) + "Thumb" + seg)
 				if ti >= 0:
-					var tq2 = sk.get_bone_rest(ti).basis.get_rotation_quaternion() * Quaternion.from_euler(Vector3(-0.55 * sgn, 0, -0.4))
+					var tq2 = sk.get_bone_rest(ti).basis.get_rotation_quaternion() * Quaternion.from_euler(Vector3(0.55, 0, 0.4 * sgn))
 					sk.set_bone_pose_rotation(ti, sk.get_bone_pose_rotation(ti).slerp(tq2, fv))
 		elif fv < -0.001:   # açık avuç: animasyonun kıvırdığı parmaklar dinlenme pozuna (düz) açılır
 			for i in 4:
@@ -245,9 +279,7 @@ func _process_modification() -> void:
 		if gi >= 0 and absf(gv - 1.0) > 0.001:
 			# mutlak ölçek (kare başında sıfırlanmıyor; çarpınca katlanarak büyürdü): bu karenin diğer ölçekleri x büyüme
 			var bn = String(gb)
-			var s0 = Vector3.ONE
-			if bn in ["LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg"] and (limb_scale != 1.0 or leg_len != 1.0):
-				s0 = Vector3(limb_scale, leg_len if bn.ends_with("Leg") else 1.0, limb_scale)
+			var s0 = _limb_base(bn)
 			if bulk.has(bn):
 				s0 *= Vector3(float(bulk[bn]), 1.0, float(bulk[bn]))
 			var up_b = bn.replace("Hand", "UpperArm").replace("Foot", "UpperLeg")
@@ -256,6 +288,15 @@ func _process_modification() -> void:
 			sk.set_bone_pose_scale(gi, s0 * gv)
 	_root_motion(sk, dt)
 	_foot_ik(sk)
+
+
+## Üst kol / üst bacak taban ölçeği: yaş oranı x vücut tipi (kol boyu, genişleyen göğüsle uzamasın diye geri alınır)
+func _limb_base(bn: String) -> Vector3:
+	if bn.ends_with("UpperLeg"):
+		return Vector3(limb_scale * b_leg, leg_len, limb_scale * b_leg)
+	if bn.ends_with("UpperArm"):
+		return Vector3(limb_scale * b_arm, 1.0 / (b_rib * b_chest), limb_scale * b_arm)
+	return Vector3.ONE
 
 
 ## Darbe pozu: hızlı savrulma (0.06 sn), ardından sönen yaylanma. Önden vuruşta gövde geriye, kafa daha çok;

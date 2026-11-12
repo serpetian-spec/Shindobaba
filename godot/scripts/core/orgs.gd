@@ -504,12 +504,9 @@ func broker_dialog() -> void:
 	var nxt = ("  •  Sonraki rütbe: %d şöhret" % int(ROGUE_RANKS[r + 1][0])) if r + 1 < ROGUE_RANKS.size() else ""
 	var opts = []
 	if Missions.active().is_empty():
-		var top = "CBAS".find(String(ROGUE_RANKS[r][2]))
-		for rk in ["C", "B", "A", "S"]:
-			if "CBAS".find(rk) > top:
-				break
-			var job = _rogue_job(rk)
-			opts.append({"label": "[%s] %s" % [rk, job["title"]], "tip": job["brief"], "cb": func(): Missions.accept(job)})
+		opts.append({"label": "İş panosuna bak", "tip": "Yeraltının işleri duvardaki panoda asılı: soygun, kaçak mal, tutsak kurtarma, suikast...", "cb": func():
+			Hud.close_dialog()
+			Hud.show_mission_board(RogueJobs.BOARD)})
 	else:
 		opts.append({"label": "(Önce elindeki işi bitir)", "cb": func(): pass})
 	# parşömenler mağaradaki Kara Parşömenci tezgâhında (simsarda ikinci bir parşömen seçeneği yok)
@@ -533,7 +530,7 @@ func broker_dialog() -> void:
 
 
 ## Kaçak işleri: suikast, kervan soygunu, haraç, kaçakçılık (ödül + şöhret)
-func _rogue_job(rk: String) -> Dictionary:
+func _rogue_job(rk: String, only := "") -> Dictionary:
 	var vid = String(flags().get("rogue_from", Progress.home()))
 	var h: Array = flags().get("hideout", [0, 0])
 	var back = {"kind": "goto", "at": h, "r": 14.0, "name": "Kaçak Sığınağı", "text": "Sığınağa dön, simsara haber ver."}
@@ -542,7 +539,7 @@ func _rogue_job(rk: String) -> Dictionary:
 	var cnt = int({"C": 2, "B": 3, "A": 4, "S": 5}[rk])
 	var far = Missions._near_spot(h, 500.0, 1100.0)
 	var base = {"rank": rk, "village": "kacak", "giver": "Yeraltı Simsarı", "hook": "Orgs.rogue_job_done"}
-	var kind = ["suikast", "soygun", "harac", "kacakcilik"].pick_random()
+	var kind = only if only != "" else ["suikast", "soygun", "harac", "kacakcilik"].pick_random()
 	match kind:
 		"suikast":
 			var t = ["Yozlaşmış Vali Takenori", "Köle Tüccarı Gonbei", "Rüşvetçi Komutan Isao", "Tefeci Kanemaru"].pick_random()
@@ -1170,6 +1167,8 @@ func _process(dt: float) -> void:
 	_hunter_tick(dt)
 	_village_ban(dt)
 	_ensure_hideout()
+	RogueHut.tick()
+	RogueJobs.tick(dt)
 	_ro_tick(dt)
 	_ro_job_tick(dt)
 	_t += dt

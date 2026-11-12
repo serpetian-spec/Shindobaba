@@ -810,7 +810,7 @@ func interact(it: Dictionary) -> void:
 				return
 			_sleep(0, "Futonuna uzanıp gözlerini kapattın... Sabah oldu. (Oyun kaydedildi)")
 		"inn_sleep", "inn":
-			Hud.dialog(it.get("title", "Han Sahibi"), "Hoş geldin yolcu! Sıcak yemek de var, yumuşak futon da.", [
+			Hud.dialog(it.get("title", "Han Sahibi"), Talk.keeper("inn"), [
 				{"label": "Akşam yemeği ye (30 Ryō) — can + chakra", "cb": func(): _eat(30, "Pirinç, miso çorbası ve ızgara balık... Karnın doydu!", "Han Sahibi")},
 				{"label": "Oda tut ve uyu (40 Ryō) — sabaha kadar, kaydet", "cb": func(): _sleep(40, "Han odasında rahat bir gece geçirdin. Sabah oldu! (Oyun kaydedildi)")},
 			])
@@ -863,6 +863,13 @@ Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü bur
 			Hud.dialog(home_info()["lookout"], "Köy ayaklarının altında. Köyünü koruma iraden güçleniyor... (Oyun kaydedildi)", [])
 		"rogue_broker":
 			Orgs.broker_dialog()
+		"rogue_hut":
+			RogueHut.use()
+		"rogue_board":
+			if Missions.active().is_empty():
+				Hud.show_mission_board(RogueJobs.BOARD)
+			else:
+				Hud.msg("Önce elindeki işi bitir.", Color(1, 0.85, 0.6))
 		"rogue_tailor", "rogue_weapons", "rogue_scrolls", "rogue_summoner", "rogue_surgeon":
 			Orgs.rogue_shop(kind)
 		"memorial":
@@ -874,9 +881,9 @@ Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü bur
 			else:
 				if _in_home(it) and int(pr["rank"]) >= 1 and int(pr["rank"]) < 6:
 					gopts.append({"label": "Köyü terk et (kaçak ninja ol)", "cb": Orgs.defect_prompt})
-				Hud.dialog("Kapı Nöbetçisi", "Dışarısı tehlikeli genç ninja. Haritayı [M] aç, yolları takip et. Diğer köylere varınca hızlı seyahat açılır.", gopts)
+				Hud.dialog("Kapı Nöbetçisi", Talk.keeper("gate"), gopts)
 		"shop_weapons":
-			Hud.dialog("Silah Dükkânı", "Hoş geldin! Ne bakıyorsun?", [
+			Hud.dialog("Silah Dükkânı", Talk.keeper("weapon"), [
 				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "senbon", "tag", "makibishi", "smoke"])},
 				{"label": "Silahlar (sağ el / sol el) — stok yarım saatte bir değişir", "cb": func(): Hud.gear_shop("Silahçı", Gear.shop_stock("w", String(it.get("village", home()))))},
 				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))},
@@ -1012,8 +1019,9 @@ func _ramen(it: Dictionary) -> void:
 	await ea.done
 	Game.player.hp = Game.player.max_hp
 	Game.player.chakra = Game.player.max_chakra
+	Aging.feed(0.05)
 	ClanMech.on_eat()
-	Hud.dialog("Ramen Ustası", "Sıcak bir kase miso chashu ramen... Can ve chakra doldu! Bir kase daha?", [])
+	Hud.dialog("Ramen Ustası", Talk.keeper("ramen"), [])
 
 
 func _eat(price: int, text: String, who: String) -> void:

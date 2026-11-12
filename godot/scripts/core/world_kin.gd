@@ -148,6 +148,7 @@ static func _graduate(k: Dictionary) -> void:
 	if Game.village(vid2).is_empty():
 		return
 	var p = WorldPeople.new_person(vid2, 0)
+	Aging.set_years(p, 12.0)
 	p["female"] = bool(k["female"])
 	p["clan"] = String(k["clan"])
 	p["name"] = String(k["name"])

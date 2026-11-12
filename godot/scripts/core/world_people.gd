@@ -56,6 +56,7 @@ func _process(dt: float) -> void:
 		return
 	if Game.paused:
 		return
+	Aging.tick(dt)
 	WorldKin.tick(dt)
 	WorldNews.tick(dt)
 	_t -= dt
@@ -173,6 +174,7 @@ static func _ser(lk: Dictionary) -> Dictionary:
 static func look_of(p: Dictionary) -> Dictionary:
 	var lk = Missions._bb_look({"look": p.get("look", {})})
 	lk["keep_hair"] = true
+	Aging.dress_person(lk, p)
 	return lk
 
 

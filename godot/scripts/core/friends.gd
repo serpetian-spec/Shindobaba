@@ -137,6 +137,7 @@ static func look_of(f: Dictionary) -> Dictionary:
 	o["keep_hair"] = true   # tanıdık: saçı her görünüşte aynı (NPC saç ikamesi yok)
 	if int(f.get("rank", 0)) < 1:
 		o["vest"] = null   # genin chūnin yeleği giymez (yelekli kaynaktan tanışılmış olsa da)
+	Aging.dress_person(o, f)   # tanıdıklar da yaşlanır (anne baba senden büyük, kardeş yakın yaşta)
 	return o
 
 
@@ -236,14 +237,7 @@ static func small_talk(v: Node) -> Array:
 	var nm = String(v.get("display")) if v.get("display") else "Köylü"
 	var opts = []
 	opts.append({"label": "Köyde neler oluyor?", "cb": func():
-		var news = []
-		for id in all():
-			var f: Dictionary = all()[id]
-			var lg: Array = f.get("log", [])
-			if not lg.is_empty() and String(f.get("village", "")) == Progress.home():
-				news.append("%s mı? Duydum: %s." % [f["name"], String(lg[-1]).to_lower()])
-		news.append_array(RUMORS)
-		Hud.dialog(nm, String(news.pick_random()), [
+		Hud.dialog(nm, Talk.village_news(), [
 			{"label": "İlginç, sağ ol.", "cb": func(): pass},
 			{"label": "Başka ne duydun?", "cb": func(): _gossip_tip(nm)}])})
 	opts.append({"label": "Buralarda yemek/konaklama nerede?", "cb": func():
@@ -296,6 +290,9 @@ static func tag(v: Node) -> void:
 static func greeting(id: String) -> String:
 	var f: Dictionary = all()[id]
 	var b = int(f["bond"])
+	var kk = KinTalk.key(f)   # anne / baba / kardeş arkadaş gibi konuşmaz
+	if kk != "" and b < 0 and not is_rogue(f):
+		return KinTalk.hello(kk, String(pr().get("name", "")), true)
 	if b <= -30:
 		return HOSTILE.pick_random()
 	if b < 0:
@@ -308,8 +305,8 @@ static func greeting(id: String) -> String:
 		f["news"] = ""
 		return news
 	if is_rogue(f):
-		return "%s... %s" % [String(pr().get("name", "")), ROGUE_CHAT.pick_random()]
-	return "Ooo, %s! %s" % [String(pr().get("name", "")), CHAT.pick_random()]
+		return Talk.rogue_hello(f)
+	return Talk.hello(f)   # ilişkiye (aile, eş, sevgili, çocuk, öğrenci, hoca, takım, dost) ve gerçek duruma göre
 
 
 ## Kişilik: sohbet konusu ve hediyeye tepkiyi belirler (3 sohbetten sonra öğrenirsin)
@@ -444,7 +441,7 @@ static func _friend_opts(id: String, v: Node) -> Array:
 			opts.append({"label": "Özür dile, arayı düzelt", "cb": func():
 				f["last_talk"] = Time.get_unix_time_from_system()
 				var ok = randf() < (0.6 if b > -60 else 0.25)
-				Hud.dialog(String(f["name"]), "...Peki. Bir şans daha." if ok else "Özrün de sen de umurumda değil.", [])
+				Hud.dialog(String(f["name"]), Talk.react(f, "sorry_ok" if ok else "sorry_no"), [])
 				add_bond(id, 8 if ok else 0)})
 	elif can_talk:
 		opts.append({"label": "Sohbet et...", "cb": func(): _topic_dialog(id)})
@@ -461,7 +458,7 @@ static func _friend_opts(id: String, v: Node) -> Array:
 			begin_activity(id, "meal")})
 	if b > -60:
 		opts.append({"label": "Laf sok / kışkırt", "cb": func():
-			Hud.dialog(String(f["name"]), ["Ne dedin sen?!", "Bunu unutmayacağım.", "Hadi oradan!"].pick_random(), [])
+			Hud.dialog(String(f["name"]), Talk.react(f, "provoke"), [])
 			add_bond(id, -14)})
 	opts.append_array(_romance_opts(id))
 	if f.get("pupil", false):
@@ -485,14 +482,15 @@ static func _friend_opts(id: String, v: Node) -> Array:
 static func _topic_dialog(id: String) -> void:
 	var f: Dictionary = all()[id]
 	var opts = []
+	var kk = KinTalk.key(f) if not is_rogue(f) else ""
 	for tp in TOPICS:
 		var key = String(tp[0])
-		opts.append({"label": tp[1], "cb": func():
+		opts.append({"label": String(KinTalk.LABEL[kk][key]) if kk != "" else (tp[1] if is_rogue(f) else Talk.label(f, key, tp[1])), "cb": func():
 			f["last_talk"] = Time.get_unix_time_from_system()
 			f["talks"] = int(f.get("talks", 0)) + 1
 			var tr: Dictionary = TRAITS[f["trait"]]
 			var kind = "like" if key in tr["like"] else ("hate" if key in tr["hate"] else "neutral")
-			var txt = REPLIES[kind].pick_random()
+			var txt = (KinTalk.REPLY[kk] if kk != "" else REPLIES)[kind].pick_random()
 			if int(f["talks"]) == 3:
 				txt += "\n\n(Onu artık daha iyi tanıyorsun: %s)" % tr["desc"]
 			add_bond(id, {"like": 3, "neutral": 1, "hate": -5}[kind], true)
@@ -500,7 +498,7 @@ static func _topic_dialog(id: String) -> void:
 				Hud.dialog(String(f["name"]), txt, [])
 				return
 			# dost konuyu açar, sen cevap verirsin: kişiliğine göre hoşuna gider ya da gitmez
-			var tk: Array = (ROGUE_TOPIC_TALK if is_rogue(f) else TOPIC_TALK)[key]
+			var tk: Array = Talk.rogue_topic(f, key) if is_rogue(f) else (Talk.kin_topic(f, kk, key) if kk != "" else Talk.topic(f, key))
 			var ropts = []
 			for r in tk[1]:
 				var style = String(r[0])
@@ -509,7 +507,7 @@ static func _topic_dialog(id: String) -> void:
 					var ts: Dictionary = STYLE_TASTE.get(String(f["trait"]), {})
 					var res = "like" if style in ts.get("like", []) else ("hate" if style in ts.get("hate", []) else "ok")
 					add_bond(id, {"like": 2, "ok": 1, "hate": -2}[res])
-					Hud.dialog(String(f["name"]), String(STYLE_REACT[res].pick_random()), [])})
+					Hud.dialog(String(f["name"]), String((KinTalk.REACT[kk] if kk != "" else STYLE_REACT)[res].pick_random()), [])})
 			Hud.dialog(String(f["name"]), "%s\n\n%s" % [txt, tk[0]], ropts)})
 	Hud.dialog(String(f["name"]), "Ne hakkında konuşalım?" + (("\n(%s)" % TRAITS[f["trait"]]["desc"]) if trait_known(f) else ""), opts)
 
@@ -534,20 +532,20 @@ static func _gift_dialog(id: String) -> void:
 			f["gift_times"] = recent
 			var bnd = int(f["bond"])
 			if recent.size() > 3:
-				Hud.dialog(String(f["name"]), "Yine mi hediye? Beni satın almaya mı çalışıyorsun?", [])
+				Hud.dialog(String(f["name"]), Talk.react(f, "gift_spam"), [])
 				add_bond(id, -3)
 				return
 			var mult = [1.0, 1.0, 0.5, 0.25][recent.size() - 1]
 			if idx == int(f["gift_like"]):
 				f["gift_known"] = idx
-				Hud.dialog(String(f["name"]), "%s! Bunu nasıl bildin? En sevdiğim!" % g[0], [])
+				Hud.dialog(String(f["name"]), Talk.react(f, "gift_like", String(g[0])), [])
 				add_bond(id, maxi(1, int((6 if bnd >= 0 else 4) * mult)))
 				f["love"] = mini(100, int(f.get("love", 0)) + int(4 * mult))
 			elif idx == int(f["gift_hate"]):
-				Hud.dialog(String(f["name"]), "...%s mi? Ben bundan hiç hoşlanmam aslında." % g[0], [])
+				Hud.dialog(String(f["name"]), Talk.react(f, "gift_hate", String(g[0])), [])
 				add_bond(id, -4)
 			else:
-				Hud.dialog(String(f["name"]), "Teşekkür ederim, düşünmen güzel." if bnd >= 0 else "...Sağ ol.", [])
+				Hud.dialog(String(f["name"]), Talk.react(f, "gift_ok" if bnd >= 0 else "gift_cold", String(g[0])), [])
 				add_bond(id, maxi(0, int(2 * mult)))})
 	Hud.dialog(String(f["name"]), "(Hangi hediyeyi vereceksin? Her hediyeden sonra bir süre beklemelisin.)", opts)
 
@@ -571,11 +569,11 @@ static func _romance_opts(id: String) -> Array:
 			f["romance"] = "flört"
 			f["love"] = maxi(int(f.get("love", 0)), 30)
 			log_event(f, "Ona ilgi duyduğunu söyledin")
-			Hud.dialog(String(f["name"]), ["Ö-öyle mi? ...Bunu duyduğuma sevindim.", "Hmm, cesursun. Bakalım nereye varacak.", "Ben de seni fark etmiştim aslında."].pick_random(), [])
+			Hud.dialog(String(f["name"]), Talk.react(f, "flirt_start"), [])
 			Hud.banner("FLÖRT", "%s ile aranızda bir şeyler başlıyor..." % f["name"], Color(1, 0.65, 0.8))})
 		opts.append({"label": "Sadece arkadaş kalalım", "cb": func():
 			f["intent"] = "friend"
-			Hud.dialog(String(f["name"]), "Tabii, iyi bir arkadaş her şeyden değerli.", [])})
+			Hud.dialog(String(f["name"]), Talk.react(f, "friend_only"), [])})
 	if b < 35 and romance_of(id) == "":
 		return opts
 	var rm = romance_of(id)
@@ -592,7 +590,7 @@ static func _romance_opts(id: String) -> Array:
 					g = int(g / 2)
 				g = int(round(g * (1.0 + Stats.skill(pr(), "love"))))   # Sosyal: Çekici / Karizma
 				f["love"] = mini(100, love + g)
-				Hud.dialog(String(f["name"]), ["Ah... sağ ol. Yüzüm kızardı mı?", "Bunu bana mı söyledin? Hehe.", "Dalga geçmiyorsun değil mi?"].pick_random(), [])
+				Hud.dialog(String(f["name"]), Talk.react(f, "compliment"), [])
 				Hud.msg("Gönül %+d (%d/100)" % [g, f["love"]], Color(1, 0.6, 0.75))
 				_flirt_stage(id)})
 		var night = Game.world and (Game.world.env.time_of_day < 0.24 or Game.world.env.time_of_day > 0.78)
@@ -611,11 +609,11 @@ static func _romance_opts(id: String) -> Array:
 						f["romance"] = "sevgili"
 						f["since"] = Time.get_unix_time_from_system()
 						log_event(f, "Seninle sevgili oldu")
-						Hud.dialog(String(f["name"]), "...Ben de uzun zamandır bunu düşünüyordum. Evet!", [])
+						Hud.dialog(String(f["name"]), Talk.react(f, "date_yes"), [])
 						Hud.banner("SEVGİLİ", "%s ile artık birliktesiniz ♥" % f["name"], Color(1, 0.55, 0.7))
 					else:
 						f["love"] = maxi(0, love - 8)
-						Hud.dialog(String(f["name"]), "Senden hoşlanıyorum ama... biraz daha zaman ver.", [])})
+						Hud.dialog(String(f["name"]), Talk.react(f, "date_no"), [])})
 			else:
 				opts.append({"label": "Çıkma teklifi (henüz değil: %s)" % ", ".join(need), "cb": func():
 					Hud.msg("Önce aranızdaki bağı ve gönlü büyüt: iltifat, gece yürüyüşü, sevdiği hediye, birlikte görev.", Color(1, 0.75, 0.8))})
@@ -644,7 +642,7 @@ static func _romance_opts(id: String) -> Array:
 			f["romance"] = ""
 			f["love"] = int(love / 3)
 			log_event(f, "Ondan ayrıldın")
-			Hud.dialog(String(f["name"]), "...Anlıyorum. Yolun açık olsun.", [])
+			Hud.dialog(String(f["name"]), Talk.react(f, "breakup"), [])
 			add_bond(id, -40)})
 	elif rm == "eş":
 		opts.append_array(HomeLife.spouse_opts(id))
@@ -652,7 +650,7 @@ static func _romance_opts(id: String) -> Array:
 		if due <= 0.0:
 			opts.append({"label": "Çocuk sahibi olalım", "cb": func():
 				pr()["baby_due"] = Time.get_unix_time_from_system() + randf_range(480.0, 900.0)
-				Hud.dialog(String(f["name"]), "Bir çocuk... Bizim çocuğumuz. Evet, hazırım.", [])})
+				Hud.dialog(String(f["name"]), Talk.react(f, "baby"), [])})
 		opts.append({"label": "Boşan", "cb": func():
 			f["romance"] = ""
 			pr()["spouse"] = ""
@@ -674,7 +672,7 @@ static func _flirt_stage(id: String) -> void:
 static func _marry(id: String) -> void:
 	var f: Dictionary = all()[id]
 	if randf() > clampf((int(f.get("love", 0)) - 70) / 25.0, 0.4, 0.97):
-		Hud.dialog(String(f["name"]), "Bu çok büyük bir adım... Biraz daha düşünmem lazım.", [])
+		Hud.dialog(String(f["name"]), Talk.react(f, "propose_no"), [])
 		return
 	if Wedding.plan(id):
 		# gerçek tören: konuklar toplanır, nikâhı Kage / klan büyüğü kıyar (evlilik törenin sonunda kesinleşir)
@@ -814,7 +812,8 @@ static func _meet(v: Node, name_over := "") -> void:
 	v.display = given
 	v.display_override = given
 	tag(v)
-	Hud.dialog(given, "Ben %s, %s. Tanıştığımıza memnun oldum! Bir gün birlikte savaşırız belki." % [given, RANKS[rank]], [])
+	_ensure_persona(fs[id])
+	Hud.dialog(given, Talk.react(fs[id], "meet"), [])
 	Hud.msg("Yeni tanıdık: %s (Tab > İlişkiler)" % given, Color(0.6, 1.0, 0.7))
 
 
@@ -1972,6 +1971,10 @@ func _act_arrive() -> void:
 			if act["kind"] == "sake":   # kaçakla handa: başını eğik tutar, kapıyı kollar
 				seq = [[0.6, "Kampai. ...Kapıya göz kulak ol, olur mu?"], [3.6, "Hanın sahibi beni tanımıyor. Tanısaydı çoktan ihbar ederdi."],
 					[7.4, "Köydeyken böyle bir akşam sıradandı. Şimdi lüks."], [10.6, "Hesabı sen öde, ben burada yokum. Hah."]]
+			var mk = KinTalk.key(f) if not is_rogue(f) else ""
+			if mk != "" and not date and act["kind"] != "sake":   # aile sofrası: kendi sözleri
+				var ml: Array = KinTalk.MEAL[mk]
+				seq = [[0.6, ml[0]], [3.4, topic if String(f.get("news", "")) != "" else ml[1]], [7.4, ml[2]], [10.6, ml[3]]]
 			for s in seq:
 				var tt = float(s[0])
 				var txt = String(s[1])

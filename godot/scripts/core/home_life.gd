@@ -529,7 +529,9 @@ func _arrive() -> void:
 	_clear_pose(sp)
 	_look_at(sp, pl.global_position)
 	_pose(sp, "wave", {"anim": "idle"})
-	_say(sp, ["Hoş geldin! Yorgun görünüyorsun.", "Okaeri! Tam zamanında geldin.", "Hoş geldin! Bugün nasıl geçti?"].pick_random(), 3.5)
+	var spf: Dictionary = Friends.all().get(Friends.spouse_id(), {})
+	var rmk = Talk._fill(Talk.remark(spf, "es")) if not spf.is_empty() else ""   # sende değişeni önce eşin fark eder (yara, rütbe, kilo, ağaran saç)
+	_say(sp, rmk if rmk != "" else ["Hoş geldin! Yorgun görünüyorsun.", "Okaeri! Tam zamanında geldin.", "Hoş geldin! Bugün nasıl geçti?"].pick_random(), 4.5 if rmk != "" else 3.5)
 	await _wait(1.6)
 	var f: Dictionary = Friends.all().get(sid, {})
 	if int(f.get("love", 0)) >= 70 and Time.get_unix_time_from_system() - float(pr().get("home_hug_t", 0.0)) >= 240.0:
@@ -685,6 +687,7 @@ func _meal() -> void:
 	var pl = Game.player
 	var tb = _table()
 	pr()["home_meal_t"] = Time.get_unix_time_from_system()
+	Aging.feed(0.04)
 	_lock(60.0)
 	_say(sp, "Hemen hazırlıyorum. Sen sofraya geç.", 3.0)
 	# oyuncu minderine yürür, oturur

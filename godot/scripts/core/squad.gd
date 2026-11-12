@@ -232,7 +232,7 @@ static func mate_arch(i: int, level: int) -> Dictionary:
 	L["top"] = _c(m["top"])
 	L["band"] = hi["band"]
 	L["village"] = Progress.home()
-	L["age"] = Player.age_for_rank(int(pr().get("rank", 1)))   # takım arkadaşları seninle aynı yaşta (Genin = genç)
+	L["age"] = Aging.player_stage()   # takım arkadaşları seninle aynı yaşta (Genin = genç)
 	return a
 
 

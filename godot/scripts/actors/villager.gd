@@ -139,6 +139,7 @@ func _ready() -> void:
 	if look_extra.is_empty():
 		lk.merge(Outfits.roll(_outfit_arch(), Outfits.village_near()), true)
 	lk.merge(look_extra, true)
+	Aging.dress_civil(lk, {"builder": 0.9, "farmer": 0.7, "trainee": 0.6, "teacher": 0.5, "vendor": 0.1, "keeper": 0.1, "drunk": 0.0}.get(role, 0.25), role == "sitter")
 	if look_extra.is_empty():
 		lk["npc"] = true   # CharacterModel: hazır saç önbelleğini tercih et (kurulum donması olmasın)
 	look = lk
@@ -199,6 +200,9 @@ func talk() -> void:
 	wait = 4.0
 	var fid = String(get_meta("friend_id", ""))
 	var line = _lines().pick_random()
+	if lines_override.is_empty() and role in ["walker", "shopper", "sitter", "kid", "customer"]:
+		line = Talk.stranger(self, String(line))
+	line = Talk.fit(self, Talk.localize(String(line)))
 	if fid != "" and Friends.all().has(fid):
 		line = Friends.greeting(fid)
 	var extra = []

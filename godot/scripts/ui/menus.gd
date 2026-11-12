@@ -2688,12 +2688,13 @@ static func mission_board(village_id: String) -> void:
 	if _fresh:
 		UI.pop_in(board, 0.97)
 	# başlık plakası
-	var vname = String(Game.village(village_id).get("name", village_id))
+	var ug = village_id == RogueJobs.BOARD   # yeraltı panosu
+	var vname = "Yeraltı" if ug else String(Game.village(village_id).get("name", village_id))
 	var plate = PanelContainer.new()
 	var psb = UI._box(Color(0.12, 0.07, 0.04, 0.95), Color(UI.GOLD, 0.7), 2, 8, 12)
 	psb.content_margin_left = 40; psb.content_margin_right = 40
 	plate.add_theme_stylebox_override("panel", psb)
-	plate.add_child(UI.label("任務   GÖREV MASASI — %s" % vname.to_upper(), 24, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER, true))
+	plate.add_child(UI.label("闇   YERALTI PANOSU" if ug else "任務   GÖREV MASASI — %s" % vname.to_upper(), 24, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER, true))
 	plate.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	plate.position = Vector2(-330, -18)
 	plate.custom_minimum_size = Vector2(660, 0)
@@ -2701,11 +2702,11 @@ static func mission_board(village_id: String) -> void:
 	var rep_txt = ""
 	if Missions.has_method("rep"):
 		rep_txt = "%s itibarın: %d" % [vname, int(Missions.rep(village_id))]
-	if Missions.has_method("board_limits"):
+	if Missions.has_method("board_limits") and not ug:
 		var lim = Missions.board_limits(village_id)
 		if String(lim.get("note", "")) != "":
 			rep_txt += "   •   " + String(lim["note"])
-	var sub = UI.label("Rütben: %s   •   %s" % [Data.RANKS[int(Game.profile["rank"])], rep_txt], 15, Color(1, 0.92, 0.8))
+	var sub = UI.label(("Kaçak rütben: %s   •   şöhret %d   •   başındaki ödül %d Ryō   •   iz %d/100" % [Orgs.rogue_rank_name(), Orgs.infamy(), int(Orgs.state().get("bounty", 0)), int(RogueJobs.trail())]) if ug else ("Rütben: %s   •   %s" % [Data.RANKS[int(Game.profile["rank"])], rep_txt]), 15, Color(1, 0.92, 0.8))
 	sub.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	sub.position = Vector2(-500, 52)
 	sub.size = Vector2(1000, 22)

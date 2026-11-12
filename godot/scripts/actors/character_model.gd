@@ -7,7 +7,7 @@ const ANIM := {
 	"idle": "a/Idle", "walk": "a/Walk", "jog": "a/Jog_Fwd", "run": "a/Sprint", "jump": "b/NinjaJump_Start",
 	"air": "b/NinjaJump_Idle", "land": "b/NinjaJump_Land", "roll": "a/Roll", "jab": "a/Punch_Jab",
 	"cross": "a/Punch_Cross", "hook": "b/Melee_Hook", "slash_a": "b/Sword_Regular_A", "slash_b": "b/Sword_Regular_B",
-	"slash_c": "b/Sword_Regular_C", "throw": "b/OverhandThrow", "cast_in": "a/Spell_Simple_Enter",
+	"slash_c": "b/Sword_Regular_C", "fin_c": "b/Sword_Regular_C_IP", "throw": "b/OverhandThrow", "cast_in": "a/Spell_Simple_Enter",
 	"cast": "a/Spell_Simple_Idle", "cast_out": "a/Spell_Simple_Shoot", "hit": "a/Hit_Chest", "hit_head": "a/Hit_Head",
 	"knock": "b/Hit_Knockback", "death": "a/Death01", "getup": "b/LayToIdle", "slide": "b/Slide",
 	"block": "b/Sword_Block", "crouch": "a/Crouch_Idle", "sit": "a/Sitting_Idle", "swim": "a/Swim_Fwd",
@@ -695,6 +695,7 @@ func _face_and_hair() -> void:
 		var cm = ShaderMaterial.new()
 		cm.shader = load("res://shaders/toon.gdshader")
 		cm.set_shader_parameter("tint", look["hair"])
+		hair_mats.append(cm)
 		cm.set_shader_parameter("rim_amount", 0.45)
 		materials.append(cm)
 		# tutamlar kafaya göre biraz küçültülür (kafa merkezi etrafında)
@@ -759,6 +760,7 @@ func _face_and_hair() -> void:
 				hm.set_shader_parameter("mode", 1)
 				hm.set_shader_parameter("use_alpha", true)
 				hm.set_shader_parameter("tint", look["hair"])
+				hair_mats.append(hm)
 				hm.set_shader_parameter("rim_amount", 0.5)
 				hair_mi.set_surface_override_material(si, hm)
 				materials.append(hm)
@@ -778,6 +780,7 @@ static func default_look() -> Dictionary:
 func setup(l: Dictionary) -> void:
 	look = default_look()
 	look.merge(l, true)
+	Aging.apply_look(look)   # yaş: evre, ağaran saç, solan ten (look "years" varsa)
 	look["hair_style"] = HAIR_ALIAS.get(look.get("hair_style", "diken"), look.get("hair_style", "diken"))
 	if not look.get("own_hair", false) and not AnimeHair.has(String(look["hair_style"])) and String(look["hair_style"]) != "kel":
 		look["hair_style"] = npc_hair(look)   # NPC'ler de anime saçlarını kullanır (kullanıcı 2026-11-10); eski saç adları eşlenir
@@ -891,6 +894,17 @@ func _add_libs() -> void:
 					var tp = String(A.track_get_path(ti))
 					if tp.ends_with(":LeftToes") or tp.ends_with(":RightToes"):
 						A.remove_track(ti)
+		# yumruk kombosunun bitirişi: klibin kök kemiği gövdeyi kapsülden ~2 m öne taşıyordu (rakibin içine girip geri ışınlanma).
+		# Yerinde kopya: ilerlemeyi kapsülün kendi atılması yapar, gövde hedefin önünde durur
+		var lb: AnimationLibrary = _libs["b"]
+		if lb.has_animation("Sword_Regular_C") and not lb.has_animation("Sword_Regular_C_IP"):
+			var A2: Animation = lb.get_animation("Sword_Regular_C").duplicate(true)
+			for ti in A2.get_track_count():
+				if A2.track_get_type(ti) == Animation.TYPE_POSITION_3D and String(A2.track_get_path(ti)).ends_with(":Root"):
+					for k in A2.track_get_key_count(ti):
+						var v: Vector3 = A2.track_get_key_value(ti, k)
+						A2.track_set_key_value(ti, k, Vector3(0.0, v.y, 0.0))
+			lb.add_animation("Sword_Regular_C_IP", A2)
 	for k in _libs:
 		anim.add_animation_library(k, _libs[k])
 
@@ -938,6 +952,54 @@ func apply_age(age: String) -> void:
 	overlay.leg_len = a[4]
 	overlay.toe_pitch = TOE_PITCH
 	overlay.foot_pitch = FOOT_PITCH_F if look["gender"] == "f" else 0.0
+	apply_shape()
+
+
+## Vücut tipi + yaşlılık: look "fat" (-1 zayıf .. 1 kilolu), "mus" (0..1 kaslı), "old" (0..1), "lines" (0..1 yüz çizgisi).
+## Hepsi gerçek kemik ölçeği (kıyafet, aksesuar kemikle birlikte genişler); canlı değişebilir (yeniden kurmadan).
+func apply_shape() -> void:
+	if overlay == null:
+		return
+	var fat = clampf(float(look.get("fat", 0.0)), -1.0, 1.0)
+	var mus = clampf(float(look.get("mus", 0.0)), 0.0, 1.0)
+	var old = clampf(float(look.get("old", 0.0)), 0.0, 1.0)
+	var kid = {"child": 0.45, "teen": 0.7, "young": 0.9}.get(look.get("age", "adult"), 1.0)   # çocukta fark daha az
+	if look.get("gender", "m") == "f":
+		mus *= 0.65
+	var f = maxf(fat, 0.0) * kid
+	var th = maxf(-fat, 0.0) * kid
+	mus *= kid * (1.0 - 0.5 * old)   # yaşlandıkça kas erir
+	overlay.b_belly = Vector2(1.0 + 0.42 * f - 0.07 * th - 0.03 * old, 1.0 + 0.58 * f - 0.06 * th)
+	overlay.b_rib = 1.0 + 0.18 * f + 0.05 * mus - 0.04 * th
+	overlay.b_chest = 1.0 + 0.02 * f + 0.11 * mus - 0.05 * th - 0.04 * old
+	overlay.b_arm = 1.0 + 0.22 * f + 0.26 * mus - 0.11 * th - 0.09 * old
+	overlay.b_leg = 1.0 + 0.27 * f + 0.15 * mus - 0.10 * th - 0.08 * old
+	overlay.b_neck = 1.0 + 0.2 * f + 0.17 * mus - 0.05 * th - 0.04 * old
+	overlay.b_face = 1.0 + 0.1 * f - 0.025 * th
+	overlay.stoop = deg_to_rad(STOOP_DEG) * old * old
+	scale = Vector3.ONE * age_scale * (1.0 - 0.04 * old)
+	if face_skin_mat:
+		face_skin_mat.set_shader_parameter("age_lines", clampf(float(look.get("lines", 0.0)), 0.0, 1.0))
+
+
+const STOOP_DEG := 24.0
+
+
+## Yaş ilerledi (yeniden kurmadan): saç rengi, ten, çizgiler, duruş güncellenir
+func refresh_years(years: float) -> void:
+	if not look.has("hair0"):
+		return
+	look["years"] = years
+	look["hair"] = look["hair0"]
+	look.erase("aged")
+	Aging.apply_look(look)
+	for hm in hair_mats:
+		if hm is ShaderMaterial:
+			hm.set_shader_parameter("tint", look["hair"])
+	apply_shape()
+
+
+var hair_mats: Array = []
 
 
 

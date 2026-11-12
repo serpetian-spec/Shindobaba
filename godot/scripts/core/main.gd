@@ -311,6 +311,11 @@ func _begin_game(pos: Vector3) -> void:
 	if Interiors.inst:
 		Interiors.inst.hide_room()
 	Menus.clear()
+	# doğuştan gelenler (kan soyu / klan doğası, klan teknikleri) ilk andan uyanık; kanının dövüş tarzı da kendiliğinden seçili gelir
+	Progress.clan_unlocks(false)
+	if not Game.profile.has("fight_style"):
+		var fs: Array = FightingStyles.available(Game.profile)
+		Game.profile["fight_style"] = String(fs[1]) if fs.size() > 1 else ""
 	# JSON'dan gelen renkleri Color'a çevir
 	var look: Dictionary = Game.profile["look"]
 	for k in look.keys():

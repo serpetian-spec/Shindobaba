@@ -23,7 +23,10 @@ static func look(vid: String) -> Dictionary:
 		"outer_style": "palto", "outer": Color(0.97, 0.96, 0.93), "vest": null, "band": null, "hakama": true,
 		"sandal": Color(0.25, 0.2, 0.16), "age": "adult", "face_mark": "kırışık", "head_style": null}
 	lk.merge(pz, true)
-	lk.merge(Kage.kage_persona(vid), true)   # dinamik Kage: yeni liderin saçı/cinsiyeti
+	lk.merge(Kage.kage_persona(vid), true)
+	if not lk.has("years"):
+		lk["years"] = 46.0 + Aging._h(vid + String(lk.get("hair_style", "")), 2) * 26.0
+		lk["age_seed"] = vid   # dinamik Kage: yeni liderin saçı/cinsiyeti
 	if not CharacterModel.HAIR_STYLES.has(lk["hair_style"]):
 		lk["hair_style"] = CharacterModel.HAIR_STYLES.keys()[0]
 	return lk

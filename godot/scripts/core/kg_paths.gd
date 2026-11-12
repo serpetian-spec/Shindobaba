@@ -14,13 +14,13 @@ const RECIPES := {
 const JINTON := ["fuuton", "katon", "doton"]
 const NAMES := {"hyoton": "Hyōton (Buz)", "yoton": "Yōton (Lav)", "futton": "Futton (Kaynar Buhar)", "ranton": "Ranton (Fırtına)",
 	"shakuton": "Shakuton (Kavurucu)", "bakuton": "Bakuton (Patlama)", "jiton": "Jiton (Mıknatıs)", "jinton": "Jinton (Toz — Kekkei Tōta)"}
-## Klansız kan soyları: doğa, uyanış seviyesi, hangi köylerde doğar
+## Klansız kan soyları: doğa, uyanış seviyesi (kan doğuştan gelir: baştan uyanık, klanlardaki gibi), hangi köylerde doğar
 const SOY := {
-	"ranton": {"name": "Ranton Soyu", "nature": "ranton", "level": 6, "villages": ["kumo"], "desc": "Kumo'da Darui gibi klan adı olmayan bir soy: su ve şimşeği tek chakrada taşır."},
-	"yoton": {"name": "Yōton Soyu", "nature": "yoton", "level": 4, "villages": ["iwa"], "desc": "Iwa'da Kurotsuchi gibi ateş ve toprağı eriten kan."},
-	"bakuton": {"name": "Bakuton Soyu", "nature": "bakuton", "level": 6, "villages": ["iwa"], "desc": "Iwa Patlama Birliği'nin kanı (Gari gibi): chakra dokunduğu yerde patlar."},
-	"shakuton": {"name": "Shakuton Soyu", "nature": "shakuton", "level": 8, "villages": ["suna"], "desc": "Suna'da Pakura gibi nadir bir kan: ateş ve rüzgâr kavurucu kürelere döner."},
-	"shoton": {"name": "Shōton Soyu", "nature": "shoton", "level": 6, "villages": ["konoha", "suna", "kiri", "kumo", "iwa"], "desc": "Guren gibi nadir doğan kristal kanı: chakra kristale dönüşür."},
+	"ranton": {"name": "Ranton Soyu", "nature": "ranton", "level": 1, "villages": ["kumo"], "desc": "Kumo'da Darui gibi klan adı olmayan bir soy: su ve şimşeği tek chakrada taşır."},
+	"yoton": {"name": "Yōton Soyu", "nature": "yoton", "level": 1, "villages": ["iwa"], "desc": "Iwa'da Kurotsuchi gibi ateş ve toprağı eriten kan."},
+	"bakuton": {"name": "Bakuton Soyu", "nature": "bakuton", "level": 1, "villages": ["iwa"], "desc": "Iwa Patlama Birliği'nin kanı (Gari gibi): chakra dokunduğu yerde patlar."},
+	"shakuton": {"name": "Shakuton Soyu", "nature": "shakuton", "level": 1, "villages": ["suna"], "desc": "Suna'da Pakura gibi nadir bir kan: ateş ve rüzgâr kavurucu kürelere döner."},
+	"shoton": {"name": "Shōton Soyu", "nature": "shoton", "level": 1, "villages": ["konoha", "suna", "kiri", "kumo", "iwa"], "desc": "Guren gibi nadir doğan kristal kanı: chakra kristale dönüşür."},
 }
 ## Kök laboratuvarı (Senju hücresi nakli) şartları
 const LAB_LEVEL := 30

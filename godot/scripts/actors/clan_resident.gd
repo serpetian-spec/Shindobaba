@@ -45,15 +45,7 @@ func talk() -> void:
 		opts.append({"label": "Klan dostu olarak antrenman iste", "cb": _lesson})
 	opts.append_array(Friends.options_for(self))   # tanış / sohbet / hediye / takıma al
 	opts.append_array(Crime.attack_option(self))   # gerçek saldırı (suç)
-	var hello := "%s klanından %s. " % [cn, given.split(" ")[-1]]
-	if eye_kind == 2:
-		hello += "Byakugan'ım her yanı görür; yaklaştığını çoktan biliyordum."
-	elif eye_kind == 1:
-		hello += "Gözlerimdeki tomoe'lara fazla bakma, genjutsuya düşersin."
-	elif eye_kind == 3:
-		hello += "Kızıl gözlerimden korkma... henüz."
-	else:
-		hello += "Ne istiyorsun, ninja?"
+	var hello := Talk.clan_hello(clan, given, eye_kind)
 	if has_meta("friend_id") and Friends.all().has(String(get_meta("friend_id"))):
 		hello = Friends.greeting(String(get_meta("friend_id")))
 	if friend:
