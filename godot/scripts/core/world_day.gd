@@ -20,6 +20,7 @@ static var _stage := {}        # kişi -> WeakRef(sahnedeki düğüm)
 static var _groups: Array = [] # sahnedeki takımlar: {"nodes", "line", "said"}
 static var _t := 4.0
 static var _road_t := 200.0
+static var _bond_t := 30.0
 static var _seen := {}         # kişi -> gün (aynı gün bir kez kayda yazılır)
 
 
@@ -80,6 +81,8 @@ static func act_of(p: Dictionary, ph := "") -> String:
 	var lr: Array = WorldPeople.RANK_LV[rank]
 	# rütbesinin altlarında olan daha çok çalışır (hırs = Güç açığı)
 	var hungry = 1.0 - clampf((float(p["level"]) - float(lr[0])) / maxf(1.0, float(lr[1]) - float(lr[0])), 0.0, 1.0)
+	if p.get("behind", false):
+		hungry = minf(1.6, hungry + 0.8)   # rakibi onu geçti
 	var grief = 1.0 if p.get("grief", false) else 0.0
 	var fam = 1.0 if (not WorldKin.spouse_of(p).is_empty() or not WorldKin.kids_of(p).is_empty()) else 0.0
 	var loyal = float(p.get("loyalty", 60)) / 100.0
@@ -124,14 +127,14 @@ static func cast(vid: String, act: String, near = null) -> Dictionary:
 		return {}
 	var ph = phase()
 	# antrenman eşi: yanında çalışan kişinin yakını (takım arkadaşı / eşi / kardeşi) önce
-	if act == "antrenman" and near is Vector3:
+	if act in ["antrenman", "yemek", "gezi"] and near is Vector3:
 		for id in _stage.keys():
 			var n = staged(String(id))
 			if n == null or not n is Node3D or (n as Node3D).global_position.distance_to(near) > 4.5:
 				continue
 			var a = WorldPeople.get_p(String(id))
 			for q in _bonds(a):
-				if _free(q) and not away(q) and not hurt(q) and staged(String(q["id"])) == null and String(q["village"]) == vid and act_of(q, ph) in ["antrenman", "gezi", "ev", "yemek"]:
+				if _free(q) and not away(q) and not hurt(q) and staged(String(q["id"])) == null and String(q["village"]) == vid and act_of(q, ph) in ["antrenman", "gezi", "ev", "yemek", "pazar"]:
 					return q
 	var c = []
 	for p in WorldPeople.all().values():
@@ -162,7 +165,130 @@ static func _bonds(p: Dictionary) -> Array:
 	for r in WorldKin.relatives(p):
 		if not r[0] in o:
 			o.append(r[0])
+	for b in ties(p):
+		if not b[0] in o:
+			o.append(b[0])
 	return o
+
+
+# ====================================================================== ninjaların birbirleriyle bağları (yaşananlardan doğar)
+## · Hoca–öğrenci: mezun olan genine köyünün bir jōnini hoca olur ("sensei" / "students")
+## · Rakip: aynı köy, aynı rütbe, yakın Güç ve yaş — biri terfi edince ya da zamanla ("rival", karşılıklı)
+## · Takım arkadaşı: birlikte dönülen her görev sayılır ("mates": kişi -> kaç görev); 2+ görev = takım arkadaşı
+## Bağlar görev takımlarını, antrenman / yemek / sohbet eşlerini, sözleri ve ölüme tepkiyi belirler.
+static func ties(p: Dictionary) -> Array:
+	var o = []
+	if p.is_empty():
+		return o
+	var s = WorldPeople.get_p(String(p.get("sensei", "")))
+	if not s.is_empty():
+		o.append([s, "hocası"])
+	for id in p.get("students", []):
+		var q = WorldPeople.get_p(String(id))
+		if not q.is_empty():
+			o.append([q, "öğrencisi"])
+	var rv = WorldPeople.get_p(String(p.get("rival", "")))
+	if not rv.is_empty():
+		o.append([rv, "rakibi"])
+	var ms: Dictionary = p.get("mates", {})
+	var ids = ms.keys().filter(func(k): return int(ms[k]) >= 2)
+	ids.sort_custom(func(a, b): return int(ms[a]) > int(ms[b]))
+	for id in ids.slice(0, 3):
+		var q = WorldPeople.get_p(String(id))
+		if not q.is_empty() and not o.any(func(x): return x[0] == q):
+			o.append([q, "takım arkadaşı"])
+	return o
+
+
+static func tie_of(p: Dictionary, q: Dictionary) -> String:
+	for b in ties(p):
+		if b[0] == q:
+			return String(b[1])
+	for r in WorldKin.relatives(p):
+		if r[0] == q:
+			return String(r[1])
+	return "yakını" if String(p.get("close", "")) == String(q.get("id", "?")) else ""
+
+
+## Yavaş tur (dakikada bir): hocasız geninlere hoca, rakipsizlere rakip; ölen / kaçan bağlar temizlenir
+static func bond_pass() -> void:
+	var all = WorldPeople.all().values().filter(func(p): return _free(p))
+	for p in all:
+		var s = WorldPeople.get_p(String(p.get("sensei", "")))
+		if not s.is_empty() and (not _free(s) or int(p["rank"]) >= 2):
+			# hocası öldü / kaçtı ya da öğrenci jōnin oldu: bağ kayıtta kalır ("eski hocası"), ders biter
+			(s.get("students", []) as Array).erase(String(p["id"]))
+			p["sensei_old"] = String(p["sensei"])
+			p.erase("sensei")
+		if int(p["rank"]) == 0 and not p.has("sensei") and not p.has("sensei_old"):
+			var js = all.filter(func(q): return String(q["village"]) == String(p["village"]) and int(q["rank"]) >= 2 and (q.get("students", []) as Array).size() < 3)
+			if not js.is_empty():
+				# akrabası değil, en az öğrencisi olan
+				js.sort_custom(func(a, b): return (a.get("students", []) as Array).size() < (b.get("students", []) as Array).size())
+				var j: Dictionary = js[0]
+				if not j.has("students"):
+					j["students"] = []
+				(j["students"] as Array).append(String(p["id"]))
+				p["sensei"] = String(j["id"])
+				WorldPeople.log_event(p, "%s hocası oldu" % String(j["name"]))
+				WorldPeople.log_event(j, "%s adlı genini öğrenci aldı" % String(p["name"]))
+		var rv = WorldPeople.get_p(String(p.get("rival", "")))
+		if not rv.is_empty() and not _free(rv):
+			p.erase("rival")
+			rv = {}
+		if rv.is_empty() and randf() < 0.25:
+			_find_rival(p, all)
+
+
+static func _find_rival(p: Dictionary, all: Array) -> bool:
+	var kin = WorldKin.relatives(p).map(func(r): return r[0])
+	var c = all.filter(func(q): return q != p and String(q["village"]) == String(p["village"]) and int(q["rank"]) == int(p["rank"]) and String(q.get("rival", "")) == "" and absi(int(q["level"]) - int(p["level"])) <= 8 and absf(Aging.person_years(q) - Aging.person_years(p)) <= 5.0 and not q in kin and String(p.get("sensei", "-")) != String(q["id"]) and String(q.get("sensei", "-")) != String(p["id"]))
+	if c.is_empty():
+		return false
+	var q: Dictionary = c.pick_random()
+	p["rival"] = String(q["id"])
+	q["rival"] = String(p["id"])
+	WorldPeople.log_event(p, "%s ile rekabeti başladı" % String(q["name"]))
+	WorldPeople.log_event(q, "%s ile rekabeti başladı" % String(p["name"]))
+	return true
+
+
+## Terfi: rakibi geride kalır (hırslanır), hocası / öğrencileri gurur duyar
+static func on_promote(p: Dictionary) -> void:
+	var rk = WorldPeople.RANK_NAMES[clampi(int(p["rank"]), 0, 3)].to_lower()
+	var rv = WorldPeople.get_p(String(p.get("rival", "")))
+	if not rv.is_empty() and _free(rv) and int(rv["rank"]) < int(p["rank"]):
+		rv["behind"] = true   # geride kalan: antrenmana gömülür (act_of)
+		WorldPeople.log_event(rv, "Rakibi %s ondan önce %s oldu; antrenmanı ikiye katladı" % [String(p["name"]), rk])
+		WorldPeople.log_event(p, "Rakibi %s geçti" % WorldNews.sfx(String(rv["name"]), "i"))
+	if p.get("behind", false) and not rv.is_empty() and int(rv["rank"]) <= int(p["rank"]):
+		p.erase("behind")
+		WorldPeople.log_event(p, "Rakibi %s yakaladı" % WorldNews.sfx(String(rv["name"]), "i"))
+	var s = WorldPeople.get_p(String(p.get("sensei", "")))
+	if not s.is_empty() and _free(s):
+		WorldPeople.log_event(s, "Öğrencisi %s %s oldu" % [String(p["name"]), rk])
+
+
+## Ölüm bağlara dokunur: hoca, öğrenci, rakip, takım arkadaşı (aile + yakın WorldKin / WorldPeople'da)
+static func _bond_death(p: Dictionary) -> void:
+	for b in ties(p):
+		var q: Dictionary = b[0]
+		if not WorldPeople.alive(q):
+			continue
+		match String(b[1]):
+			"hocası":
+				WorldPeople.log_event(q, "Öğrencisi %s öldü" % String(p["name"]))
+				q["grief"] = true
+			"öğrencisi":
+				WorldPeople.log_event(q, "Hocası %s öldü" % String(p["name"]))
+				q["grief"] = true
+			"rakibi":
+				WorldPeople.log_event(q, "Rakibi %s öldü; geçecek kimsesi kalmadı" % String(p["name"]))
+				q.erase("behind")
+			_:
+				WorldPeople.log_event(q, "Takım arkadaşı %s öldü" % String(p["name"]))
+		if p.get("slain_by_player", false):
+			q["foe_of_player"] = String(p["name"])   # sana bakışı (regard)
 
 
 static func tag_text(p: Dictionary) -> String:
@@ -196,20 +322,29 @@ static func on_stage(p: Dictionary, n: Node, act: String) -> void:
 
 
 ## Antrenman eşleşince: ikisinin kaydına da yazılır
-static func paired(a: Node, b: Node) -> void:
+static func paired(a: Node, b: Node, act := "antrenman") -> void:
 	var pa = WorldPeople.get_p(String(a.get_meta("world_person", "")))
 	var pb = WorldPeople.get_p(String(b.get_meta("world_person", "")))
 	if pa.is_empty() or pb.is_empty():
 		return
+	if act != "antrenman":
+		# sohbet: yan yana duran iki tanıdık birbirinden söz eder
+		var t1 = tie_of(pa, pb)
+		if t1 != "":
+			a.lines_override = ["%s ile iki laf ediyoruz. %s." % [_first(String(pb["name"])), {"rakibi": "Rakibim ama severim", "hocası": "Hocamdır", "öğrencisi": "Öğrencimdir", "takım arkadaşı": "Takım arkadaşım"}.get(t1, "Yakınımdır")]] + lines(pa, act)
+			b.lines_override = ["%s ile iki laf ediyoruz." % _first(String(pa["name"]))] + lines(pb, act)
+		return
+	a.lines_override = lines(pa, "antrenman", pb)
+	b.lines_override = lines(pb, "antrenman", pa)
 	var key = "s" + String(pa["id"])
 	var day = int(Aging.clock() / DAY)
 	if int(_seen.get(key, -1)) == day:
 		return
 	_seen[key] = day
-	WorldPeople.log_event(pa, "Antrenman sahasında %s ile çalıştı" % String(pb["name"]))
-	WorldPeople.log_event(pb, "Antrenman sahasında %s ile çalıştı" % String(pa["name"]))
-	a.lines_override = lines(pa, "antrenman", pb)
-	b.lines_override = lines(pb, "antrenman", pa)
+	var tie = tie_of(pa, pb)
+	var how = "Rakibi %s ile kapıştı" if tie == "rakibi" else "Antrenman sahasında %s ile çalıştı"
+	WorldPeople.log_event(pa, how % String(pb["name"]))
+	WorldPeople.log_event(pb, how % String(pa["name"]))
 
 
 ## Hâlâ o işi mi yapıyor (dilim değişince sahneden çekilir)
@@ -232,7 +367,16 @@ static func lines(p: Dictionary, act: String, mate := {}) -> Array:
 	match act:
 		"antrenman":
 			if not mate.is_empty():
-				o.append("%s ile çalışıyoruz. O bırakmadan ben bırakmam." % _first(String(mate["name"])))
+				var tie = tie_of(p, mate)
+				var mn = _first(String(mate["name"]))
+				if tie == "rakibi":
+					o.append("%s rakibim. Onu geçmeden bu sahadan çıkmam." % mn)
+				elif tie == "hocası":
+					o.append("%s-sensei bugün beni yine yere serdi. Bir gün ben sereceğim." % mn)
+				elif tie == "öğrencisi":
+					o.append("%s öğrencim. Hızlı öğreniyor; ona belli etmiyorum." % mn)
+				else:
+					o.append("%s ile çalışıyoruz. O bırakmadan ben bırakmam." % mn)
 			if rk < 3:
 				o.append("%s olmadan durmak yok. Daha çok yolum var." % WorldPeople.RANK_NAMES[rk + 1])
 			else:
@@ -262,6 +406,21 @@ static func lines(p: Dictionary, act: String, mate := {}) -> Array:
 	for l in WorldKin.lines_of(p):
 		if not String(l).begins_with("Köy bugün sakin"):
 			o.append(l)
+	for b in ties(p):
+		var q: Dictionary = b[0]
+		var qn = _first(String(q["name"]))
+		var dead = not WorldPeople.alive(q)
+		match String(b[1]):
+			"hocası":
+				o.append(("%s-sensei artık yok. Öğrettikleri bende yaşıyor." if dead else "Hocam %s-sensei. Ne biliyorsam ondan.") % qn)
+			"öğrencisi":
+				o.append(("%s öğrencimdi. Onu koruyamadım." if dead else "%s öğrencim; %s. Göz kulak oluyorum.") % ([qn] if dead else [qn, WorldPeople.RANK_NAMES[clampi(int(q["rank"]), 0, 3)].to_lower()]))
+			"rakibi":
+				if not dead:
+					o.append(("%s benden önce terfi etti. Uzun sürmeyecek." if p.get("behind", false) else "%s ile aramızda bitmeyen bir yarış var.") % qn)
+			_:
+				if not dead:
+					o.append("%s ile kaç göreve çıktık saymadım. Sırtımı ona emanet ederim." % qn)
 	var lg: Array = p.get("log", [])
 	if not lg.is_empty():
 		o.append("Geçenlerde: %s." % String(lg[-1]).trim_suffix("."))
@@ -281,6 +440,8 @@ static func regard(p: Dictionary) -> Dictionary:
 	var cl = WorldPeople.get_p(String(p.get("close", "")))
 	if not cl.is_empty() and cl.get("slain_by_player", false):
 		return {"k": "nefret", "act": "turn", "line": "%s senin elinden öldü. Yüzüne bakmam." % String(cl["name"])}
+	if String(p.get("foe_of_player", "")) != "":
+		return {"k": "nefret", "act": "turn", "line": "%s senin elinden öldü. Bunu unutmayacağım." % String(p["foe_of_player"])}
 	if Orgs.is_rogue():
 		return {}   # kaçaksın: köy ninjasının tepkisi zaten ayrı (korku / saldırı)
 	if p.get("saved_by_player", false):
@@ -353,6 +514,7 @@ static func meet(v: Node) -> void:
 
 ## Dünyadaki kişi öldü / kaçtı: tanıdığınsa haberi sana da gelir
 static func on_death(p: Dictionary, why: String) -> void:
+	_bond_death(p)
 	var fid = friend_of(String(p["id"]))
 	if fid == "":
 		return
@@ -480,6 +642,12 @@ static func resolve(run: Dictionary) -> void:
 			WorldPeople._die(q, "Bir görevden dönmedi (%s)" % String(run["what"]))
 			if String(run["vid"]) == Progress.home() and not back.is_empty():
 				WorldNews.headline("%s: %s takımı görevden döndü; %s aralarında yok." % [WorldPeople.vname(String(run["vid"])), WorldNews.sfx(String(team[0]["name"]), "in"), String(q["name"])], Color(1, 0.6, 0.55))
+	for q in back:
+		if not q.has("mates"):
+			q["mates"] = {}
+		for o2 in back:
+			if o2 != q:
+				q["mates"][String(o2["id"])] = int(q["mates"].get(String(o2["id"]), 0)) + 1
 	run["back"] = back.map(func(q): return String(q["id"]))
 	if not back.is_empty():
 		_show(run, false)
@@ -498,6 +666,10 @@ static func tick(dt: float) -> void:
 	for run in (D()["runs"] as Array).duplicate():
 		if now >= float(run["t1"]):
 			resolve(run)
+	_bond_t -= 4.0
+	if _bond_t <= 0.0 and auto:
+		_bond_t = 60.0
+		bond_pass()
 	if auto:
 		var nx: Dictionary = D()["next"]
 		for v in Game.world_info.get("villages", []):

@@ -429,6 +429,7 @@ func _spawn(req: Array) -> void:
 			if is_instance_valid(a):
 				a.buddy = b
 				b.buddy = a
+				WorldDay.paired(a, b, "gezi")
 		"site":
 			_spawn_site_actor(req[1], req[2], req[3])
 		_:

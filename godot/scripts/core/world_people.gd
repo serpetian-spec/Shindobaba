@@ -274,6 +274,7 @@ static func _life(p: Dictionary) -> void:
 		log_event(p, "%s oldu" % RANK_NAMES[rank + 1])
 		p["look"] = _make_look_keep(p)
 		_learn(p)
+		WorldDay.on_promote(p)
 	elif r < 0.30:
 		_learn(p)
 		if int(p["level"]) >= 90 and (p["els"] as Array).size() < 2 and randf() < 0.3:

@@ -53,6 +53,25 @@ func _ready() -> void:
 			var a = WorldDay.act_of(p, ph)
 			cnt[a] = int(cnt.get(a, 0)) + 1
 		print("WD act ", ph, " ", cnt)
+	# --- 1b) bağlar: hoca / rakip
+	seed(5)
+	for i in 6:
+		WorldDay.bond_pass()
+	var vm = WorldPeople.all().values().filter(func(p): return String(p["village"]) == vid and WorldPeople.alive(p))
+	print("WD bonds ", vid, ": genin=", vm.filter(func(p): return int(p["rank"]) == 0).size(), " with_sensei=", vm.filter(func(p): return p.has("sensei")).size(), " rivals=", vm.filter(func(p): return p.has("rival")).size(),
+		" max_students=", vm.map(func(p): return (p.get("students", []) as Array).size()).max())
+	var rvs = vm.filter(func(p): return p.has("rival") and int(p["rank"]) < 3)
+	if not rvs.is_empty():
+		var a0: Dictionary = rvs[0]
+		var b0 = WorldPeople.get_p(String(a0["rival"]))
+		a0["rank"] = int(a0["rank"]) + 1
+		WorldDay.on_promote(a0)
+		print("WD   rival ", a0["name"], " (lv ", a0["level"], ") vs ", b0["name"], " (lv ", b0["level"], ") behind=", b0.get("behind", false), " log=", (b0["log"] as Array).slice(-1), " lines=", WorldDay.lines(b0, "gezi").slice(0, 3))
+		a0["rank"] = int(a0["rank"]) - 1
+	var st = vm.filter(func(p): return p.has("sensei"))
+	if not st.is_empty():
+		var sn = WorldPeople.get_p(String(st[0]["sensei"]))
+		print("WD   student ", st[0]["name"], " sensei=", sn["name"], " ties=", WorldDay.ties(sn).map(func(b): return "%s:%s" % [b[1], b[0]["name"]]), " lines=", WorldDay.lines(st[0], "gezi").slice(0, 3))
 	# --- 2) kapı / görev masası konumu
 	var gs = WorldDay.gates(vid)
 	var c0 = Game.from_map(Vector2(float(Game.village(vid)["x"]), float(Game.village(vid)["y"])))
@@ -127,6 +146,7 @@ func _ready() -> void:
 		print("WD spar site cast=", sp.size())
 		for n in sp:
 			var p = WorldPeople.get_p(String(n.get_meta("world_person")))
+			print("WD   spar tie=", WorldDay.tie_of(p, WorldPeople.get_p(String(sp[1 - sp.find(n)].get_meta("world_person")))) if sp.size() == 2 else "-")
 			print("WD   spar ", p["name"], " close=", WorldPeople.get_p(String(p.get("close", ""))).get("name", "-"), " lines=", n.lines_override.slice(0, 2), " log=", (p["log"] as Array).slice(-1))
 		if not sp.is_empty():
 			var c = sp[0].global_position
