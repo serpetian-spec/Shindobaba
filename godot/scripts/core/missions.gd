@@ -340,7 +340,7 @@ func _q_weeds(here: String) -> Dictionary:
 		"steps": [
 			{"kind": "talk", "at": farm, "npc": n, "busy": "hoe", "text": "Çiftçi Tagosaku ile konuş.", "say": "Ahh belim... Şu otlar her yeri sardı. 8 tanesini kökünden sök, sepete at; sana dango ısmarlarım!"},
 			{"kind": "collect", "at": farm, "item": "yabani ot", "n": 8, "spread": 14, "work": "weed", "pile": "weeds", "label": "[F] Otu kökünden sök", "text": "Tarladaki yabani otları sök (8)."},
-			{"kind": "talk", "npc_id": "ciftci", "text": "Çiftçiye dön.", "say": "Vay be, ninja dediğin böyle olur! Al bakalım, emeğinin karşılığı."}]}
+			{"kind": "talk", "npc_id": "ciftci", "pay": "dango", "text": "Çiftçiye dön.", "say": "Vay be, ninja dediğin böyle olur! Al bakalım, söz verdiğim dango."}]}
 	if not site.is_empty():
 		q["site"] = site
 	return q
@@ -395,9 +395,9 @@ func _q_escort(here: String, rank: String) -> Dictionary:
 	return {"title": "Elçiye Koruma" if vip else "Tüccar Kervanı Eskortu",
 		"brief": ("Daimyo'nun elçisini güvenle karşı köye ulaştır. Kiralık suikastçılar peşinde." if vip else "Tüccar Gonzō malıyla birlikte yola çıkacak. Yolda haydut pususu bekleniyor."),
 		"steps": [
-			{"kind": "talk", "at": start, "npc": n, "text": "%s ile buluş." % n["name"], "say": ("Bu belgeler hayati önemde. Ben yürürüm, sen etrafı kolla. Benden 15 metreden uzaklaşma!" if vip else "Ah, ninja geldi! Yollar artık güvenli değil. Sen önden bak, ben arabamla gelirim.")},
+			{"kind": "talk", "at": start, "npc": n, "cart": not vip, "text": "%s ile buluş." % n["name"], "say": ("Bu belgeler hayati önemde. Ben yürürüm, sen etrafı kolla. Benden 15 metreden uzaklaşma!" if vip else "Ah, ninja geldi! Yollar artık güvenli değil. Sen önden bak, ben öküzümle arkandan gelirim.")},
 			{"kind": "escort", "npc_id": "eskort", "from": start, "to": dest, "ambush": amb, "text": "%s'i hedefe kadar koru." % n["name"]},
-			{"kind": "talk", "npc_id": "eskort", "text": "Teslimi tamamla.", "say": "Sağ salim vardık! Bu yolculuğu unutmayacağım. Ücretini köyüne bildireceğim."}]}
+			{"kind": "talk", "npc_id": "eskort", "pay": "pouch", "text": "Teslimi tamamla.", "say": "Sağ salim vardık! Bu yolculuğu unutmayacağım. Al, bu da yol harçlığın; ücretin köyüne ayrıca gidecek."}]}
 
 
 func _q_investigate(here: String) -> Dictionary:
@@ -413,13 +413,15 @@ func _q_investigate(here: String) -> Dictionary:
 		choices.append({"label": c[0], "ok": c[1], "reply": "Çamurlu sandal izleri ve kamp ateşi kokusu... Mantıklı! Kamplarına baskın yap." if c[1] else "Hmm, ipuçları buna uymuyor ama... madem öyle diyorsun. (Yanlış şüphe!)"})
 	return {"title": "Pazar Hırsızlıkları", "brief": "Son haftalarda pazardaki dükkânlar geceleri soyuluyor. Tanıkları dinle, ipuçlarını topla, suçluyu bul.",
 		"steps": [
-			{"kind": "talk", "at": _inside(here, 0.15, 0.5), "npc": victim, "text": "Dükkân sahibi Jubei ile konuş.", "say": "Üçüncü kez! Kasamı boşalttılar. Fırıncı Oharu gece bir şey görmüş, bekçi Daisuke de devriyedeydi."},
-			{"kind": "talk", "at": _inside(here, 0.2, 0.6), "npc": w1, "text": "Tanık: Fırıncı Oharu.", "say": "Gece hamur yoğururken üç gölge gördüm. Kokuları... duman ve at gübresi gibiydi. Köyün dışına doğru koştular."},
-			{"kind": "talk", "at": _inside(here, 0.2, 0.6), "npc": w2, "text": "Tanık: Bekçi Daisuke.", "say": "O gece güney yolunda çamurlu ayak izleri vardı, köyden çıkıyordu. Peşlerine düşemedim, yalnızdım."},
-			{"kind": "collect", "at": _near_spot(camp, 60, 90), "item": "ipucu", "n": 3, "spread": 25, "text": "Köy dışındaki izlerde ipucu ara (3)."},
+			{"kind": "talk", "at": _inside(here, 0.15, 0.5), "npc": victim, "busy": "fret", "site": "stall_wrecked", "text": "Dükkân sahibi Jubei ile konuş.", "say": "Üçüncü kez! Bak şu hâle: tentem yırtık, sandıklar devrilmiş, kasam bomboş. Fırıncı Oharu gece bir şey görmüş, bekçi Daisuke de devriyedeydi."},
+			{"kind": "talk", "at": _inside(here, 0.2, 0.6), "npc": w1, "busy": "knead", "site": "bakery", "text": "Tanık: Fırıncı Oharu.", "say": "Gece hamur yoğururken üç gölge gördüm. Kokuları... duman ve at gübresi gibiydi. Köyün dışına doğru koştular."},
+			{"kind": "talk", "at": _inside(here, 0.2, 0.6), "npc": w2, "busy": "fold", "text": "Tanık: Bekçi Daisuke.", "say": "O gece güney yolunda çamurlu ayak izleri vardı, köyden çıkıyordu. Peşlerine düşemedim, yalnızdım."},
+			{"kind": "collect", "at": _near_spot(camp, 60, 90), "item": "ipucu", "n": 3, "spread": 16, "work": "clue", "label": "[F] İzi incele", "text": "Köy dışındaki izleri incele (3).",
+				"finds": ["Çamurlu sandal izleri... üç kişi, yükleri ağır. Köyden uzaklaşıyorlar.", "Sönmüş ateş, kül daha ılık. Dün gece burada kamp kurmuşlar.", "Yırtık kızıl bir bandana. Bu, haydut çetelerinin işareti."]},
 			{"kind": "talk", "npc_id": "magdur", "text": "Jubei'ye bulduklarını anlat.", "say": "Çamurlu sandal izi, yanmış odun, yırtık bir haydut bandanası... Sence suçlu kim?", "choices": choices},
 			{"kind": "kill", "at": camp, "enemy": "bandit", "n": 4, "camp": true, "text": "Haydut kampına baskın yap (4)."},
-			{"kind": "talk", "npc_id": "magdur", "text": "Çalınan malları Jubei'ye geri götür.", "say": "Paralarım! Sen gerçek bir dedektif-ninjasın. Al, bunu hak ettin."}]}
+			{"kind": "collect", "at": camp, "item": "ganimet", "n": 1, "spread": 4, "work": "sack", "label": "[F] Çalınan malları omuzla", "text": "Kamptaki çalıntı çuvalı al (1)."},
+			{"kind": "talk", "npc_id": "magdur", "give": "sack", "pay": "pouch", "text": "Çalınan malları Jubei'ye geri götür.", "say": "Paralarım! Mallarım! Sen gerçek bir dedektif-ninjasın. Al, bunu hak ettin."}]}
 
 
 func _q_track(here: String, rank: String) -> Dictionary:
@@ -435,7 +437,7 @@ func _q_track(here: String, rank: String) -> Dictionary:
 	return {"title": "Kaçak Jonin Avı: %s" % name if hunt else "Ninken ile İz Sürme",
 		"brief": ("Köyün sırlarını satıp kaçan bir Jonin sınırda görüldü. İz sür ve onu durdur. Yakalanmamak için her şeyi yapar." if hunt else "Kaçak ninjalar bir çiftliği basmış. Ninken izcisiyle izlerini takip et."),
 		"steps": [
-			{"kind": "talk", "at": start, "npc": n, "text": "İzci Kobu ile buluş.", "say": "Köpeklerim kokuyu aldı. İzler toprağa basılmış, parlayan pati işaretlerini takip et. Ben arkadan gelirim."},
+			{"kind": "talk", "at": start, "npc": n, "text": "İzci Kobu ile buluş.", "say": "Köpeklerim kokuyu aldı. Köpeğim önden koşar, sen peşinden git. Çamurdaki sandal izleri de onların. Ben arkadan gelirim."},
 			{"kind": "track", "from": start, "to": hide, "text": "Ayak izlerini takip et."},
 			{"kind": "kill", "at": hide, "enemy": "rogue", "n": 3 if hunt else 2, "camp": true, "boss": boss, "text": ("%s'i yen!" % boss["name"]) if hunt else "Kaçak ninjaları yen."},
 			{"kind": "goto", "at": _inside(here, 0.0, 0.2), "r": 18.0, "name": "Köy", "text": "Köye dön ve rapor ver."}]}
@@ -449,6 +451,7 @@ func _q_border(here: String) -> Dictionary:
 	var mid = a.lerp(b, 0.45)
 	var cp = _near_spot([mid.x, mid.y], 0, 40)
 	var g = _npc("nobetci", "Sınır Nöbetçisi", "ninja")
+	var clerk = _npc("katip", "Kâtip Tomoe", "civ")
 	var pw = [["Kızıl ay ağaçları yakmaz", true], ["Rüzgar kumları taşır", false], ["Su taşı deler", false]]
 	pw.shuffle()
 	var choices = []
@@ -456,8 +459,8 @@ func _q_border(here: String) -> Dictionary:
 		choices.append({"label": "\"%s\"" % p[0], "ok": p[1], "reply": "Doğru parola. Geçebilirsin, yolun açık olsun." if p[1] else "YANLIŞ! Casus! Yakalayın onu!", "wrong": "ambush"})
 	return {"title": "Gizli Mektup: %s" % Game.village(to)["name"], "brief": "Mühürlü mektubu %s'e ulaştır. Sınır karakolunda parola sorulacak: 'Kızıl ay ağaçları yakmaz'. Unutma!" % Game.village(to)["name"],
 		"steps": [
-			{"kind": "talk", "at": cp, "npc": g, "text": "Sınır karakoluna git, parolayı söyle.", "say": "Dur! Parola?", "choices": choices},
-			{"kind": "goto", "at": [b.x, b.y], "r": float(Game.village(to)["r"]) * 0.5, "name": Game.village(to)["name"], "text": "Mektubu %s'e ulaştır." % Game.village(to)["name"]}]}
+			{"kind": "talk", "at": cp, "npc": g, "busy": "fold", "site": "checkpoint", "on_ok": "barrier", "text": "Sınır karakoluna git, parolayı söyle.", "say": "Dur! Buradan öteye mühürlü izin olmadan geçilmez. Parola?", "choices": choices},
+			{"kind": "talk", "at": _inside(to, 0.05, 0.3), "npc": clerk, "give": "letter", "text": "Mektubu %s kâtibine elden teslim et." % Game.village(to)["name"], "say": "Mühür sağlam, kimse açmamış. %s'den haber bekliyorduk. Görevini tamamladın, ninja." % Game.village(here)["name"]}]}
 
 
 func _q_stealth(here: String) -> Dictionary:
@@ -466,7 +469,7 @@ func _q_stealth(here: String) -> Dictionary:
 		"steps": [
 			{"kind": "goto", "at": _near_spot(camp, 70, 90), "r": 10.0, "name": "Kamp Yakını", "night": true, "text": "Gece olunca kampın yakınına git."},
 			{"kind": "stealth", "at": camp, "enemy": "rogue", "n": 4, "text": "Fark edilmeden şifre kitabını al [F] (kırmızı görüş alanlarından uzak dur)."},
-			{"kind": "goto", "at": _inside(here, 0.0, 0.25), "r": 18.0, "name": "Köy", "text": "Kitapla köye dön."}]}
+			{"kind": "talk", "at": _inside(here, 0.0, 0.25), "npc": _npc("sifreci", "Şifre Subayı Kōsuke", "ninja"), "give": "book", "text": "Kitabı şifre subayına elden teslim et.", "say": "Sayfalar tam, mühür yerinde. Kaçakçılar hâlâ şifreyi çözdüklerini sanıyor olmalı. Temiz iş."}]}
 
 
 func _q_chase(here: String) -> Dictionary:
@@ -474,8 +477,8 @@ func _q_chase(here: String) -> Dictionary:
 	return {"title": "Çalınan Parşömen", "brief": "Pazarda bir hırsız tapınaktan çalınan mühür parşömenini kaçırıyor! Kaçmadan yakala.",
 		"steps": [
 			{"kind": "goto", "at": market, "r": 10.0, "name": "Pazar", "text": "Pazara git."},
-			{"kind": "chase", "at": market, "time": 75.0, "text": "Hırsızı yakala! (yakına gel / vur)"},
-			{"kind": "goto", "at": _inside(here, 0.0, 0.25), "r": 18.0, "name": "Tapınak", "text": "Parşömeni tapınağa geri götür."}]}
+			{"kind": "chase", "at": market, "time": 75.0, "drop": "scroll", "text": "Hırsızı yakala! (yakına gel / vur)"},
+			{"kind": "talk", "at": _inside(here, 0.0, 0.25), "npc": _npc("rahip", "Rahip Jikai", "elder"), "give": "scroll", "text": "Parşömeni Rahip Jikai'ye elden teslim et.", "say": "Mühür bozulmamış... Tapınağın yüz yıllık emaneti. Tanrılar adımlarını korusun, genç ninja."}]}
 
 
 func _q_defend(here: String, rank: String) -> Dictionary:
@@ -489,8 +492,8 @@ func _q_defend(here: String, rank: String) -> Dictionary:
 		"brief": ("Düşman köyün öncü birlikleri karakola saldıracak. Dalgaları geri püskürt, komutanlarını yen." if a else "Bir haydut çetesi küçük bir köyü yağmalamak üzere. Köylüleri koru!"),
 		"steps": [
 			{"kind": "talk", "at": spot, "npc": e, "text": "%s ile konuş." % e["name"], "say": ("Gözcülerimiz üç birlik gördü. Hazırlan, geliyorlar!" if a else "Ninja! Tanrılara şükür. Haydutlar gün batmadan saldıracak, lütfen bize yardım et!")},
-			{"kind": "defend", "at": spot, "enemy": enemy, "waves": [3, 4, 4] if a else [3, 3, 4], "text": "Saldırı dalgalarını püskürt."},
-			{"kind": "talk", "npc_id": "muhtar", "text": "%s ile konuş." % e["name"], "say": "Başardın! Bu köy sana minnettar. Hikâyeni çocuklarımıza anlatacağız."}]}
+			{"kind": "defend", "at": spot, "enemy": enemy, "waves": [3, 4, 4] if a else [3, 3, 4], "barricade": true, "text": "Saldırı dalgalarını püskürt."},
+			{"kind": "talk", "npc_id": "muhtar", "pay": "pouch", "text": "%s ile konuş." % e["name"], "say": "Başardın! Bu köy sana minnettar. Hikâyeni çocuklarımıza anlatacağız. Köylüler aralarında topladı, kabul et."}]}
 
 
 func _q_rescue(here: String) -> Dictionary:
@@ -501,7 +504,7 @@ func _q_rescue(here: String) -> Dictionary:
 		"steps": [
 			{"kind": "kill", "at": camp, "enemy": "bandit", "n": 5, "camp": true, "night": true, "hostage": h, "text": "Kamptaki muhafızları yen (5)."},
 			{"kind": "talk", "npc_id": "rehine", "text": "Rehineyi çöz.", "say": "Kurtarıcım! Bacağım uyuştu ama yürüyebilirim, beni buradan çıkar!", "then": "follow"},
-			{"kind": "goto", "at": _inside(here, 0.0, 0.3), "r": 20.0, "followers": true, "name": "Köy", "text": "Ume'yi köye getir (seni takip ediyor)."}]}
+			{"kind": "talk", "at": _inside(here, 0.0, 0.3), "npc": _npc("baba", "Tüccar Hachirō", "merchant"), "followers": true, "reunion": "rehine", "pay": "pouch", "text": "Ume'yi köyde bekleyen babasına götür (seni takip ediyor).", "say": "Ume! Kızım... Ninja, sana borcumu ödeyemem. Bunu al, lütfen."}]}
 
 
 func _q_sabotage(here: String) -> Dictionary:
@@ -509,7 +512,7 @@ func _q_sabotage(here: String) -> Dictionary:
 	var safe = _near_spot(camp, 70, 90)
 	return {"title": "İkmal Sabotajı", "brief": "Düşman casusların ikmal kampındaki sandıklara patlayıcı mühür yerleştir, uzaklaş ve ateşle.",
 		"steps": [
-			{"kind": "points", "at": camp, "n": 4, "spread": 14, "label": "[F] Patlayıcı mühür yerleştir", "fx": "tag", "camp": true, "guards": {"enemy": "rogue", "n": 3}, "text": "Sandıklara patlayıcı mühür yerleştir (4)."},
+			{"kind": "points", "at": camp, "n": 4, "spread": 14, "label": "[F] Patlayıcı mühür yapıştır", "fx": "tag", "work": "tag", "camp": true, "guards": {"enemy": "rogue", "n": 3}, "text": "Sandıklara patlayıcı mühür yerleştir (4)."},
 			{"kind": "goto", "at": safe, "r": 10.0, "name": "Güvenli Mesafe", "boom": camp, "text": "Güvenli mesafeye çekil ve mühürleri ateşle!"},
 			{"kind": "goto", "at": _inside(here, 0.0, 0.25), "r": 18.0, "name": "Köy", "text": "Köye dön ve rapor ver."}]}
 
@@ -559,7 +562,7 @@ func _from_spec(here: String, sp: Dictionary) -> Dictionary:
 			if spot == null:
 				spot = _spot(here, 150, 600)
 			steps = [{"kind": "talk", "at": spot, "npc": giver, "text": "%s ile konuş." % giver["name"], "say": sp.get("s1", "")},
-				{"kind": "defend", "at": spot, "enemy": e, "ename": en, "waves": sp.get("w", [3, 3]), "text": "Saldırıları püskürt."},
+				{"kind": "defend", "at": spot, "enemy": e, "ename": en, "waves": sp.get("w", [3, 3]), "barricade": ["Baskın", "Kuşatma", "Savunma"].any(func(k): return k in String(sp.get("t", ""))), "text": "Saldırıları püskürt."},
 				{"kind": "talk", "npc_id": "veren", "text": "%s ile konuş." % giver["name"], "say": sp.get("s2", "")}]
 		"rescue":
 			var camp = _spot(here, 200, 650)
@@ -827,6 +830,8 @@ func _skip_middleman(m: Dictionary) -> void:
 			st2["early"] = true   # görev veren baştan beri yerinde (işiyle meşgul), sonunda ona dönülür
 			if s0.has("busy"):
 				st2["busy"] = s0["busy"]
+			if s0.has("site"):
+				st2["site"] = s0["site"]
 			break
 
 func abandon() -> void:
@@ -905,6 +910,8 @@ func _begin_step() -> void:
 			MissionWork.I().garden(_w(es["at"]), int(es.get("n0", es["n"])))
 		elif String(es.get("work", "")) == "weed":
 			MissionWork.I().field(_w(es["at"]))
+		if es.has("site") and es.has("at"):
+			MissionWork.I().site(String(es["site"]), _w(es["at"]))
 	for es in m["steps"]:
 		if es.get("early", false) and es.has("npc"):
 			_work_npc(_ensure_npc(es), es)
@@ -932,6 +939,11 @@ func _begin_step() -> void:
 				target_name = npc.display
 				_work_npc(npc, s)
 				target_marker = npc.global_position
+				if s.has("at"):
+					var nm0 = Game.to_map(npc.global_position)
+					s["at"] = [nm0.x, nm0.y]
+				if s.get("cart", false):
+					MissionWork.I().cart_begin(npc)
 				if not npc.visible:
 					MissionWork.I().walk_back(npc)
 		"kill":
@@ -958,10 +970,15 @@ func _begin_step() -> void:
 				var hp = c + Vector3(3, 0, 3)
 				var h = _make_npc(s["hostage"], hp)
 				h.mode = "cower"
+				MissionWork.I().bind(h)   # kazığa bağlı
 		"collect":
 			var c = _w(s["at"])
 			target_marker = c
 			var wk = String(s.get("work", ""))
+			if wk == "" and MissionWork.item_class(String(s["item"])) != "":
+				wk = "item"   # rastgele havuz eşyası: kendi modeli, elle alınır / küfeye yüklenir
+				if MissionWork.item_act(String(s["item"])) == "back":
+					MissionWork.I().load_begin()
 			var fld = {}
 			if wk == "weed":
 				fld = MissionWork.I().field(c)
@@ -976,6 +993,16 @@ func _begin_step() -> void:
 					wq = fld["spots"][i % fld["spots"].size()]
 				else:
 					wq = open_ground(wq, 12.0)
+				if wk == "clue":
+					if i >= int(s["n"]):
+						continue   # ipuçlarının yedeği olmaz
+					extra = {"clue": i, "find": String((s.get("finds", []) as Array)[i]) if i < (s.get("finds", []) as Array).size() else "Bir iz..."}
+				elif wk == "sack" and i >= int(s["n"]):
+					continue
+				if wk == "item":
+					extra = {"item": String(s["item"]), "act": MissionWork.item_act(String(s["item"])), "reach": 0.6}
+					MissionWork.I().make(wk, wq, randf() * TAU, i, MissionWork.item_label(String(s["item"])), extra)
+					continue
 				MissionWork.I().make(wk, wq, randf() * TAU, i, String(s.get("label", "[F] Topla")), extra)
 			for i in (int(s["n"]) + 2 if wk == "" else 0):
 				var pk = Pickup.new()
@@ -1017,7 +1044,7 @@ func _begin_step() -> void:
 				st["cones"].append(cone)
 			st["detect"] = 0.0
 			st["alarm"] = false
-			_quest_point(c + Vector3(0, 0, 0), "[F] %s" % s.get("goal", "Şifre kitabını al"), 0)
+			MissionWork.I().make("book", open_ground(c + Vector3(2.6, 0, 1.4), 6.0), randf() * TAU, 0, "[F] %s" % s.get("goal", "Şifre kitabını al"), {"look": String(s.get("goal", ""))})
 		"chase":
 			var c = _w(s["at"])
 			var a = Enemy.archetype("bandit", 1)
@@ -1059,6 +1086,16 @@ func _begin_step() -> void:
 					FX.smoke_puff(q + Vector3.UP, 0.8, 10)
 					step_nodes.append(g)
 				Hud.msg("Köyün muhafızları savunmaya katıldı.", Color(0.7, 0.9, 1.0))
+			# barikat kurulu, köylüler saman balyalarının ardına sinmiş
+			var hid = []
+			var bs: Dictionary = MissionWork.I().barricade(c) if s.get("barricade", false) else {}
+			for i in (3 if not bs.is_empty() else 0):
+				var vn = _make_npc(_npc("koylu%d" % i, "Köylü", "civ"), bs["hide"][i])
+				vn.global_position = Vector3(bs["hide"][i].x, Game.ground_height(bs["hide"][i].x, bs["hide"][i].z), bs["hide"][i].z)
+				vn.home = vn.global_position
+				vn.mode = "cower"
+				hid.append(vn)
+			st["hid"] = hid
 			st["wave"] = -1
 			st["alive"] = []
 			st["next_t"] = 2.0
@@ -1067,7 +1104,8 @@ func _begin_step() -> void:
 			st["idx"] = 0
 			st["shown"] = 0
 			target_marker = st["prints"][0]
-			Hud.msg("Ninken izleri kokluyor... parlayan pati izlerini takip et.", Color(0.8, 0.95, 1.0))
+			MissionWork.I().dog_begin(st["prints"])
+			Hud.msg("Ninken kokuyu aldı! Peşinden git; çamurdaki sandal izleri de aynı yöne gidiyor.", Color(0.8, 0.95, 1.0))
 		"points":
 			var c = _w(s["at"])
 			target_marker = c
@@ -1091,10 +1129,22 @@ func _begin_step() -> void:
 				s["n0"] = int(s.get("n0", s["n"]))
 				s["n"] = MissionWork.I().arm_garden(s["label"])
 				target_marker = gdn["root"].global_position
+			if String(s.get("work", "")) == "tag":
+				for i in int(s["n"]):
+					var a2 = TAU * float(i) / float(s["n"]) + randf_range(-0.3, 0.3)
+					var q2 = MissionWork.I().clear_spot(c + Vector3(cos(a2), 0, sin(a2)) * float(s.get("spread", 10)) * randf_range(0.6, 1.0), 1.6, 1.0, 16.0)
+					MissionWork.I().make("crate", q2, randf() * TAU, i, s["label"], {"keep": true})
 			for i in (int(s["n"]) if not s.has("work") else 0):
 				var a = TAU * float(i) / float(s["n"]) + randf_range(-0.3, 0.3)
 				var q = c + Vector3(cos(a), 0, sin(a)) * float(s.get("spread", 10)) * randf_range(0.6, 1.0)
-				_quest_point(open_ground(q, 15.0), s["label"], i)
+				var sk = MissionWork.spot_class(String(s["label"]))
+				if sk != "":
+					# gerçek nesne: mühür taşı / sandık / parşömen kaidesi (yüzü merkeze dönük)
+					var sq = open_ground(q, 15.0)
+					var tc = c - sq
+					MissionWork.I().make("spot", sq, atan2(tc.x, tc.z) if Vector2(tc.x, tc.z).length() > 0.5 else randf() * TAU, i, s["label"], {"style": sk, "keep": true})
+				else:
+					_quest_point(open_ground(q, 15.0), s["label"], i)
 		"babysit":
 			var kid = _ensure_npc({"at": s["at"], "npc": s["npc"]})
 			kid.mode = "kid"
@@ -1981,8 +2031,15 @@ func on_kill(e: Node) -> void:
 			if int(st["n"]) >= int(s["n"]):
 				_next_step()
 		"chase":
-			Hud.msg("Parşömeni geri aldın!", Color(0.6, 1, 0.6))
-			_next_step()
+			if s.has("drop"):
+				# hırsız yere serildi: çaldığı elinden düşer, yerden alınır
+				var dp = open_ground(e.global_position + Vector3(0.8, 0, 0.5), 3.0)
+				MissionWork.I().make(String(s["drop"]), dp, randf() * TAU, 0, "[F] Parşömeni al", {})
+				target_marker = dp
+				Hud.msg("Hırsız yere serildi; parşömen elinden düştü!", Color(1, 0.9, 0.6))
+			else:
+				Hud.msg("Parşömeni geri aldın!", Color(0.6, 1, 0.6))
+				_next_step()
 		"boss":
 			_next_step()
 
@@ -2009,20 +2066,35 @@ func _work_npc(npc, s: Dictionary) -> void:
 		return
 	npc.set_meta("was_busy", true)
 	var W = MissionWork.I()
-	match String(s["busy"]):
-		"hoe":
-			if not W.field_d.is_empty() and is_instance_valid(W.field_d.get("root")):
-				W.place_worker(npc, W.field_d["farmer_at"], W.field_d["face"])
-		"sweep":
-			if not W.garden_d.is_empty() and is_instance_valid(W.garden_d.get("root")):
-				W.place_worker(npc, W.garden_d["npc_at"], W.garden_d["face"])
+	if s.has("site") and s.has("at"):
+		var sd: Dictionary = W.site(String(s["site"]), _w(s["at"]))
+		W.place_worker(npc, sd["npc_at"], sd["face"])
+	else:
+		match String(s["busy"]):
+			"hoe":
+				if not W.field_d.is_empty() and is_instance_valid(W.field_d.get("root")):
+					W.place_worker(npc, W.field_d["farmer_at"], W.field_d["face"])
+			"sweep":
+				if not W.garden_d.is_empty() and is_instance_valid(W.garden_d.get("root")):
+					W.place_worker(npc, W.garden_d["npc_at"], W.garden_d["face"])
+	# kişi iş yerine taşındı: adımın yeri de orası (uzaklaştı sanılıp yeniden doğmasın)
+	var mp = Game.to_map(npc.global_position)
+	s["at"] = [mp.x, mp.y]
 	W.busy(npc, String(s["busy"]))
 
 
 ## Bir iş nesnesi tamamlandı (MissionWork.run sonu)
 func work_done(it: Dictionary) -> void:
 	var s = _cur()
-	if it.get("qkey", "") != _key() or not s.get("kind", "") in ["collect", "points"]:
+	if it.get("qkey", "") != _key() or not s.get("kind", "") in ["collect", "points", "stealth", "chase"]:
+		return
+	if s["kind"] == "stealth":
+		Hud.msg("%s alındı!" % s.get("goal", "Şifre kitabı"), Color(0.6, 1, 0.6))
+		_next_step()
+		return
+	if s["kind"] == "chase":
+		Hud.msg("Parşömeni geri aldın!", Color(0.6, 1, 0.6))
+		_next_step()
 		return
 	st["n"] = int(st.get("n", 0)) + 1
 	Hud.objective_progress("%s %d/%d" % [s["text"].split("(")[0], st["n"], s["n"]])
@@ -2151,11 +2223,21 @@ func on_quest_talk(npc: QuestNPC) -> bool:
 
 func _after_talk(npc: QuestNPC, s: Dictionary) -> void:
 	Hud.close_dialog()
+	if is_instance_valid(npc) and is_instance_valid(MissionWork.inst) and MissionWork.inst.bound_d.has(npc):
+		await MissionWork.inst.untie(npc)   # ipleri kes
+	if s.has("reunion") and is_instance_valid(npcs.get(s["reunion"])) and is_instance_valid(npc):
+		await MissionWork.I().reunite(npcs[s["reunion"]], npc)
 	if s.get("then", "") == "follow":
 		npc.mode = "follow"
 		npc.team = "player"
 	if s.has("give") and is_instance_valid(npc):
 		await MissionWork.I().give(npc, String(s["give"]))   # elden teslim
+	if is_instance_valid(npc) and is_instance_valid(MissionWork.inst) and MissionWork.inst.rider_kind == "load":
+		await MissionWork.inst.unload(npc)   # küfeyi önüne indir
+	if s.has("pay") and is_instance_valid(npc):
+		await MissionWork.I().receive(npc, String(s["pay"]))   # teşekkür / ödeme elden
+	if String(s.get("on_ok", "")) == "barrier" and not active().get("flags", {}).get("wrong", false):
+		MissionWork.I().open_barrier()
 	if s.get("then", "") == "leave":
 		MissionWork.I().walk_off(npc)
 	_next_step()
@@ -2336,7 +2418,10 @@ func _process_steps(dt: float) -> void:
 					Hud.dialog(s["say"][0], s["say"][1], [])
 				if s.has("boom"):
 					var b = _w(s["boom"])
-					FX.explosion(b + Vector3.UP, 3.0)
+					if is_instance_valid(MissionWork.inst) and not MissionWork.inst.tagged.is_empty():
+						MissionWork.inst.blow()   # mühürlü yığınlar sırayla patlar
+					else:
+						FX.explosion(b + Vector3.UP, 3.0)
 					Sfx.play("boom", b, 0.7)
 					Hud.banner("BOOM!", "İkmal kampı havaya uçtu!", Color(1, 0.6, 0.2))
 				_next_step()
@@ -2353,6 +2438,14 @@ func _process_steps(dt: float) -> void:
 			if nn == null or not is_instance_valid(nn) or nn.dead:
 				npcs.erase(id)
 				nn = _ensure_npc(s)
+				if nn:
+					_work_npc(nn, s)
+					if s.has("at"):
+						# kişi açık zemine (sur dışına vb.) kaydıysa adımın yeri de orası: "uzaklaştı" sanılıp her kare yeniden doğmasın
+						var nm = Game.to_map(nn.global_position)
+						s["at"] = [nm.x, nm.y]
+					if s.get("cart", false):
+						MissionWork.I().cart_begin(nn)
 			if nn:
 				target_marker = nn.global_position
 				target_name = nn.display
@@ -2454,6 +2547,8 @@ func _tick_escort(s: Dictionary) -> void:
 			danger = true
 	if danger:
 		npc.wait = 0.4
+	if is_instance_valid(MissionWork.inst):
+		MissionWork.inst.cower(npc, danger)
 	Hud.objective_progress("%s — yol %%%d, can %d" % [npc.display, int(frac * 100), int(npc.hp)])
 	if npc.path_i >= n:
 		npc.mode = "idle"
@@ -2539,6 +2634,7 @@ func _tick_defend(dt: float, s: Dictionary) -> void:
 		st["next_t"] = float(st["next_t"]) - dt
 		if int(st["wave"]) + 1 >= waves.size():
 			if int(st["wave"]) >= 0:
+				MissionWork.I().cheer(st.get("hid", []))
 				_next_step()
 			return
 		if float(st["next_t"]) <= 0.0:
@@ -2585,15 +2681,11 @@ func _tick_track(s: Dictionary) -> void:
 		var fp = MeshInstance3D.new()
 		var b = MB.new()
 		var off = 0.18 if i % 2 == 0 else -0.18
-		b.add("sphere", Vector3(off, 0.03, 0), Vector3(0.22, 0.04, 0.32), Color(0.3, 0.9, 1.0))
-		b.add("sphere", Vector3(off, 0.03, -0.22), Vector3(0.1, 0.04, 0.1), Color(0.3, 0.9, 1.0))
+		# kaçanların çamurlu sandal izi (parlak işaret değil: yolu köpek gösterir)
+		b.add("sphere", Vector3(off, 0.012, 0), Vector3(0.15, 0.02, 0.3), Color(0.2, 0.14, 0.09))
+		b.add("sphere", Vector3(off, 0.014, -0.12), Vector3(0.1, 0.02, 0.1), Color(0.14, 0.1, 0.07))
+		b.add("sphere", Vector3(-off, 0.012, 0.5), Vector3(0.15, 0.02, 0.3), Color(0.2, 0.14, 0.09))
 		fp.mesh = b.build(Props.toon())
-		var m = StandardMaterial3D.new()
-		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		m.albedo_color = Color(0.4, 0.95, 1.0)
-		m.emission_enabled = true
-		m.emission = Color(0.3, 0.8, 1.0)
-		fp.material_override = m
 		get_tree().current_scene.add_child(fp)
 		var p: Vector3 = prints[i]
 		var nxt: Vector3 = prints[mini(i + 1, prints.size() - 1)]

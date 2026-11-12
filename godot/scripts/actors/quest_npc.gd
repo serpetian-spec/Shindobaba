@@ -17,6 +17,7 @@ var line := ""                # sabit replik (Missions.on_quest_talk ele almazsa
 var label3d: Label3D
 var nav := {}                 # NpcNav durumu (engelden dolaşma, takılma)
 var stuck_n := 0
+var hold_anim := ""           # beklerken oynatılacak animasyon (pusu sırasında sinme: "crouch")
 
 
 func _ready() -> void:
@@ -92,7 +93,7 @@ func _physics_process(dt: float) -> void:
 			if path_i >= path.size() or dpl > 16.0 or wait > 0.0:
 				wait -= dt
 				step_move(Vector3.ZERO, dt)
-				model.play("idle", 0.25)
+				model.play(hold_anim if hold_anim != "" else "idle", 0.25)
 				return
 			var v: Vector3 = path[path_i] - global_position
 			v.y = 0
