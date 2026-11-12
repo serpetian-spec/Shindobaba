@@ -304,10 +304,17 @@ static func _make_look_keep(p: Dictionary) -> Dictionary:
 static func _defect_p(p: Dictionary) -> float:
 	# kaçış nadirdir (kanon: nukenin azınlık). Eski değerler (0.012 / 0.05 / 0.03) saatte 3-4 kaçış veriyordu: 10 saatte nüfusun dörtte biri
 	var x = 0.0015 + (0.01 if p.get("grief", false) else 0.0) + (0.006 if int(p.get("loyalty", 50)) < 35 else 0.0)
+	var dr = WorldDay.dream(p)
+	if dr == "guc":
+		x += 0.006   # güç peşinde: köy ona dar gelir
+	elif dr in ["aile", "hoca", "kage"]:
+		x *= 0.3    # köye bağlayan bir şeyi var
 	return x
 
 
 static func _defect_reason(p: Dictionary) -> String:
+	if WorldDay.dream(p) == "guc":
+		return "Güç peşinde köyünden kaçtı"
 	if p.get("grief", false):
 		return "Kaybının acısıyla köyüne sırt çevirdi"
 	if int(p.get("loyalty", 50)) < 35:

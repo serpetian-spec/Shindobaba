@@ -55,7 +55,7 @@ static func away(p: Dictionary) -> bool:
 
 
 static func _free(p: Dictionary) -> bool:
-	return WorldPeople.alive(p) and not WorldPeople.is_rogue(p) and not p.get("missing", false)
+	return WorldPeople.alive(p) and not WorldPeople.is_rogue(p) and not p.get("missing", false) and String(p.get("kage", "")) == ""
 
 
 static func staged(id: String) -> Node:
@@ -88,6 +88,14 @@ static func act_of(p: Dictionary, ph := "") -> String:
 	var loyal = float(p.get("loyalty", 60)) / 100.0
 	var old = clampf((Aging.person_years(p) - 50.0) / 20.0, 0.0, 1.0)
 	var duty = 1.0 if rank >= 1 else 0.15
+	var dr = dream(p)
+	if dr in ["kage", "usta", "klan", "guc", "intikam"]:
+		hungry = minf(1.6, hungry + 0.45)   # hedefi güç isteyen sahadan çıkmaz
+	elif dr == "aile":
+		fam = 1.8
+		hungry *= 0.6
+	if dr == "guc":
+		duty *= 0.4   # nöbet, devriye onun için angarya
 	var w := {}
 	match ph:
 		"sabah":
@@ -232,6 +240,7 @@ static func bond_pass() -> void:
 				p["sensei"] = String(j["id"])
 				WorldPeople.log_event(p, "%s hocası oldu" % String(j["name"]))
 				WorldPeople.log_event(j, "%s adlı genini öğrenci aldı" % String(p["name"]))
+		_dream_pass(p)
 		var rv = WorldPeople.get_p(String(p.get("rival", "")))
 		if not rv.is_empty() and not _free(rv):
 			p.erase("rival")
@@ -406,6 +415,7 @@ static func lines(p: Dictionary, act: String, mate := {}) -> Array:
 	for l in WorldKin.lines_of(p):
 		if not String(l).begins_with("Köy bugün sakin"):
 			o.append(l)
+	o.append(dream_line(p))
 	for b in ties(p):
 		var q: Dictionary = b[0]
 		var qn = _first(String(q["name"]))
@@ -425,6 +435,98 @@ static func lines(p: Dictionary, act: String, mate := {}) -> Array:
 	if not lg.is_empty():
 		o.append("Geçenlerde: %s." % String(lg[-1]).trim_suffix("."))
 	return o
+
+
+# ====================================================================== kişilik + hedef
+## Mizaç doğuştan (kimlikten, sabit): x = atılgan (+) / temkinli (−), y = sıcak (+) / soğuk (−).
+static func temper(p: Dictionary) -> Vector2:
+	var id = String(p.get("id", "?"))
+	return Vector2(_h(id, "atak") * 2.0 - 1.0, _h(id, "sicak") * 2.0 - 1.0)
+
+
+## Hedef HAYATINDAN çıkar ve hayatıyla değişir (sabit atanmaz):
+## intikam (yakınını biri öldürdü) > güç (bağlılığı düşük + hırslı) > rakip (geride kaldı) > aile (eşi / küçük çocuğu var)
+## > kage (köyünün en güçlülerinden, bağlı, jōnin) > hoca (öğrencisi var) > klan (klanlı, atılgan) > usta (hırslı) > köy
+static func dream(p: Dictionary) -> String:
+	if p.is_empty():
+		return "koy"
+	var rank = int(p["rank"])
+	var loyal = int(p.get("loyalty", 60))
+	var tm = temper(p)
+	if String(p.get("vendetta", "")) != "" or String(p.get("foe_of_player", "")) != "":
+		return "intikam"
+	if p.get("grief", false) and tm.x > 0.2:
+		return "intikam"
+	if loyal < 35 and tm.y < 0.2:
+		return "guc"
+	if p.get("behind", false):
+		return "rakip"
+	if not WorldKin.kids_of(p).is_empty() or (not WorldKin.spouse_of(p).is_empty() and tm.x < 0.0):
+		return "aile"
+	if rank >= 2 and loyal >= 60 and top_of_village(p) and tm.x > -0.3:
+		return "kage"
+	if not (p.get("students", []) as Array).is_empty():
+		return "hoca"
+	if String(p.get("clan", "")) != "" and tm.x > 0.1:
+		return "klan"
+	var lr: Array = WorldPeople.RANK_LV[rank]
+	if rank < 3 and float(p["level"]) < (float(lr[0]) + float(lr[1])) * 0.5:
+		return "usta"
+	return "koy"
+
+
+## Köyünün en güçlü üç ninjasından biri mi
+static func top_of_village(p: Dictionary) -> bool:
+	var lv = int(p["level"])
+	var above = 0
+	for q in WorldPeople.all().values():
+		if String(q["village"]) == String(p["village"]) and _free(q) and int(q["level"]) > lv:
+			above += 1
+			if above >= 3:
+				return false
+	return true
+
+
+## Hedefi kendi ağzından
+static func dream_line(p: Dictionary) -> String:
+	var tm = temper(p)
+	var warm = tm.y > 0.0
+	match dream(p):
+		"intikam":
+			var who = String(p.get("vendetta", p.get("foe_of_player", "")))
+			if who != "":
+				return "%s hesabı kapanmadan rahat uyumam." % WorldNews.sfx(who, "in")
+			return "Kaybettiğimin hesabını soracağım. Kimden olursa."
+		"guc":
+			return "Köyün kuralları güçsüzler için. Ben daha fazlasını istiyorum."
+		"rakip":
+			var rv = WorldPeople.get_p(String(p.get("rival", "")))
+			return "%s geçeceğim. Başka hiçbir şey umurumda değil." % (WorldNews.sfx(_first(String(rv["name"])), "i") if not rv.is_empty() else "Onu")
+		"aile":
+			return "Eve sağ dönmek... benim tek hedefim bu." if warm else "Ailem var. Gereksiz risk almam."
+		"kage":
+			return "Bir gün %s şapkasını ben takacağım. Köy bunu görecek." % Progress.kage_title(String(p["village"]))
+		"hoca":
+			return "Öğrencilerim beni geçsin; başka bir şey istemem." if warm else "Öğrencilerim hayatta kalmayı öğrenecek. Gerisi onların işi."
+		"klan":
+			return "%s adını bu köyün en tepesine yazdıracağım." % ClanWorld.clan_name(String(p["clan"]))
+		"usta":
+			return "%s olacağım. Sonra bir üstü." % WorldPeople.RANK_NAMES[clampi(int(p["rank"]) + 1, 0, 3)]
+	return "Köy ayakta kalsın, benim için yeter." if warm else "Görev neyse onu yaparım. Fazlasını sorma."
+
+
+## Hedef değiştiyse hayatına yazılır (dakikalık turda)
+static func _dream_pass(p: Dictionary) -> void:
+	var d = dream(p)
+	var old = String(p.get("dream", ""))
+	if d == old:
+		return
+	p["dream"] = d
+	if old == "":
+		return
+	var txt = {"intikam": "İçine intikam düştü", "guc": "Köyün kurallarını sorgulamaya başladı", "rakip": "Tek derdi rakibini geçmek oldu", "aile": "Artık ailesi için yaşıyor",
+		"kage": "Gözünü Kage koltuğuna dikti", "hoca": "Kendini öğrencilerine adadı", "klan": "Klanının adını yüceltmeye ant içti", "usta": "Bir üst rütbeye kilitlendi", "koy": "Sakinleşti; köyüne hizmet ediyor"}
+	WorldPeople.log_event(p, String(txt.get(d, "Yolunu değiştirdi")))
 
 
 # ====================================================================== seni tanırlar
@@ -463,8 +565,18 @@ static func regard(p: Dictionary) -> Dictionary:
 	if mine_rank > his:
 		return {"k": "ust", "act": "bow", "line": "%s-san. Kolay gelsin." % me}
 	if mine_rank < his:
-		return {"k": "ast", "act": "", "line": ["%s, antrenmanı aksatma.", "%s. Görevde başını belaya sokma.", "Seni izliyorum %s. Fena gitmiyorsun."][absi(hash(String(p["id"]))) % 3] % me}
-	return {"k": "denk", "act": "", "line": ["%s. Bir gün seninle bir tur atalım.", "%s, bugün nöbet kimde biliyor musun?", "Selam %s."][absi(hash(String(p["id"]))) % 3] % me}
+		return {"k": "ast", "act": "", "line": _by_temper(p, "%s, antrenmanı aksatma. İyi gidiyorsun.", "%s. Ayağıma dolanma.", "%s! Hazır olunca söyle, bir tur atarız.", "%s. Görevde başını belaya sokma.") % me}
+	if dream(p) == "kage" or dream(p) == "rakip":
+		return {"k": "denk", "act": "", "line": "%s. Sen de yükseliyorsun... gözüm üstünde." % me}
+	return {"k": "denk", "act": "", "line": _by_temper(p, "Selam %s. Bugün nasılsın?", "%s.", "%s! Bir gün seninle bir tur atalım.", "%s, bugün nöbet kimde biliyor musun?") % me}
+
+
+## Mizaca göre söz: sıcak, soğuk, atılgan, temkinli (baskın olan yön)
+static func _by_temper(p: Dictionary, warm: String, cold: String, bold: String, careful: String) -> String:
+	var tm = temper(p)
+	if absf(tm.y) >= absf(tm.x):
+		return warm if tm.y > 0.0 else cold
+	return bold if tm.x > 0.0 else careful
 
 
 static func regard_node(n: Node) -> Dictionary:
@@ -515,6 +627,10 @@ static func meet(v: Node) -> void:
 ## Dünyadaki kişi öldü / kaçtı: tanıdığınsa haberi sana da gelir
 static func on_death(p: Dictionary, why: String) -> void:
 	_bond_death(p)
+	var kv = String(p.get("kage", ""))
+	if kv != "":
+		p.erase("kage")
+		Kage.succeed(kv, "öldü")   # Kage olan gerçek kişi öldü: köy halef seçer
 	var fid = friend_of(String(p["id"]))
 	if fid == "":
 		return
@@ -525,6 +641,131 @@ static func on_death(p: Dictionary, why: String) -> void:
 	f["party"] = false
 	f["news"] = why
 	Hud.msg("Acı haber: tanıdığın %s öldü. (%s)" % [String(p["name"]), why], Color(1, 0.6, 0.55), 8.0)
+
+
+# ====================================================================== büyük olaylar: gerçek ninjalar
+## Chūnin Sınavı'na girecek gerçek genin takımları: önce aynı hocanın öğrencileri, sonra aynı köyün kalan geninleri (üçer)
+static func exam_teams() -> Array:
+	if not WorldPeople.data().get("init", false):
+		return []
+	var by_s := {}
+	var rest := {}
+	for p in WorldPeople.all().values():
+		if not _free(p) or int(p["rank"]) != 0 or away(p) or hurt(p):
+			continue
+		var s = WorldPeople.get_p(String(p.get("sensei", "")))
+		if not s.is_empty() and _free(s):
+			if not by_s.has(s["id"]):
+				by_s[s["id"]] = []
+			by_s[s["id"]].append(p)
+		else:
+			var v = String(p["village"])
+			if not rest.has(v):
+				rest[v] = []
+			rest[v].append(p)
+	var teams = []
+	for sid in by_s:
+		var a: Array = by_s[sid]
+		while a.size() >= 3:
+			teams.append([a.pop_back(), a.pop_back(), a.pop_back()])
+		for q in a:
+			var v = String(q["village"])
+			if not rest.has(v):
+				rest[v] = []
+			rest[v].append(q)
+	for v in rest:
+		var a: Array = rest[v]
+		while a.size() >= 3:
+			teams.append([a.pop_back(), a.pop_back(), a.pop_back()])
+	teams.shuffle()
+	return teams
+
+
+## Sınav sonucu kişinin hayatına yazılır; terfi eden gerçekten chūnin olur
+static func exam_result(id: String, promoted: bool, finalist: bool, host: String) -> void:
+	var p = WorldPeople.get_p(id)
+	if p.is_empty() or not _free(p):
+		return
+	var vn = String(Game.village(host).get("name", host))
+	var beaten = p.get("exam_out", false)
+	p.erase("exam_out")
+	if promoted and int(p["rank"]) == 0:
+		p["rank"] = 1
+		p["level"] = maxi(int(p["level"]), int(WorldPeople.RANK_LV[1][0]))
+		WorldPeople.log_event(p, "%s'deki Chūnin Sınavı'nda jüriyi etkiledi; Chūnin oldu" % vn)
+		p["look"] = WorldPeople._make_look_keep(p)
+		WorldPeople._learn(p)
+		on_promote(p)
+	elif finalist:
+		WorldPeople.log_event(p, "%s'deki Chūnin Sınavı'nda finale kaldı ama terfi edemedi" % vn)
+	elif not beaten:
+		WorldPeople.log_event(p, "%s'deki Chūnin Sınavı'nda elendi" % vn)
+
+
+## Sınavda oyuncuya yenildi
+static func exam_beaten(id: String) -> void:
+	var p = WorldPeople.get_p(id)
+	if p.is_empty() or not _free(p):
+		return
+	p["exam_out"] = true
+	WorldPeople.log_event(p, "Chūnin Sınavı'nda %s yenildi" % WorldNews.sfx(String(Game.profile.get("name", "bir genin")), "e"))
+
+
+## Baskına / savunmaya çıkacak gerçek ninjalar (chūnin ve üstü; köyün en çok yarısı gider). En güçlüsü başta: komutan.
+static func war_party(vid: String, n: int, street := true) -> Array:
+	if not WorldPeople.data().get("init", false):
+		return []
+	var pool = WorldPeople.all().values().filter(func(p): return String(p["village"]) == vid and _free(p) and int(p["rank"]) >= 1 and not away(p) and not hurt(p) and (street or staged(String(p["id"])) == null))
+	pool = pool.filter(func(p): var on = WorldPeople._active.get(String(p["id"])); return not (on is WeakRef and on.get_ref() != null))
+	pool.shuffle()
+	pool = pool.slice(0, mini(n, int(ceil(pool.size() * 0.5))))
+	pool.sort_custom(func(a, b): return int(a["level"]) > int(b["level"]))
+	return pool
+
+
+## Köyün yeni Kage'si kim olur: jōnin ve üstü; Güç + hedefi Kage olmak + köyün güçlü klanından olmak + bağlılık
+static func kage_candidate(vid: String) -> Dictionary:
+	if not WorldPeople.data().get("init", false):
+		return {}
+	var strong: Array = KageArts.STRONG.get(vid, [])
+	var best := {}
+	var bs = -1.0
+	for p in WorldPeople.all().values():
+		if String(p["village"]) != vid or not _free(p) or int(p["rank"]) < 2 or away(p):
+			continue
+		var sc = float(p["level"]) + (30.0 if dream(p) == "kage" else 0.0) + (25.0 if String(p["clan"]) in strong else 0.0) + float(int(p.get("loyalty", 60)) - 60) * 0.4
+		if sc > bs:
+			bs = sc
+			best = p
+	return best
+
+
+## Eski Kage (gerçek kişiyse) şapkayı bırakır ya da ölür
+static func kage_leave(vid: String, why: String) -> void:
+	for p in WorldPeople.all().values():
+		if String(p.get("kage", "")) != vid:
+			continue
+		p.erase("kage")
+		if not WorldPeople.alive(p):
+			continue
+		var title = Progress.kage_title(vid)
+		if "şehit" in why or "suikast" in why or "hastalığa" in why or "öldürüldü" in why:
+			WorldPeople._die(p, "%s iken %s" % [title, "savaşta öldürüldü" if "öldürüldü" in why else ("şehit düştü" if "şehit" in why else ("suikaste kurban gitti" if "suikast" in why else "hastalığa yenik düştü"))])
+		else:
+			WorldPeople.log_event(p, "%s şapkasını bıraktı" % title)
+
+
+## Seçilen gerçek kişi Kage olur
+static func kage_take(p: Dictionary, vid: String) -> void:
+	p["kage"] = vid
+	p.erase("run")
+	WorldPeople.log_event(p, "%s oldu" % Progress.kage_title(vid))
+	for q in WorldPeople.all().values():
+		if String(q["village"]) == vid and _free(q) and dream(q) == "kage" and q != p:
+			WorldPeople.log_event(q, "Şapka %s gitti; hayali bir kez daha ertelendi" % WorldNews.sfx(String(p["name"]), "e"))
+	for b in ties(p):
+		if _free(b[0]):
+			WorldPeople.log_event(b[0], "%s %s %s oldu" % [String(b[1]).capitalize(), String(p["name"]), Progress.kage_title(vid)])
 
 
 # ====================================================================== görevler (takımlar)
@@ -591,8 +832,12 @@ static func dispatch(vid: String, force := false) -> Dictionary:
 	for q in team:
 		avg += float(q["level"]) / team.size()
 	var ri = 0 if avg < 35.0 else (1 if avg < 70.0 else (2 if avg < 110.0 else (3 if avg < 150.0 else 4)))
-	if ri > 0 and randf() < 0.3:
+	# liderin mizacı / hedefi: atılgan ve hırslı zoru seçer, ailesi olan ve temkinli kolayı
+	var bold = temper(lead).x + (0.5 if dream(lead) in ["kage", "usta", "klan", "rakip", "guc"] else 0.0) - (0.7 if dream(lead) == "aile" else 0.0)
+	if ri > 0 and randf() < clampf(0.3 - bold * 0.3, 0.0, 0.7):
 		ri -= 1
+	elif ri < 4 and bold > 0.6 and randf() < 0.3:
+		ri += 1
 	var d = D()
 	d["seq"] = int(d["seq"]) + 1
 	var run = {"id": "r%d" % int(d["seq"]), "vid": vid, "team": team.map(func(q): return String(q["id"])), "rank": RANKS[ri], "ri": ri,

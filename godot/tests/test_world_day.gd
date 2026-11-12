@@ -72,6 +72,19 @@ func _ready() -> void:
 	if not st.is_empty():
 		var sn = WorldPeople.get_p(String(st[0]["sensei"]))
 		print("WD   student ", st[0]["name"], " sensei=", sn["name"], " ties=", WorldDay.ties(sn).map(func(b): return "%s:%s" % [b[1], b[0]["name"]]), " lines=", WorldDay.lines(st[0], "gezi").slice(0, 3))
+	# --- 1c) kişilik + hedef
+	var dc = {}
+	for p in WorldPeople.all().values():
+		if WorldPeople.alive(p) and not WorldPeople.is_rogue(p):
+			var d = WorldDay.dream(p)
+			dc[d] = int(dc.get(d, 0)) + 1
+	print("WD dreams (world) ", dc)
+	var seen_d = {}
+	for p in vm:
+		var d = WorldDay.dream(p)
+		if not seen_d.has(d):
+			seen_d[d] = true
+			print("WD   dream ", d, " ", p["name"], " temper=", WorldDay.temper(p).snapped(Vector2(0.1, 0.1)), " | ", WorldDay.dream_line(p), " | ", WorldDay.regard(p).get("line", ""))
 	# --- 2) kapı / görev masası konumu
 	var gs = WorldDay.gates(vid)
 	var c0 = Game.from_map(Vector2(float(Game.village(vid)["x"]), float(Game.village(vid)["y"])))
@@ -120,6 +133,11 @@ func _ready() -> void:
 		var smp = live.filter(func(p): return String(p["village"]) == vid and (p["log"] as Array).size() >= 3)
 		if not smp.is_empty():
 			print("WD log ", smp[0]["name"], " ", smp[0]["log"])
+		var dc2 = {}
+		for p in live:
+			if not WorldPeople.is_rogue(p):
+				dc2[WorldDay.dream(p)] = int(dc2.get(WorldDay.dream(p), 0)) + 1
+		print("WD dreams after sim ", dc2)
 		WorldDay.vl = vl
 		Game.profile["clock"] = clk0 + 18000.0
 	# --- 4) köyde sahne: gerçek kişiler rollerde

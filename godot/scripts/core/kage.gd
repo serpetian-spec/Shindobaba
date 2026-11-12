@@ -133,6 +133,23 @@ func _ninja_of(vid: String, i: int, lv: int, team: String, look_ov := {}) -> Ene
 	return e
 
 
+## Dünyadaki gerçek kişi savaş alanına: kendi Güç'ü, klanı, gözü, jutsuları; ölürse dünyada da ölür
+func _real_ninja(wp: Dictionary, team: String) -> Enemy:
+	var a = WorldPeople.arch_of(wp, "jonin" if int(wp["rank"]) >= 2 else "chunin")
+	var lv = int(wp["level"])
+	a["xp"] = 40 + lv * 8 if team == "enemy" else 0
+	a["ryo"] = 20 + lv * 3 if team == "enemy" else 0
+	if team == "player" and String(wp["village"]) == Progress.home():
+		a["look"]["band"] = Progress.home_info()["band"]
+	var e = Enemy.new()
+	e.setup(a)
+	e.team = team
+	if team == "player":
+		e.set_meta("teammate", true)
+		e.set_meta("respawn", false)
+	return e
+
+
 func start_raid(from: String) -> void:
 	var home = Progress.home()
 	var v = Game.village(home)
@@ -152,12 +169,28 @@ func start_raid(from: String) -> void:
 	var lv = randi_range(20, 30)   # akın gücü köylerin kendi gücü (oyuncuya göre değil)
 	raid = {"from": from, "nodes": [], "allies": [], "t": 0.0, "at": at}
 	var n = randi_range(6, 10)
+	# akıncılar ve savunanlar dünyanın gerçek ninjaları (en güçlüsü komutan); yetmezse adsız akıncı tamamlar
+	var foes: Array = WorldDay.war_party(from, n + 1)
+	var guards: Array = WorldDay.war_party(home, maxi(5, n - 1), false)
+	if not foes.is_empty():
+		var sum = 0
+		for wp in foes:
+			sum += int(wp["level"])
+			WorldPeople.log_event(wp, "%s baskınına katıldı" % String(v.get("name", home)))
+		lv = int(sum / float(foes.size()))   # adsız akıncılar da bu takımın gücünde
 	for i in n + 1:
-		var e = _ninja_of(from, i, lv + (6 if i == n else randi_range(-3, 2)), "enemy")
-		if i == n:
-			e.display_name = "%s Akın Komutanı" % String(Game.village(from).get("name", from)).trim_suffix("gakure")
-			e.max_hp *= 2.0
-			e.hp = e.max_hp
+		var e: Enemy
+		if i == n and not foes.is_empty():
+			e = _real_ninja(foes[0], "enemy")
+			e.display_name = "Akın Komutanı %s" % String(foes[0]["name"])
+		elif i < foes.size() - 1:
+			e = _real_ninja(foes[i + 1], "enemy")
+		else:
+			e = _ninja_of(from, i, lv + (6 if i == n else randi_range(-3, 2)), "enemy")
+			if i == n:
+				e.display_name = "%s Akın Komutanı" % String(Game.village(from).get("name", from)).trim_suffix("gakure")
+				e.max_hp *= 2.0
+				e.hp = e.max_hp
 		get_tree().current_scene.add_child(e)
 		var q = Missions.open_ground(at + Vector3(randf_range(-18, 18), 0, randf_range(-18, 18)), 25.0)
 		e.global_position = q
@@ -165,7 +198,12 @@ func start_raid(from: String) -> void:
 		e.wander_to = Game.player.global_position
 		raid["nodes"].append(e)
 	for i in maxi(5, n - 1):   # köyün muhafızları da gelir: akıncı sayısına yakın (10'a 1 savunma olmasın)
-		var d = _ninja_of(home, i, lv + randi_range(-2, 3), "player")
+		var d: Enemy
+		if i < guards.size():
+			d = _real_ninja(guards[i], "player")
+			WorldPeople.log_event(guards[i], "Köyü %s baskınına karşı savundu" % String(Game.village(from).get("name", from)))
+		else:
+			d = _ninja_of(home, i, lv + randi_range(-2, 3), "player")
 		get_tree().current_scene.add_child(d)
 		# kapının köy tarafında, akıncılara 15-30 m: oyuncu uzaktaysa da savunma kapıda başlar (eskiden oyuncu yönünde 700 m ötede boşta kalıyorlardı)
 		var inward = (Game.from_map(c) - at)
@@ -206,8 +244,14 @@ func _raid_rally() -> void:
 		if gp.distance_to(at) > 180.0 and (Game.player == null or gp.distance_to(Game.player.global_position) > 90.0):
 			continue
 		var lk = vg.get("look")
-		var d = _ninja_of(Progress.home(), (raid["rallied"] as Array).size(), lv + randi_range(-3, 2), "player", lk if lk is Dictionary else {})
-		d.display_name = String(vg.get("display")) if vg.get("display") else d.display_name
+		var rw = WorldPeople.get_p(String(vg.get_meta("world_person", "")))
+		var d: Enemy
+		if not rw.is_empty() and WorldDay._free(rw):
+			d = _real_ninja(rw, "player")   # sokaktaki gerçek ninja: kendi gücü ve jutsularıyla savaşa girer
+			WorldPeople.log_event(rw, "Baskında köyü savundu")
+		else:
+			d = _ninja_of(Progress.home(), (raid["rallied"] as Array).size(), lv + randi_range(-3, 2), "player", lk if lk is Dictionary else {})
+			d.display_name = String(vg.get("display")) if vg.get("display") else d.display_name
 		get_tree().current_scene.add_child(d)
 		d.global_position = gp
 		d.home = gp
@@ -365,6 +409,10 @@ func succeed(vid: String, why := "") -> void:
 	var who = ""
 	var persona = {}
 	var fid = ""
+	if why == "":
+		why = String(REIGN_REASONS.pick_random())
+	WorldDay.kage_leave(vid, why)   # eski Kage gerçek kişiyse: şapkayı bırakır ya da ölür
+	var wkage: Dictionary = {}
 	# o köyün Elit Jōnin dostları önce düşünülür
 	var fs: Dictionary = Friends.all()
 	var strong: Array = KageArts.STRONG.get(vid, [])
@@ -381,6 +429,15 @@ func succeed(vid: String, why := "") -> void:
 		f["party"] = false
 		Friends.log_event(f, "%s oldu!" % title)
 		f["news"] = "İnanabiliyor musun? Artık %s benim. Kapım sana her zaman açık." % title
+	elif not WorldDay.kage_candidate(vid).is_empty():
+		# köyün gerçek ninjalarından: en güçlü, hedefi bu olan, güçlü klandan gelen
+		wkage = WorldDay.kage_candidate(vid)
+		who = String(wkage["name"])
+		var wl = WorldPeople.look_of(wkage)
+		for k in ["gender", "hair", "hair_style", "skin"]:
+			if wl.has(k):
+				persona[k] = [wl[k].r, wl[k].g, wl[k].b] if wl[k] is Color else wl[k]
+		WorldDay.kage_take(wkage, vid)
 	else:
 		var clans: Array = (KageArts.STRONG.get(vid, []) as Array).filter(func(c): return Data.clans.has(c))   # Kage hep köyün güçlü klanlarından
 		var fem = randf() < 0.3
@@ -392,6 +449,10 @@ func succeed(vid: String, why := "") -> void:
 	p()["reigns"][vid] = {"name": who, "gen": gen, "persona": persona, "friend": fid}
 	if fid != "":
 		p()["reigns"][vid]["clan"] = String(fs[fid].get("clan", ""))
+	if not wkage.is_empty():
+		p()["reigns"][vid]["wid"] = String(wkage["id"])
+		if String(wkage["clan"]) != "":
+			p()["reigns"][vid]["clan"] = String(wkage["clan"])
 	if fid == "" and who != "":
 		for c2 in Data.clans:
 			if c2 != "none" and ClanWorld.clan_name(c2) != "" and who.begins_with(ClanWorld.clan_name(c2)):

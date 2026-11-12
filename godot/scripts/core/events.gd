@@ -372,6 +372,28 @@ func _cand_of(src: String, ti: int, pi: int, person: Dictionary) -> Dictionary:
 		"clan": String(ex.get("clan", "")), "weapon": String(ex.get("weapon", "")), "lv": int(ex.get("lv", 16)), "ref": [src, ti, pi]}
 
 
+## Dünyadaki gerçek genin: kendi Güç'ü, klanı, elementleri, öğrendiği jutsular, kendi görünüşü
+func _cand_world(wp: Dictionary) -> Dictionary:
+	var id = String(wp["id"])
+	var rng = RandomNumberGenerator.new()
+	rng.seed = hash("exam:" + id)
+	var els: Array = wp["els"]
+	var el = String(els[0]) if not els.is_empty() else ""
+	var el2 = String(els[1]) if els.size() > 1 else ""
+	var clan = String(wp["clan"])
+	var vid = String(wp["village"])
+	var what = String(_EL_TR.get(el, "Chakra"))
+	if el2 != "":
+		what += " + " + String(_EL_TR.get(el2, ""))
+	var cn = ClanWorld.clan_name(clan) if clan != "" else ""
+	var lk = WorldPeople.look_of(wp)
+	var tp = lk.get("top", Color(0.3, 0.4, 0.35))
+	return {"name": "%s (%s)" % [String(wp["name"]), String(Game.village(vid).get("name", vid))], "style": ("%s — %s" % [cn, what]) if cn != "" else what,
+		"el": el, "el2": el2, "j": (wp["jutsu"] as Array).filter(func(j): return Data.jutsu.has(j)).slice(0, 4),
+		"power": rng.randf_range(1.22, 1.68), "hp": rng.randf_range(0.9, 1.2), "sub": rng.randf_range(0.15, 0.45),
+		"hair": String(lk.get("hair_style", "diken")), "top": tp, "v": vid, "f": bool(wp["female"]), "clan": clan, "weapon": "", "lv": int(wp["level"]), "wid": id}
+
+
 ## Yepyeni bir genin takımı (rastgele köy, üretilmiş isimler ve görünüşler) — exam_pool'a yazılır
 func _new_team() -> Dictionary:
 	var vids = []
@@ -409,7 +431,12 @@ func _build_field() -> Array:
 		old.append(["pool", ti, pool[ti]["people"]])
 	old.shuffle()
 	var teams = []
-	for k in 3 + randi() % 3:
+	# önce dünyanın gerçek geninleri (hocasının takımıyla); sınav sonucu onların hayatına yazılır
+	for wt in WorldDay.exam_teams():
+		if teams.size() >= 5:
+			break
+		teams.append([_cand_world(wt[0]), _cand_world(wt[1]), _cand_world(wt[2])])
+	for k in (3 + randi() % 3 if teams.is_empty() else 1):
 		pool.append(_new_team())
 		var ti = pool.size() - 1
 		var t = []
@@ -456,8 +483,17 @@ func _field_after() -> void:
 	for r in st.get("finalists", []):
 		if r.has("ref"):
 			fin_refs.append(r["ref"])
+	var has_fin = not (st.get("finalists", []) as Array).is_empty()
+	var fin_w = []
+	for r in st.get("finalists", []):
+		if r.has("wid"):
+			fin_w.append(String(r["wid"]))
 	for team in _field():
 		for r in team:
+			if r.has("wid"):
+				var fin = (String(r["wid"]) in fin_w) if has_fin else randf() < 0.15
+				WorldDay.exam_result(String(r["wid"]), fin and randf() < 0.4, fin, host)
+				continue
 			if not r.has("ref"):
 				continue
 			var person = _person_of(r["ref"])
@@ -499,11 +535,16 @@ func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	a["look"]["village"] = r["v"]
 	a["look"]["gender"] = "f" if r.get("f", false) else "m"
 	a["look"]["age"] = "teen"   # Chūnin adayları genin: genç boyu (yetişkin boyunda çıkıyorlardı)
+	var wp = WorldPeople.get_p(String(r.get("wid", "")))
+	if not wp.is_empty():
+		a["look"] = WorldPeople.look_of(wp)   # gerçek kişi: kendi yüzü, saçı, yaşı, kıyafeti
+		if not a["look"].has("village"):
+			a["look"]["village"] = r["v"]
 	if String(r.get("weapon", "")) != "":
 		a["look"]["weapon_r"] = String(r["weapon"])   # kenjutsu adayı: sıradan dükkân silahı
 	if String(r.get("clan", "")) != "":
 		a["clan_force"] = String(r["clan"])   # adayın kendi klanı (her dönem aynı kişi aynı klanla)
-	elif r.has("ref"):
+	elif r.has("ref") or r.has("wid"):
 		a["no_clan"] = true
 	a["look"]["vest"] = null
 	a["xp"] = 60 + lv * 4
@@ -511,6 +552,11 @@ func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	e.setup(a)
 	e.set_meta("eyes_taken", true)   # sınavda ölen adayın gözleri alınamaz (gözetmenler var; saçma olur)
 	get_tree().current_scene.add_child(e)
+	if not wp.is_empty():
+		e.set_meta("exam_wid", String(wp["id"]))
+		var eye: Array = wp.get("eye", [0, 0])
+		if int(eye[0]) > 0 and not e.has_meta("eyes"):
+			Eyes.give_enemy_eyes(e, int(eye[0]), int(eye[1]))
 	Exams.nodes.append(e)
 	return e
 
@@ -735,6 +781,8 @@ func _duel_tick() -> void:
 	if e == null:
 		return
 	if not is_instance_valid(e) or e.is_dead():
+		if is_instance_valid(e) and e.has_meta("exam_wid"):
+			WorldDay.exam_beaten(String(e.get_meta("exam_wid")))
 		st["duel"] = null
 		st["hp_lost"] = float(st["hp_lost"]) + maxf(0.0, 1.0 - pl.hp / pl.max_hp)
 		if stage == 3:
