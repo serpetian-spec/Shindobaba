@@ -69,6 +69,9 @@ func _physics_process(dt: float) -> void:
 
 
 func catch() -> void:
+	if not Missions.active().is_empty() and Missions._cur().get("kind", "") == "cat":
+		MissionWork.I().catch_cat(self)   # çömel, kavra, omza al
+		return
 	Hud.dialog("Mikan", "Miyaaav! (Kediyi yakaladın, çizik içindesin ama görev tamam.)", [])
 	Missions.on_cat_caught()
 	queue_free()

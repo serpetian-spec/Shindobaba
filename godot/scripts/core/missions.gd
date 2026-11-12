@@ -320,8 +320,14 @@ func _templates(rank: String, here: String) -> Array:
 
 
 func _q_cat(here: String) -> Dictionary:
+	var lady = _npc("leydi", "Leydi Sumire", "vip")
+	lady["look"]["gender"] = "f"
+	var at = _inside(here, 0.1, 0.35)
 	return {"title": "Kayıp Kedi Mikan", "brief": "Daimyo'nun eşinin kedisi Mikan yine kaçtı! Köyde bul ve yakala. Dikkat: tırmalar.",
-		"steps": [{"kind": "cat", "village": here, "text": "Kedi Mikan'ı bul ve yakala [F]."}]}
+		"steps": [
+			{"kind": "talk", "at": at, "npc": lady, "text": "Leydi Sumire ile konuş.", "say": "Mikan'cığım! Kurdelesi kırmızı, kulağı yırtık... Kucağımdan fırlayıp çatılara kaçtı. Onu bana getir, ne olur!"},
+			{"kind": "cat", "village": here, "text": "Kedi Mikan'ı bul ve yakala [F]."},
+			{"kind": "talk", "npc_id": "leydi", "give": "cat", "text": "Mikan'ı Leydi Sumire'ye götür.", "say": "MİKAN! Gel anneciğine! ...Ah, yüzün çizik içinde. Mikan seni sevmiş demek."}]}
 
 
 func _q_weeds(here: String) -> Dictionary:
@@ -332,8 +338,8 @@ func _q_weeds(here: String) -> Dictionary:
 	var n = _npc("ciftci", "Çiftçi Tagosaku", "elder")
 	var q = {"title": "Tarla Temizliği", "brief": "Yaşlı çiftçinin tarlasını yabani otlar bastı. Belinden şikâyetçi; yardım et.",
 		"steps": [
-			{"kind": "talk", "at": farm, "npc": n, "text": "Çiftçi Tagosaku ile konuş.", "say": "Ahh belim... Şu otlar her yeri sardı. 8 tanesini kökünden sök, sana dango ısmarlarım!"},
-			{"kind": "collect", "at": farm, "item": "yabani ot", "n": 8, "spread": 18, "text": "Tarladaki yabani otları sök (8)."},
+			{"kind": "talk", "at": farm, "npc": n, "busy": "hoe", "text": "Çiftçi Tagosaku ile konuş.", "say": "Ahh belim... Şu otlar her yeri sardı. 8 tanesini kökünden sök, sepete at; sana dango ısmarlarım!"},
+			{"kind": "collect", "at": farm, "item": "yabani ot", "n": 8, "spread": 14, "work": "weed", "pile": "weeds", "label": "[F] Otu kökünden sök", "text": "Tarladaki yabani otları sök (8)."},
 			{"kind": "talk", "npc_id": "ciftci", "text": "Çiftçiye dön.", "say": "Vay be, ninja dediğin böyle olur! Al bakalım, emeğinin karşılığı."}]}
 	if not site.is_empty():
 		q["site"] = site
@@ -346,8 +352,8 @@ func _q_fence(here: String) -> Dictionary:
 	n["look"]["gender"] = "f"
 	return {"title": "Çit Boyama", "brief": "Hana Teyze'nin bahçe çiti boyanacak. Ninja işi değil mi? Değil. Ama görev görevdir.",
 		"steps": [
-			{"kind": "talk", "at": at, "npc": n, "text": "Hana Teyze ile konuş.", "say": "Sen mi geldin? Çok küçüksün ama neyse... Çitin altı tahtası boyanacak, damlatmadan!"},
-			{"kind": "points", "at": at, "n": 6, "spread": 9, "label": "[F] Çit tahtasını boya", "fx": "paint", "text": "Çit tahtalarını boya (6)."},
+			{"kind": "talk", "at": at, "npc": n, "busy": "sweep", "text": "Hana Teyze ile konuş.", "say": "Sen mi geldin? Çok küçüksün ama neyse... Bahçe çitinin altı paneli boyanacak. Kova orada, damlatmadan!"},
+			{"kind": "points", "at": at, "n": 6, "spread": 9, "label": "[F] Çit panelini boya", "work": "paint", "text": "Çit panellerini boya (6)."},
 			{"kind": "talk", "npc_id": "teyze", "text": "Hana Teyze'ye göster.", "say": "Hmm... Şurası biraz eğri ama idare eder. Al bu da senin, aferin evladım."}]}
 
 
@@ -356,19 +362,22 @@ func _q_babysit(here: String) -> Dictionary:
 	var mom = _npc("anne", "Endişeli Anne Sayo", "civ")
 	mom["look"]["gender"] = "f"
 	var kid = _npc("cocuk", "Küçük Tetsu", "kid")
+	kid["look"].merge({"gender": "m", "hair_style": "diken", "hair": _hex([Color(0.1, 0.08, 0.06), Color(0.35, 0.22, 0.12), Color(0.55, 0.3, 0.14)].pick_random())}, true)
 	return {"title": "Bebek Bakıcılığı", "brief": "Pazara giden annenin yaramaz oğluna göz kulak ol. Kolay mı? Göreceğiz.",
 		"steps": [
-			{"kind": "talk", "at": at, "npc": mom, "text": "Sayo ile konuş.", "say": "Çok teşekkürler! Tetsu çok hareketlidir, 45 saniye gözünü ayırma. Hemen dönerim!"},
-			{"kind": "babysit", "at": at, "npc": kid, "time": 45.0, "text": "Küçük Tetsu'yu gözden kaçırma (yakınında kal)."},
+			{"kind": "talk", "at": at, "npc": mom, "then": "leave", "text": "Sayo ile konuş.", "say": "Çok teşekkürler! Tetsu çok hareketlidir, topuyla oynar; gözünü ayırma. Pazara gidip hemen dönerim!"},
+			{"kind": "babysit", "at": at, "npc": kid, "time": 60.0, "text": "Küçük Tetsu ile oyna, gözden kaçırma."},
 			{"kind": "talk", "npc_id": "anne", "text": "Sayo'ya çocuğu teslim et.", "say": "Tetsu, ninjayı yordun mu yine? Sağ ol, al bu senin."}]}
 
 
 func _q_herbs(here: String, dangerous: bool) -> Dictionary:
 	var area = _spot(here, 200 if dangerous else 80, 650 if dangerous else 300)
 	var hosp = _inside(here, 0.05, 0.3)
+	var nurse = _npc("hemsire", "Hemşire Kiyo", "civ")
+	nurse["look"].merge({"gender": "f", "top": _hex(Color(0.96, 0.96, 0.97)), "top2": _hex(Color(0.96, 0.96, 0.97)), "pants": _hex(Color(0.9, 0.9, 0.92)), "top_style": "uzun"}, true)
 	var s = [{"kind": "goto", "at": area, "r": 25.0, "name": "Şifalı Ot Vadisi" if dangerous else "Orman Kenarı", "text": "Şifalı otların yetiştiği yere git."},
-		{"kind": "collect", "at": area, "item": "herb", "n": 6, "spread": 35, "text": "Şifalı ot topla (6).", "guard": {"enemy": "bandit", "n": 3} if dangerous else {}},
-		{"kind": "goto", "at": hosp, "r": 14.0, "name": "Hastane", "text": "Otları köydeki hastaneye teslim et."}]
+		{"kind": "collect", "at": area, "item": "herb", "n": 6, "spread": 26, "work": "herb", "label": "[F] Şifalı otu kes", "text": "Şifalı ot topla (6).", "guard": {"enemy": "bandit", "n": 3} if dangerous else {}},
+		{"kind": "talk", "at": hosp, "npc": nurse, "give": "herb_basket", "text": "Otları hastanedeki hemşireye teslim et.", "say": "Tam zamanında! Panzehir stoğu dün gece bitmişti. Ver bakayım... taze kesilmiş, kökü yerinde bırakılmış. Eline sağlık."}]
 	return {"title": "Tehlikeli Vadide Şifalı Ot" if dangerous else "Şifalı Ot Toplama",
 		"brief": ("Kaçak avcıların cirit attığı vadiden zehir panzehiri için ot lazım." if dangerous else "Hastane için ormandan şifalı ot topla."), "steps": s}
 
@@ -815,6 +824,9 @@ func _skip_middleman(m: Dictionary) -> void:
 			st2.erase("npc_id")
 			st2["npc"] = spec
 			st2["at"] = s0["at"]
+			st2["early"] = true   # görev veren baştan beri yerinde (işiyle meşgul), sonunda ona dönülür
+			if s0.has("busy"):
+				st2["busy"] = s0["busy"]
 			break
 
 func abandon() -> void:
@@ -887,6 +899,15 @@ func _begin_step() -> void:
 		if is_instance_valid(n):
 			n.queue_free()
 	step_nodes.clear()
+	# iş yerleri görev başından beri kurulu (tarla, bahçe); görev veren orada işiyle meşgul
+	for es in m["steps"]:
+		if String(es.get("work", "")) == "paint":
+			MissionWork.I().garden(_w(es["at"]), int(es.get("n0", es["n"])))
+		elif String(es.get("work", "")) == "weed":
+			MissionWork.I().field(_w(es["at"]))
+	for es in m["steps"]:
+		if es.get("early", false) and es.has("npc"):
+			_work_npc(_ensure_npc(es), es)
 	st = {"n": 0, "t": 0.0}
 	m["progress"] = int(m["step"])
 	m["desc"] = s["text"]
@@ -909,6 +930,10 @@ func _begin_step() -> void:
 			if npc:
 				target_marker = npc.global_position
 				target_name = npc.display
+				_work_npc(npc, s)
+				target_marker = npc.global_position
+				if not npc.visible:
+					MissionWork.I().walk_back(npc)
 		"kill":
 			var c = _w(s["at"])
 			if s.has("at_npc") and npcs.has(s["at_npc"]) and is_instance_valid(npcs[s["at_npc"]]):
@@ -936,7 +961,23 @@ func _begin_step() -> void:
 		"collect":
 			var c = _w(s["at"])
 			target_marker = c
-			for i in int(s["n"]) + 2:
+			var wk = String(s.get("work", ""))
+			var fld = {}
+			if wk == "weed":
+				fld = MissionWork.I().field(c)
+				(fld["spots"] as Array).shuffle()
+				target_marker = fld["root"].global_position
+			for i in (int(s["n"]) + 1 if wk != "" else 0):
+				var wq = c + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * float(s.get("spread", 20))
+				var extra = {}
+				if s.has("pile"):
+					extra = {"pile": String(s["pile"]), "pile_at": fld["pile_at"] if not fld.is_empty() else c + Vector3(2.5, 0, 1.5)}
+				if not fld.is_empty():
+					wq = fld["spots"][i % fld["spots"].size()]
+				else:
+					wq = open_ground(wq, 12.0)
+				MissionWork.I().make(wk, wq, randf() * TAU, i, String(s.get("label", "[F] Topla")), extra)
+			for i in (int(s["n"]) + 2 if wk == "" else 0):
 				var pk = Pickup.new()
 				pk.item = s["item"]
 				root.add_child(pk)
@@ -1045,7 +1086,12 @@ func _begin_step() -> void:
 					st["cones"].append(cone)
 				st["detect"] = 0.0
 				st["alarm"] = false
-			for i in int(s["n"]):
+			if String(s.get("work", "")) == "paint":
+				var gdn = MissionWork.I().garden(c, int(s["n"]))
+				s["n0"] = int(s.get("n0", s["n"]))
+				s["n"] = MissionWork.I().arm_garden(s["label"])
+				target_marker = gdn["root"].global_position
+			for i in (int(s["n"]) if not s.has("work") else 0):
 				var a = TAU * float(i) / float(s["n"]) + randf_range(-0.3, 0.3)
 				var q = c + Vector3(cos(a), 0, sin(a)) * float(s.get("spread", 10)) * randf_range(0.6, 1.0)
 				_quest_point(open_ground(q, 15.0), s["label"], i)
@@ -1053,6 +1099,7 @@ func _begin_step() -> void:
 			var kid = _ensure_npc({"at": s["at"], "npc": s["npc"]})
 			kid.mode = "kid"
 			kid.home = kid.global_position
+			MissionWork.I().kid_begin(kid)
 			st["t"] = 0.0
 			st["lost"] = 0.0
 			target_marker = kid.global_position
@@ -1826,11 +1873,29 @@ func _corpse_later(x: Node3D) -> void:
 		x.queue_free()
 
 
+func _linger(x: Node3D) -> void:
+	if x is QuestNPC:
+		x.line = ["Tekrar sağ ol, ninja.", "Eline sağlık. Köy seninle gurur duyuyor.", "Bir dahaki sefere yine seni isteyeceğim."].pick_random()
+		x.quest_tag = ""
+	var t := 0.0
+	while t < 300.0 and is_instance_valid(x):
+		await get_tree().create_timer(2.0).timeout
+		t += 2.0
+		if is_instance_valid(x) and Game.player and x.global_position.distance_to(Game.player.global_position) > 70.0:
+			break
+	if is_instance_valid(x):
+		x.queue_free()
+
+
 func _cleanup() -> void:
 	_cleanup_nodes()
 	for x in pickups:
 		if is_instance_valid(x):
-			x.queue_free()
+			# görev bitince kişiler ve iş yeri (tarla, bahçe, sepet) gözünün önünde yok olmaz: sen uzaklaşınca kalkar
+			if x is Node3D and x.is_inside_tree() and x.visible and Game.player and x.global_position.distance_to(Game.player.global_position) < 90.0:
+				_linger(x)
+			else:
+				x.queue_free()
 	pickups.clear()
 	npcs.clear()
 	st = {}
@@ -1938,6 +2003,33 @@ func on_pickup(item: String) -> void:
 		_legacy_advance()
 
 
+## Görev veren iş yerinde, işiyle meşgul (bir kez kurulur)
+func _work_npc(npc, s: Dictionary) -> void:
+	if npc == null or not s.has("busy") or npc.has_meta("was_busy"):
+		return
+	npc.set_meta("was_busy", true)
+	var W = MissionWork.I()
+	match String(s["busy"]):
+		"hoe":
+			if not W.field_d.is_empty() and is_instance_valid(W.field_d.get("root")):
+				W.place_worker(npc, W.field_d["farmer_at"], W.field_d["face"])
+		"sweep":
+			if not W.garden_d.is_empty() and is_instance_valid(W.garden_d.get("root")):
+				W.place_worker(npc, W.garden_d["npc_at"], W.garden_d["face"])
+	W.busy(npc, String(s["busy"]))
+
+
+## Bir iş nesnesi tamamlandı (MissionWork.run sonu)
+func work_done(it: Dictionary) -> void:
+	var s = _cur()
+	if it.get("qkey", "") != _key() or not s.get("kind", "") in ["collect", "points"]:
+		return
+	st["n"] = int(st.get("n", 0)) + 1
+	Hud.objective_progress("%s %d/%d" % [s["text"].split("(")[0], st["n"], s["n"]])
+	if int(st["n"]) >= int(s["n"]):
+		_next_step()
+
+
 func on_cat_caught() -> void:
 	var s = _cur()
 	if s.get("kind", "") == "cat":
@@ -1954,6 +2046,9 @@ func on_interact(it: Dictionary) -> void:
 	if it.get("kind", "") != "quest" or it.get("qkey", "") != _key():
 		return
 	var s = _cur()
+	if it.has("work"):
+		MissionWork.I().run(it)   # oyuncu işi eliyle yapar; bitince work_done
+		return
 	_remove_point(it)
 	if Game.player:
 		Game.player.model.play("interact", 0.1, 1.2, true)
@@ -2031,6 +2126,8 @@ func on_quest_talk(npc: QuestNPC) -> bool:
 		return true
 	if s["kind"] != "talk" or npc.quest_tag != id:
 		return false
+	if is_instance_valid(MissionWork.inst):
+		MissionWork.inst.stop_busy(npc)
 	var choices: Array = s.get("choices", [])
 	var opts = []
 	if choices.is_empty():
@@ -2057,6 +2154,10 @@ func _after_talk(npc: QuestNPC, s: Dictionary) -> void:
 	if s.get("then", "") == "follow":
 		npc.mode = "follow"
 		npc.team = "player"
+	if s.has("give") and is_instance_valid(npc):
+		await MissionWork.I().give(npc, String(s["give"]))   # elden teslim
+	if s.get("then", "") == "leave":
+		MissionWork.I().walk_off(npc)
 	_next_step()
 
 
