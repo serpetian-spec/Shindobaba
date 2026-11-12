@@ -460,6 +460,19 @@ func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", f
 		if not wp.is_empty():
 			extra = extra.duplicate()
 			extra.merge(WorldDay.dress(wp, wact), true)
+	# ninja değilse: köyün kalıcı sivillerinden biri (yoksa yeni yüz kayda geçer)
+	var fk := {}
+	if wp.is_empty() and fid == "" and role in WorldFolk.ROLES and not extra.has("look_extra") and not extra.has("display_override") and not extra.get("interior", false):
+		var fvid = WorldDay.village_of(at)
+		var fsite = (skey + ":" + role) if skey != "" and role in ["vendor", "keeper"] else ""
+		if fvid != "":
+			fk = WorldFolk.cast(fvid, role, fsite)
+			extra = extra.duplicate()
+			if fk.is_empty():
+				extra["folk_vid"] = fvid
+				extra["folk_site"] = fsite
+			else:
+				extra.merge(WorldFolk.dress(fk), true)
 	var vg = Villager.new()
 	vg.role = role
 	vg.points = pts
@@ -478,6 +491,8 @@ func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", f
 	npcs.append(vg)
 	if not wp.is_empty():
 		WorldDay.on_stage(wp, vg, wact)
+	if not fk.is_empty():
+		WorldFolk.on_stage(fk, vg)
 	return vg
 
 

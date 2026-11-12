@@ -697,7 +697,7 @@ func apply_graphics() -> void:
 		grass.visible = q > 0
 		if grass.get("mat"):
 			grass.mat.set_shader_parameter("radius", [30.0, 42.0, 58.0][q])
-	npc_scale = [0.5, 0.8, 1.0][q]
+	npc_scale = [0.5, 0.8, 1.2][q]   # yüksek kalitede sokak daha kalabalık (büyük köy 43 kişi)
 
 
 var npc_scale := 1.0

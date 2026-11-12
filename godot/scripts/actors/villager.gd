@@ -73,6 +73,8 @@ var dest := Vector3.INF      # uzun yol hedefi (kapı, görev masası): sokak no
 var follow: Node3D = null    # takım: liderin arkasında yürür
 var follow_off := Vector3.ZERO
 var bow_t := 0.0
+var folk_vid := ""           # kalıcı sivil: yeni yüzse bu köyün kaydına geçer (WorldFolk)
+var folk_site := ""
 
 
 func _ready() -> void:
@@ -150,7 +152,14 @@ func _ready() -> void:
 	if look_extra.is_empty():
 		lk["npc"] = true   # CharacterModel: hazır saç önbelleğini tercih et (kurulum donması olmasın)
 	look = lk
+	var new_folk := {}
+	if folk_vid != "" and look_extra.is_empty() and display_override == "":
+		new_folk = WorldFolk.adopt(folk_vid, role, lk, folk_site)   # ilk kez görülen sivil: adı, yaşı, görünüşü kalıcı olur
+		if not new_folk.is_empty():
+			display = String(new_folk["name"])
 	super._ready()
+	if not new_folk.is_empty():
+		WorldFolk.on_stage(new_folk, self)
 	remove_from_group("fighters")
 	add_to_group("talkers")
 	collision_layer = 4
@@ -210,8 +219,12 @@ func talk() -> void:
 	if lines_override.is_empty() and role in ["walker", "shopper", "sitter", "kid", "customer"]:
 		line = Talk.stranger(self, String(line))
 	line = Talk.fit(self, Talk.localize(String(line)))
+	var fk = WorldFolk.of_node(self)
 	if fid != "" and Friends.all().has(fid):
 		line = Friends.greeting(fid)
+	elif not fk.is_empty():
+		line = Talk.fit(self, WorldFolk.line(fk, self, String(line)))   # kalıcı sivil: kendini tanıtır, yakınından söz eder, seni hatırlar
+		WorldFolk.talked(fk, self)
 	elif has_meta("world_person"):
 		var rg: Dictionary = WorldDay.regard_node(self)
 		if String(rg.get("k", "")) in ["nefret", "minnet", "kage"]:
