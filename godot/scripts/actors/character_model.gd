@@ -276,6 +276,9 @@ static func prewarm_looks(parent: Node, progress: Callable = Callable()) -> void
 	var vs = ["konoha", "suna", "kiri", "kumo", "iwa"]
 	var i = 0
 	var total = WARM_ARCHES.size() * 2
+	# yüz bağışçıları: her birinin ilk kullanımı 28-40 ms (köyde o yüzle doğan ilk kişide takılma); 10 tanesi burada okunur
+	for fdn in FACE_DONORS_M + FACE_DONORS_F:
+		_donor_part(String(fdn), "Face")
 	for a in WARM_ARCHES:
 		for gd in ["m", "f"]:
 			var lk = default_look()
@@ -673,9 +676,12 @@ static func prepare(l: Dictionary) -> bool:
 		return true
 	if int(l.get("face_id", -1)) < 0 and l.get("face") == null:
 		l["face_id"] = randi() % 64   # yüzü belirsiz kişi: model kurulurken rastgele seçilecekti; şimdi seçilir ki hazırlanan yüz / saç o olsun
-	var l2 = l.duplicate()
+	var l2 = default_look()
+	l2.merge(l, true)
 	if l2.has("years"):
 		Aging.apply_look(l2)
+	settle_hair(l2)
+	l["hair_style"] = l2["hair_style"]   # model kurulurken (yaşlanma saçı ağartsa, rol kıyafeti değişse de) hazırlanan saçın aynısını seçsin
 	var a = face_prepare(l2)
 	var b = hair_prepare(l2)
 	return a and b
@@ -1253,7 +1259,7 @@ func _face_and_hair() -> void:
 						break
 				if not borrowed:
 					_hair_lock()   # hiç hazır saç yok (oyunun ilk köylüleri): işi bekle
-		elif not _hair_cache.has(hk0):
+		elif not AnimeHair.has(hd[2]) and not _hair_cache.has(hk0):   # yalnız eski (anime olmayan) saç: bantlı anime saçı hazırken bu dal bantsız anahtara bakıp stili değiştiriyor, yeni stil karede hesaplanıyordu (217 ms)
 			var now = Time.get_ticks_msec()
 			if now - _hair_new_ms < 1200 or look.get("npc_strict", false):
 				var opts2 = []
@@ -1404,15 +1410,21 @@ static func default_look() -> Dictionary:
 	}
 
 
-func setup(l: Dictionary) -> void:
-	look = default_look()
-	look.merge(l, true)
-	Aging.apply_look(look)   # yaş: evre, ağaran saç, solan ten (look "years" varsa)
+## Saç stilinin son hâli (eski adlar anime saçına, karşı cinsin saçı kendi cinsine). setup ve prepare AYNI kuralı kullanır:
+## ayrıyken hazırlık "uzun" için "hazır" diyor, model ise onu anime saçına çevirip karede hesaplıyordu (220-410 ms takılma).
+static func settle_hair(look: Dictionary) -> void:
 	look["hair_style"] = HAIR_ALIAS.get(look.get("hair_style", "diken"), look.get("hair_style", "diken"))
 	if not look.get("own_hair", false) and not AnimeHair.has(String(look["hair_style"])) and String(look["hair_style"]) != "kel":
 		look["hair_style"] = npc_hair(look)   # NPC'ler de anime saçlarını kullanır (kullanıcı 2026-11-10); eski saç adları eşlenir
 	if String(HAIR_GENDER.get(look["hair_style"], "")) not in ["", String(look.get("gender", "m"))]:
 		look["hair_style"] = "kısa" if look.get("own_hair", false) else npc_hair(look)   # karşı cinsin saçı: NPC kendi cinsinin anime saçına, oyuncu düz saça
+
+
+func setup(l: Dictionary) -> void:
+	look = default_look()
+	look.merge(l, true)
+	Aging.apply_look(look)   # yaş: evre, ağaran saç, solan ten (look "years" varsa)
+	settle_hair(look)
 	if look.get("face_style") == null and look.get("mask") != null:
 		look["face_style"] = {"anbu": "anbu_kedi", "cloth": "cloth"}.get(look["mask"], null)
 	if look.get("outer_style") == null and look.get("cloak") != null:
@@ -1962,6 +1974,7 @@ func _scalp_cut() -> Vector4:
 
 
 func _paint_body() -> void:
+	var _pb0 = Time.get_ticks_usec()
 	var g = _geo_for(look["gender"])
 	var key = look["gender"]
 	if not _body_cache.has(key):
@@ -1988,8 +2001,11 @@ func _paint_body() -> void:
 			var vc2: Color = Color(look["vest"]).darkened(0.06)
 			_sk_panel(0.0, hy + 0.06, 0.24, 0.27, 0.17, 0.014, vc2)
 			_sk_end(g)
+	var _pb1 = Time.get_ticks_usec()
 	_cloth_rings(g, shell_mat, vest_mat)
+	var _pb2 = Time.get_ticks_usec()
 	_garments(g)
+	if PROF: print("PROFA paint vest+shell %.0f rings %.0f garments %.0f set=%s" % [(_pb1 - _pb0) / 1000.0, (_pb2 - _pb1) / 1000.0, (Time.get_ticks_usec() - _pb2) / 1000.0, str(look.get("set", look.get("outfit", "")))])
 
 
 ## Kollarda manşet, belde gömlek eteği, paçada büzgü: kıyafete gerçek kalınlık/katman verir
@@ -2321,19 +2337,34 @@ static func _nearest(g: Dictionary, p: Vector3) -> int:
 	var c = Vector3i(floor(p.x / 0.04), floor(p.y / 0.04), floor(p.z / 0.04))
 	var best = -1
 	var bd = 1e9
-	for r in [1, 2, 4]:
-		for x in range(-r, r + 1):
-			for y in range(-r, r + 1):
-				for z in range(-r, r + 1):
-					var k = c + Vector3i(x, y, z)
-					if not grid.has(k):
-						continue
-					for i in grid[k]:
-						var d = v[i].distance_squared_to(p)
-						if d < bd:
-							bd = d; best = i
-		if best >= 0:
-			return best
+	# hücrenin aday köşeleri bir kez toplanır (aynı sıra, aynı yarıçap kuralı: sonuç değişmez). Eskiden vücuttan uzak her
+	# kumaş köşesi için 125-729 hücre yeniden soruluyordu: bol dış giysinin (haori, panço) ilk kurulumu 40-55 ms tutuyordu.
+	if not g.has("cand"):
+		g["cand"] = {}
+		var lo = Vector3i(1 << 30, 1 << 30, 1 << 30); var hi = -lo
+		for gk in grid:
+			lo = lo.min(gk); hi = hi.max(gk)
+		g["glo"] = lo; g["ghi"] = hi   # dolu hücrelerin sınırı: dışındaki hücreler sorulmaz (sıra ve sonuç aynı)
+	var glo: Vector3i = g["glo"]; var ghi: Vector3i = g["ghi"]
+	var cand: Dictionary = g["cand"]
+	if not cand.has(c):
+		var lst := PackedInt32Array()
+		for r in [1, 2, 4]:
+			for x in range(maxi(-r, glo.x - c.x), mini(r, ghi.x - c.x) + 1):
+				for y in range(maxi(-r, glo.y - c.y), mini(r, ghi.y - c.y) + 1):
+					for z in range(maxi(-r, glo.z - c.z), mini(r, ghi.z - c.z) + 1):
+						var k = c + Vector3i(x, y, z)
+						if grid.has(k):
+							lst.append_array(grid[k])
+			if not lst.is_empty():
+				break
+		cand[c] = lst
+	for i in (cand[c] as PackedInt32Array):
+		var d = v[i].distance_squared_to(p)
+		if d < bd:
+			bd = d; best = i
+	if best >= 0:
+		return best
 	# ızgarada komşu yok (kafanın üstü / uzak giysi köşesi): tüm köşelerde ara — yoksa 0. köşenin (bacak) ağırlığını alıp yere sarkar
 	for i in v.size():
 		var d = v[i].distance_squared_to(p)
@@ -2454,14 +2485,17 @@ func _cut_loft(g: Dictionary, axis: int, v0: float, v1: float, rows: int, filt: 
 	var ua = Vector3.UP if axis == 0 else Vector3.RIGHT
 	var ub = Vector3.BACK
 	const BB := 36
-	var lay := PackedVector3Array()
-	var shv := PackedVector3Array()   # kumaş kabuğu (gömlek/üst): vücut ızgarasında göğüs biçimi yok, kabukta var
+	# kumaş kabuğu (gömlek/üst: vücut ızgarasında göğüs biçimi yok, kabukta var) ve iç katmanlar eksene göre 1 cm kovalarda:
+	# eskiden her satır için kabuğun ve katmanların TÜM köşeleri taranıyordu (26 satır x on binlerce köşe = parça başına 20-40 ms)
+	var shb := {}
 	var shm = _shell_cache.get(look["gender"])
 	if shm is ArrayMesh:
-		shv = (shm as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		shb = _mesh_buck(shm, axis)
+	var layb := []
 	if axis == 1:
 		for lm in _layer_meshes:
-			lay.append_array((lm as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX])
+			layb.append(_mesh_buck(lm, axis))
+	var low_y = _bp("Neck").y - 0.4
 	var centers = []
 	var radii = []
 	for r in rows:
@@ -2476,19 +2510,23 @@ func _cut_loft(g: Dictionary, axis: int, v0: float, v1: float, rows: int, filt: 
 			centers.append(null); radii.append(null)
 			continue
 		var npts = pts.size()
-		for p in shv:
-			if absf(p[axis] - val) <= 0.015 and filt.call(p):
-				pts.append(p)
+		for b in range(int(floor((val - 0.015) / 0.01)), int(floor((val + 0.015) / 0.01)) + 1):
+			if shb.has(b):
+				for p in shb[b]:
+					if absf(p[axis] - val) <= 0.015 and filt.call(p):
+						pts.append(p)
 		var c = Vector3.ZERO
 		for pi in npts:
 			c += pts[pi]
 		c /= npts
 		c[axis] = val
 		var lpts = []
-		var low_y = _bp("Neck").y - 0.4
-		for p in lay:   # iç katmanlar (hakama/etek/iç cübbe/şalvar): ayrı ölçülür, onlara karşı daha geniş pay; bel altında genişlik süzgeci yok (bağ pozunda orada kol yok)
-			if absf(p[axis] - val) <= 0.025 and (filt.call(p) or (axis == 1 and p.y < low_y)):
-				lpts.append(p)
+		for lb in layb:   # iç katmanlar (hakama/etek/iç cübbe/şalvar): ayrı ölçülür, onlara karşı daha geniş pay; bel altında genişlik süzgeci yok (bağ pozunda orada kol yok)
+			for b in range(int(floor((val - 0.025) / 0.01)), int(floor((val + 0.025) / 0.01)) + 1):
+				if lb.has(b):
+					for p in lb[b]:
+						if absf(p[axis] - val) <= 0.025 and (filt.call(p) or (axis == 1 and p.y < low_y)):
+							lpts.append(p)
 		var rad = PackedFloat32Array(); rad.resize(BB)
 		for p in pts:
 			var d = p - c
@@ -2648,6 +2686,9 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 	var sb = g["arrays"][Mesh.ARRAY_BONES]
 	var sw = g["arrays"][Mesh.ARRAY_WEIGHTS]
 	var hips_bi = _bind_index("Hips")
+	var leg_l_bi = _bind_index("LeftUpperLeg"); var leg_r_bi = _bind_index("RightUpperLeg")
+	var knee_y = _bp("LeftLowerLeg").y
+	var body_v: PackedVector3Array = g["arrays"][Mesh.ARRAY_VERTEX]
 	var bones = PackedInt32Array(); var weights = PackedFloat32Array()
 	bones.resize(n * per); weights.resize(n * per)
 	for i in n:
@@ -2659,7 +2700,7 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 			# etek/palto alt kısmı: bacaklarla gerilmesin, çoğunlukla kalçayı izlesin
 			var blend = clampf((skirt_y - verts[i].y) / 0.25, 0.0, 0.7)
 			# vücuttan uzak bol kumaş (geniş etek/cübbe ucu): bacağa bağlanırsa durunca bacakla içeri çekilip daralıyordu -> kalçaya
-			var far = verts[i].distance_to((g["arrays"][Mesh.ARRAY_VERTEX] as PackedVector3Array)[src])
+			var far = verts[i].distance_to(body_v[src])
 			blend = maxf(blend, clampf((far - 0.04) / 0.08, 0.0, 1.0) * clampf((skirt_y - verts[i].y) / 0.15, 0.0, 1.0))
 			if hips_full:   # kesim kalıbı etek/cübbe: belin altı tamamen kalçada (düz asılır, bacak içinde oynar; bacakla yarılmaz)
 				blend = maxf(blend, clampf((skirt_y - verts[i].y) / 0.12, 0.0, 1.0))
@@ -2675,8 +2716,8 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 				wb[0] = [hips_bi, blend + wb[0][1]]
 			if hips_full and blend > 0.5:
 				# kalıp etek/cübbe: o yandaki uyluğu kısmen izlesin -> duruşta/yürürken öne çıkan bacak kumaşı da açar, içinden çıkmaz
-				var leg_bi = _bind_index("LeftUpperLeg" if verts[i].x > 0.0 else "RightUpperLeg")
-				var share = (0.85 if verts[i].z > 0.02 else 0.75) * clampf(absf(verts[i].x) / 0.04, 0.0, 1.0) * clampf((_bp("LeftLowerLeg").y + share_top - verts[i].y) / 0.3, 0.0, 1.0)   # uyluk ortasından aşağı (kısa etek bacak arasında yarılmasın)
+				var leg_bi = leg_l_bi if verts[i].x > 0.0 else leg_r_bi
+				var share = (0.85 if verts[i].z > 0.02 else 0.75) * clampf(absf(verts[i].x) / 0.04, 0.0, 1.0) * clampf((knee_y + share_top - verts[i].y) / 0.3, 0.0, 1.0)   # uyluk ortasından aşağı (kısa etek bacak arasında yarılmasın)
 				if leg_bi >= 0 and share > 0.0:
 					for e in wb:
 						e[1] = e[1] * (1.0 - share)
@@ -2721,7 +2762,30 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 	arr[Mesh.ARRAY_INDEX] = all_i
 	var m = ArrayMesh.new()
 	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, _surface_flags(g))
+	m.set_meta("vs", all_v)   # köşeler elde: üstüne oturan kalıp ekran kartından geri okumasın
 	return m
+
+
+## Mesh'in köşeleri: kurulurken saklandıysa oradan, yoksa bir kez geri okunup saklanır
+static func _mesh_vs(m: ArrayMesh) -> PackedVector3Array:
+	if not m.has_meta("vs"):
+		m.set_meta("vs", m.surface_get_arrays(0)[Mesh.ARRAY_VERTEX])
+	return m.get_meta("vs")
+
+
+## Mesh köşeleri eksene göre 1 cm kovalarda (mesh başına bir kez)
+static func _mesh_buck(m: ArrayMesh, axis: int) -> Dictionary:
+	var mk = "bk%d" % axis
+	if not m.has_meta(mk):
+		var bk := {}
+		for p in _mesh_vs(m):
+			var b = int(floor(p[axis] / 0.01))
+			if bk.has(b):
+				bk[b].append(p)
+			else:
+				bk[b] = PackedVector3Array([p])
+		m.set_meta(mk, bk)
+	return m.get_meta(mk)
 
 
 var _layer_meshes := []   # bu kurulumda eklenen giysi katmanları (kesim kalıbı bunların dışında durur)
@@ -2730,10 +2794,15 @@ func _garment(key: String, build: Callable) -> void:
 	var lsig = 0   # iç katman imzası: kesim kalıbı aynı anahtarla farklı iç katmanların üstüne kurulabilir
 	for lm in _layer_meshes:
 		lsig += (lm as ArrayMesh).get_instance_id() % 100003
-	if not _garment_cache.has(k) or (_garment_cache[k] != null and int(_garment_cache[k].get_meta("lsig", lsig)) != lsig):
-		_garment_cache[k] = build.call()
-		if _garment_cache[k] != null:
-			_garment_cache[k].set_meta("lsig", lsig)
+	# kalıp iç katmana göre ayrı saklanır: tek kalıp tutulurken hakamalı / hakamasız haori birbirini önbellekten atıyor,
+	# aynı parça köyde tekrar tekrar hesaplanıyordu (her biri 40-55 ms takılma)
+	# düz anahtar (k) her zaman BU modelin kalıbını gösterir: ayrıntı kuran işlevler onu düz anahtarla okur
+	var kv = "%s|#%d" % [k, lsig]
+	if not _garment_cache.has(kv):
+		var _gq = Time.get_ticks_usec()
+		_garment_cache[kv] = build.call()
+		if PROF: print("PROFG %s %.0f ms" % [kv, (Time.get_ticks_usec() - _gq) / 1000.0])
+	_garment_cache[k] = _garment_cache[kv]
 	if _garment_cache[k] != null:
 		_layer_meshes.append(_garment_cache[k])
 		_dyn_garment(_add_shell(_garment_cache[k], cloth_shell_mat), key)
@@ -5892,6 +5961,8 @@ func _bee_kit(g: Dictionary) -> void:
 ## Görünümdeki giysi katmanlarını kur
 func _garments(g: Dictionary) -> void:
 	_layer_meshes = []
+	if _garment_cache.size() > 900:
+		_garment_cache.clear()   # kalıp çeşitleri sınırsız birikmesin (sahnedeki modeller kendi mesh'ini tutar)
 	OutfitParts.pants_layers(self, g)
 	var neck = _bp("Neck").y; var hips = _bp("Hips").y; var knee = _bp("LeftLowerLeg").y; var ank = _bp("LeftFoot").y
 	var chest = _bp("UpperChest").y; var ua = _bp("LeftUpperArm").x; var ha = _bp("LeftHand").x
@@ -6651,7 +6722,7 @@ func _sk_begin(src: ArrayMesh) -> bool:
 	if _sk_src_cache.has(ck) and _sk_src_cache[ck][0] == src:
 		var d0: Dictionary = _sk_src_cache[ck][1]
 		_sk = {"v": d0["v"], "n": d0["n"], "b": d0["b"], "w": d0["w"], "per": d0["per"], "ov": PackedVector3Array(), "on": PackedVector3Array(), "oc": PackedColorArray(),
-			"ob": PackedInt32Array(), "ow": PackedFloat32Array(), "oi": PackedInt32Array(), "custom": d0["custom"]}
+			"ob": PackedInt32Array(), "ow": PackedFloat32Array(), "oi": PackedInt32Array(), "custom": d0["custom"], "d0": d0}
 		return true
 	var a = src.surface_get_arrays(0)
 	var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX]
@@ -6672,6 +6743,7 @@ func _sk_begin(src: ArrayMesh) -> bool:
 	if _sk_src_cache.size() > 48:
 		_sk_src_cache.clear()
 	_sk_src_cache[ck] = [src, {"v": vv, "n": nn, "b": bb, "w": ww, "per": per, "custom": _sk["custom"]}]
+	_sk["d0"] = _sk_src_cache[ck][1]
 	return true
 
 
@@ -6692,8 +6764,47 @@ func _sk_hit(x: float, y: float, front := true, rad := 0.02) -> Array:
 	return [V[best], (_sk["n"] as PackedVector3Array)[best], best]
 
 
+## Izgaralı arama (4 cm hücre, kaynak başına bir kez kurulur): eskiden her köşe için tüm kabuk (on binlerce köşe) baştan sona
+## taranıyordu; gövdeye derili bantta ~100 arama = 50 ms takılma. Sonuç doğrusal aramayla aynıdır (halka halka genişler,
+## bulunan en yakın köşe sonraki halkadan kesin yakınsa durur).
+const SK_CELL := 0.04
 func _sk_nearest(p: Vector3) -> int:
 	var V: PackedVector3Array = _sk["v"]
+	var d0 = _sk.get("d0")
+	if d0 is Dictionary and V.size() > 400:
+		if not d0.has("grid"):
+			var gg := {}
+			for i in V.size():
+				var q: Vector3 = V[i]
+				var ck = Vector3i(floori(q.x / SK_CELL), floori(q.y / SK_CELL), floori(q.z / SK_CELL))
+				if gg.has(ck):
+					gg[ck].append(i)
+				else:
+					gg[ck] = PackedInt32Array([i])
+			d0["grid"] = gg
+		var G: Dictionary = d0["grid"]
+		var c = Vector3i(floori(p.x / SK_CELL), floori(p.y / SK_CELL), floori(p.z / SK_CELL))
+		var gb = -1
+		var gd = 1e9
+		for r in 5:
+			if gb >= 0 and gd <= (r - 1) * SK_CELL * (r - 1) * SK_CELL:
+				return gb
+			for dx in range(-r, r + 1):
+				for dy in range(-r, r + 1):
+					var edge = absi(dx) == r or absi(dy) == r
+					for dz in (range(-r, r + 1) if edge else [-r, r]):
+						if r > 0 and not edge and dz != -r and dz != r:
+							continue
+						var cell = G.get(c + Vector3i(dx, dy, dz))
+						if cell == null:
+							continue
+						for i in (cell as PackedInt32Array):
+							var d = V[i].distance_squared_to(p)
+							if d < gd:
+								gd = d
+								gb = i
+		if gb >= 0 and gd <= 3.0 * SK_CELL * 3.0 * SK_CELL:
+			return gb
 	var best = 0
 	var bd = 1e9
 	for i in V.size():
@@ -7359,6 +7470,21 @@ func _neck_warmer(col: Color) -> void:
 ## pants_flap: pantolonun sağ yanından dize kadar sarkan koyu kanat (Iwa)
 static var _body_vs_cache := {}
 ## Gövde köşeleri (cinsiyete göre aynı taban): surface_get_arrays her seferinde ekran kartından kopya çekiyordu
+## Gövdenin yalnız boyundan yukarısı (cinsiyet başına bir kez süzülür): kafa ölçümleri (bant halkası, kafa ızgarası) tüm
+## gövdeyi taramasın — her yeni yüzde 50-70 ms tutuyordu
+static var _head_vs_cache := {}
+func _head_vs() -> PackedVector3Array:
+	var k = String(look.get("gender", "m"))
+	if not _head_vs_cache.has(k):
+		var ny = _bp("Neck").y - 0.001
+		var out = PackedVector3Array()
+		for q in (_geo_for(k)["arrays"][Mesh.ARRAY_VERTEX] as PackedVector3Array):
+			if q.y >= ny:
+				out.append(q)
+		_head_vs_cache[k] = out
+	return _head_vs_cache[k]
+
+
 func _body_vs() -> PackedVector3Array:
 	var k = "%s|%d" % [look.get("gender", "m"), body_mesh.mesh.get_instance_id()]
 	if not _body_vs_cache.has(k):
@@ -7497,10 +7623,24 @@ func _sf_acc(id: String, ref: Vector3) -> bool:
 
 ## Pürüzsüz miğfer kabuğu: kafa derisinin her yönde en dış noktasına + pay ile oturan, ızgarası yumuşatılmış kubbe.
 ## Ön kenar front_edge_y'de, arkaya doğru back_drop kadar iner (ense korunur).
+static var _helmet_cache := {}   # yüz/cinsiyet/yaş + ölçüler + renk -> kabuk (her miğferli kişide 60-70 ms hesaplanıyordu)
 func _helmet_shell(col: Color, front_edge_y: float, back_drop: float, pad := 0.016, flat_top := 0.0, side_drop := 0.0) -> MeshInstance3D:
+	var hk = "%s|%s|%.4f|%.4f|%.4f|%.4f|%.4f" % [_sk_key, col.to_html(), front_edge_y, back_drop, pad, flat_top, side_drop]
+	if _sk_key == "" or not _helmet_cache.has(hk):
+		if _helmet_cache.size() > 160:
+			_helmet_cache.clear()
+		_helmet_cache[hk] = _helmet_shell_mesh(col, front_edge_y, back_drop, pad, flat_top, side_drop)
+	var mi = _mesh_on("Head", _helmet_cache[hk], Transform3D.IDENTITY)
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/toon.gdshader")
+	mat.set_shader_parameter("rim_amount", 0.2)
+	mi.material_override = mat
+	return mi
+
+
+func _helmet_shell_mesh(col: Color, front_edge_y: float, back_drop: float, pad := 0.016, flat_top := 0.0, side_drop := 0.0) -> ArrayMesh:
 	# kafa derisinin gerçek yüzeyi (saçlarla aynı ölçüm: _head_radial ızgarası, AnimeHair._real_r)
-	_hair_lock()
-	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _radial_cached(); AnimeHair._band_y = -INF
+	var _sgrid = _radial_cached()   # kafa yüzeyi: saç modülünün ortak durumuna dokunulmaz (arka plandaki saç hesabı beklenmez)
 	var NA = 64; var NP = 22
 	var edge_at = func(a: float) -> float:   # a: yaw (0 = ön +Z)
 		var back = maxf(0.0, -cos(a))
@@ -7512,7 +7652,7 @@ func _helmet_shell(col: Color, front_edge_y: float, back_drop: float, pad := 0.0
 		var pmax = 30.0
 		while pmax < 140.0:
 			var dd = AnimeHair._dir(yw, pmax)
-			if (skull_c + dd * AnimeHair._real_r(dd)).y < edge_at.call(deg_to_rad(yw)):
+			if (skull_c + dd * AnimeHair.real_r_of(dd, skull_r, _sgrid)).y < edge_at.call(deg_to_rad(yw)):
 				break
 			pmax += 2.0
 		pmaxs.append(pmax)
@@ -7527,7 +7667,7 @@ func _helmet_shell(col: Color, front_edge_y: float, back_drop: float, pad := 0.0
 		for jj in NP + 1:
 			var yw = float(k) / NA * 360.0 - 180.0
 			var d = AnimeHair._dir(yw, lerpf(0.0, pmaxs[k], float(jj) / NP))
-			row.append(AnimeHair._real_r(d))
+			row.append(AnimeHair.real_r_of(d, skull_r, _sgrid))
 		RG.append(row)
 	var dil = []
 	for k in NA:
@@ -7593,12 +7733,7 @@ func _helmet_shell(col: Color, front_edge_y: float, back_drop: float, pad := 0.0
 			st.set_color(col.darkened(0.1))
 			st.add_vertex(e[idx])
 	st.generate_normals()
-	var mi = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
-	var mat = ShaderMaterial.new()
-	mat.shader = load("res://shaders/toon.gdshader")
-	mat.set_shader_parameter("rim_amount", 0.2)
-	mi.material_override = mat
-	return mi
+	return st.commit()
 
 
 ## Yönlü kutu (merkez, eksenler, tam boyut) — vertex renkli
@@ -8189,7 +8324,7 @@ static func _hair_touch(hk: String) -> void:
 
 static func _hair_job_run(args: Array) -> void:
 	var m = AnimeHair.build(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
-	_hair_job_res = [m, _anime_dangle_s(m, AnimeHair.strands, args[1], args[2], [AnimeHair.last_arrays])]   # sallanma paketi de burada (ana iş parçacığında 100-190 ms)
+	_hair_job_res = [m, _anime_dangle_s(m, AnimeHair.strands, args[1], args[2], [AnimeHair.last_arrays]), AnimeHair.last_arrays[Mesh.ARRAY_VERTEX] if AnimeHair.last_arrays.size() > Mesh.ARRAY_VERTEX else null]   # sallanma paketi de burada (ana iş parçacığında 100-190 ms)
 
 
 ## Kimliği olan kişi sahneye girmeden önce çağrılır: saçı hazırsa (ya da aynı saç başka yüzde hazırsa) true.
@@ -8197,7 +8332,7 @@ static func _hair_job_run(args: Array) -> void:
 ## Bu yüz hiç kurulmadıysa (kafatası ölçüsü yok) hazırlanamaz: true döner, model kendi kurar.
 static func hair_prepare(l: Dictionary) -> bool:
 	var r = _hair_prepare(l)
-	if PROF and l.get("keep_hair", false): print("DBGPREP %s -> %s" % [_hp_why, r])
+	if PROF: print("DBGPREP %s -> %s" % [_hp_why, r])
 	return r
 
 
@@ -8268,9 +8403,11 @@ static func hair_pump_s() -> void:
 		return
 	WorkerThreadPool.wait_for_task_completion(_hair_job)
 	_hair_job = -1
-	if _hair_job_res.size() == 2 and _hair_job_res[0] is ArrayMesh:
+	if _hair_job_res.size() == 3 and _hair_job_res[0] is ArrayMesh:
 		_hair_cache[_hair_job_key] = _hair_job_res[0]
 		_hair_dyn[_hair_job_key] = _hair_job_res[1]
+		if _hair_job_res[2] is PackedVector3Array:
+			_hair_vs_cache[_hair_job_key] = _hair_job_res[2]   # köşeler iş parçacığından: ekran kartından geri okunmaz (ilk kullanımda 20-30 ms)
 	_hair_job_res = []
 
 
@@ -8280,9 +8417,11 @@ func _hair_pump() -> void:
 	WorkerThreadPool.wait_for_task_completion(_hair_job)
 	_hair_job = -1
 	var _a = Time.get_ticks_usec()
-	if _hair_job_res.size() == 2 and _hair_job_res[0] is ArrayMesh:
+	if _hair_job_res.size() == 3 and _hair_job_res[0] is ArrayMesh:
 		_hair_cache[_hair_job_key] = _hair_job_res[0]
 		_hair_dyn[_hair_job_key] = _hair_job_res[1]
+		if _hair_job_res[2] is PackedVector3Array:
+			_hair_vs_cache[_hair_job_key] = _hair_job_res[2]   # köşeler iş parçacığından: ekran kartından geri okunmaz (ilk kullanımda 20-30 ms)
 	if PROF: print("PROF  pump dangle %.0f" % [(Time.get_ticks_usec() - _a) / 1000.0])
 	_hair_job_res = []
 
@@ -8300,9 +8439,11 @@ func _hair_lock() -> void:
 		WorkerThreadPool.wait_for_task_completion(_hair_job)
 		if PROF: print("PROF  lock wait %.0f" % [(Time.get_ticks_usec() - _a) / 1000.0])
 		_hair_job = -1
-		if _hair_job_res.size() == 2 and _hair_job_res[0] is ArrayMesh:
+		if _hair_job_res.size() == 3 and _hair_job_res[0] is ArrayMesh:
 			_hair_cache[_hair_job_key] = _hair_job_res[0]
 			_hair_dyn[_hair_job_key] = _hair_job_res[1]
+			if _hair_job_res[2] is PackedVector3Array:
+				_hair_vs_cache[_hair_job_key] = _hair_job_res[2]   # köşeler iş parçacığından: ekran kartından geri okunmaz (ilk kullanımda 20-30 ms)
 		_hair_job_res = []
 
 
@@ -8955,8 +9096,7 @@ func _head_radial() -> PackedFloat32Array:
 	var g = PackedFloat32Array()
 	g.resize(NY * NPT)
 	var src = []
-	var geo = _geo_for(look["gender"])   # çizilen gövde (ham VRoid mesh'i değil): kafatası arkası buradan
-	src.append(geo["arrays"][Mesh.ARRAY_VERTEX])
+	src.append(_head_vs())   # çizilen gövde (ham VRoid mesh'i değil): kafatası arkası buradan
 	if not _face_src.is_empty():
 		var fm: ArrayMesh = _face_src[0]
 		var fx: Transform3D = _face_src[1]
@@ -9031,13 +9171,24 @@ const BAND_DROP := 0.045   # alın bandı: önden arkaya iniş (m)
 
 
 ## Eğik bant halkası: her yönde bandın o yöndeki yüksekliğinde (by - drop*(1-sin)/2) en dış deri (yüz + gövde kafası)
+static var _tilt_cache := {}   # yüz/cinsiyet/yaş + yükseklik + eğim -> halka (gövde taraması her bantlı kişide 50-70 ms tutuyordu)
 func _tilted_ring(by: float, drop: float) -> PackedFloat32Array:
+	var tk = "%s|%.4f|%.4f|%d" % [_sk_key, by, drop, (band_ring[1] as PackedFloat32Array).size()]
+	if _sk_key != "" and _ring_full and _tilt_cache.has(tk):
+		return _tilt_cache[tk]
+	var res = _tilted_ring_scan(by, drop)
+	if _sk_key != "" and _ring_full:
+		_tilt_cache[tk] = res
+	return res
+
+
+func _tilted_ring_scan(by: float, drop: float) -> PackedFloat32Array:
 	var base: PackedFloat32Array = band_ring[1]
 	var bins = base.size()
 	var rad = PackedFloat32Array()
 	rad.resize(bins)
 	var ny = _bp("Neck").y + 0.03
-	var srcs = [_geo_for(look["gender"])["arrays"][Mesh.ARRAY_VERTEX]]
+	var srcs = [_head_vs()]
 	for vv in srcs:
 		for q in vv:
 			if q.y < ny:
@@ -9062,13 +9213,16 @@ func _tilted_ring(by: float, drop: float) -> PackedFloat32Array:
 
 
 func _hitai_head(bc: Color) -> void:
+	var _hq = Time.get_ticks_usec()
 	_band_ring_full()
+	if PROF: print("PROFB ringfull %.0f" % [(Time.get_ticks_usec() - _hq) / 1000.0]); _hq = Time.get_ticks_usec()
 	var by: float = band_ring[0] + 0.01   # göz kapağını kapatmasın
 	var keep = band_ring
 	if not _anime_hair_vs.is_empty():
 		# anime saçı: bant alında başlar, arkaya doğru iner (kulak üstünden ense çıkıntısına); yatay halka büyük
 		# kafatasının arkasında tepeden geçip "taç/kap" gibi duruyordu. Saç bu şeritte zaten kafaya bastırılı (maske yok)
 		var ring = _tilted_ring(by, BAND_DROP)
+		if PROF: print("PROFB tilted %.0f" % [(Time.get_ticks_usec() - _hq) / 1000.0]); _hq = Time.get_ticks_usec()
 		_hitai("Head", Vector3(skull_c.x, by, skull_c.z), ring, bc, 0.036, 0.037, 0.6, 0.0, Vector3(0.22, -1.0, -0.62), true, 0.15, 0.03, 0.011, BAND_DROP)
 		return
 	band_ring = [band_ring[0], _hair_wrapped_ring(by)]
@@ -9091,8 +9245,7 @@ const BAND_WEAR_NAMES := {"alin": "Alında", "kakashi": "Göze Eğik", "zabuza":
 
 ## Eğik düzlemde kafa (+ saç) çevresi: B yerel X/Z düzlemi bant düzlemi, Y normali; bins açı (yerel atan2(z, x) + PI)
 func _plane_ring_head(p0: Vector3, B: Basis, bins := 48) -> PackedFloat32Array:
-	_hair_lock()
-	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _radial_cached(); AnimeHair._band_y = -INF
+	var _sgrid = _radial_cached()   # kafa yüzeyi: saç modülünün ortak durumuna dokunulmaz (arka plandaki saç hesabı beklenmez)
 	var rad = PackedFloat32Array()
 	rad.resize(bins)
 	for k in bins:
@@ -9103,7 +9256,7 @@ func _plane_ring_head(p0: Vector3, B: Basis, bins := 48) -> PackedFloat32Array:
 			var t = (lo + hi) * 0.5
 			var q = p0 + d * t
 			var v = q - skull_c
-			var inside = v.length() < AnimeHair._real_r(v.normalized())
+			var inside = v.length() < AnimeHair.real_r_of(v.normalized(), skull_r, _sgrid)
 			if inside:
 				lo = t
 			else:
@@ -9135,7 +9288,28 @@ func _plane_ring_head(p0: Vector3, B: Basis, bins := 48) -> PackedFloat32Array:
 
 
 ## Gövdede eğik düzlem çevresi (bel, kol, kuşak): düzleme yakın gövde köşeleri, p0'dan rmax içi
+static var _prb_cache := {}
+## Aynı beden + aynı giysi parçaları + aynı düzlem -> aynı halka: her boyun / bel bantlı kişide tüm gövde ve giysi kabukları
+## taranıyordu (50-80 ms takılma). İmza parça adları ve köşe sayılarından (geri okuma gerektirmez).
 func _plane_ring_body(p0: Vector3, B: Basis, rmax: float, pad: float, bins := 36, xlim := 9.0) -> PackedFloat32Array:
+	var sig = 0
+	for c in find_children("*", "MeshInstance3D", true, false):
+		if not (c.mesh is ArrayMesh) or not c.visible:
+			continue
+		var cn = 0
+		for si in c.mesh.get_surface_count():
+			cn += c.mesh.surface_get_array_len(si)
+		var ab: AABB = c.mesh.get_aabb()
+		sig = hash([sig, "" if String(c.name).begins_with("@") else String(c.name), cn, c.skin == null, c.transform.origin.snappedf(0.001), ab.position.snappedf(0.001), ab.size.snappedf(0.001)])   # otomatik düğüm adları kişiye özel: imzaya girmez
+	var ck = hash([String(look.get("gender", "m")), String(look.get("age", "adult")), sig, p0.snappedf(0.0005), B.x.snappedf(0.001), B.y.snappedf(0.001), rmax, pad, bins, xlim])
+	if not _prb_cache.has(ck):
+		if _prb_cache.size() > 400:
+			_prb_cache.clear()
+		_prb_cache[ck] = _plane_ring_body_scan(p0, B, rmax, pad, bins, xlim)
+	return _prb_cache[ck]
+
+
+func _plane_ring_body_scan(p0: Vector3, B: Basis, rmax: float, pad: float, bins := 36, xlim := 9.0) -> PackedFloat32Array:
 	var rad = PackedFloat32Array()
 	rad.resize(bins)
 	var nrm = B.y.normalized(); var bx = B.x.normalized(); var bz = B.z.normalized()
@@ -10028,6 +10202,7 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 	var r_at = func(ang: float) -> float: return rad[int(floor((wrapf(ang, -PI, PI) + PI) / TAU * bins)) % bins]
 	var tilt = func(ang: float) -> float: return -tilt_amt * maxf(0.0, sin(ang)) - back_drop * (1.0 - sin(ang)) * 0.5   # önde hafif aşağı (+Z = sin); back_drop: arkaya doğru iner (gerçek alın bandı)
 	var p_of = func(ang: float, r: float, dy: float) -> Vector3: return cen + pb * Vector3(cos(ang) * r, dy + tilt.call(ang), sin(ang) * r)   # pb: eğik takılış (Kakashi/Zabuza/saç bandı/kol)
+	var _hq2 = Time.get_ticks_usec()
 	# --- kumaş bant: kalınlıklı halka (dış yüz + üst/alt kenar), saçın üstünde
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -10052,6 +10227,7 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 	st.generate_normals()
 	var bmi = _mesh_on(bone, st.commit(), Transform3D.IDENTITY)
 	bmi.material_override = Props.toon()
+	if PROF: print("PROFB kumas %.0f" % [(Time.get_ticks_usec() - _hq2) / 1000.0]); _hq2 = Time.get_ticks_usec()
 	var rv = MB.new()
 	var front = PI * 0.5
 	var plate_off = 0.0055 if not _anime_hair_vs.is_empty() else 0.013   # ince bantta plaka bandın yüzüne yapışık (kalın banttaki 1.3 cm havada kalıyordu)
@@ -10101,6 +10277,7 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 	if tail_len > 0.0:
 		rv.add("sphere", kp, Vector3(0.026, 0.024, 0.016), cloth.darkened(0.08), Vector3.ZERO, 7)
 	_mesh_on(bone, rv.build(Props.toon()), Transform3D.IDENTITY)
+	if PROF: print("PROFB plaka %.0f" % [(Time.get_ticks_usec() - _hq2) / 1000.0]); _hq2 = Time.get_ticks_usec()
 	if plate and _band_kanji != "":   # Jiraiya: köy arması yerine 油
 		var kl = Label3D.new()
 		kl.text = _band_kanji
@@ -10138,9 +10315,11 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 		sm.cull_mode = BaseMaterial3D.CULL_DISABLED
 		var smi = _mesh_on(bone, smesh, Transform3D.IDENTITY)
 		smi.material_override = sm
+	if PROF: print("PROFB arma %.0f" % [(Time.get_ticks_usec() - _hq2) / 1000.0]); _hq2 = Time.get_ticks_usec()
 	# iki kısa bağ ucu: düğümden enseye sarkar (ikincil hareket)
 	for sx in ([-1.0, 1.0] if tail_len > 0.0 else []):
 		dangle_strip(bone, kp + pb * Vector3(0.006 * sx, -0.004, -0.012), Vector3(tail_dir.x * sx, tail_dir.y, tail_dir.z), tail_len, tail_w, cloth, 0.16, pb * Vector3(1, 0, 0), 0.003)
+	if PROF: print("PROFB bag_ucu %.0f" % [(Time.get_ticks_usec() - _hq2) / 1000.0])
 
 
 ## Kafanın arkası yüz mesh'inde yok: bant halkasına gövde mesh'inin (model uzayına çevrilmiş) kafa köşeleri de katılır
@@ -10152,8 +10331,7 @@ static var _top_cache := {}
 static var _fmap_cache := {}
 ## Başın gerçek yüzeyini (kask kabuğuyla aynı ölçüm) saran bez şerit: y yüksekliğinde, h kalın, pad dışarı; tilt: yana eğim
 func _skull_band(col: Color, y: float, h: float, pad: float, tilt := 0.0) -> MeshInstance3D:
-	_hair_lock()
-	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _radial_cached(); AnimeHair._band_y = -INF
+	var _sgrid = _radial_cached()   # kafa yüzeyi: saç modülünün ortak durumuna dokunulmaz (arka plandaki saç hesabı beklenmez)
 	var NA = 56
 	var pts = []
 	for k in NA + 1:
@@ -10163,7 +10341,7 @@ func _skull_band(col: Color, y: float, h: float, pad: float, tilt := 0.0) -> Mes
 		var pp = 0.0
 		while pp < 150.0:
 			var dd = AnimeHair._dir(yw, pp)
-			var q = skull_c + dd * AnimeHair._real_r(dd)
+			var q = skull_c + dd * AnimeHair.real_r_of(dd, skull_r, _sgrid)
 			if q.y < yy:
 				rad = Vector2(q.x - skull_c.x, q.z - skull_c.z).length()
 				break
@@ -10206,8 +10384,9 @@ func _band_ring_full() -> void:
 	var by: float = band_ring[0]
 	var rad: PackedFloat32Array = (band_ring[1] as PackedFloat32Array).duplicate()
 	var bins = rad.size()
-	for q in _body_vs():
-		if absf(q.y - by) > 0.014 or q.y < _bp("Neck").y + 0.05:
+	var rf_ny = _bp("Neck").y + 0.05
+	for q in _head_vs():
+		if absf(q.y - by) > 0.014 or q.y < rf_ny:
 			continue
 		var d = Vector2(q.x - skull_c.x, q.z - skull_c.z)
 		var k = int(floor((atan2(d.y, d.x) + PI) / TAU * bins)) % bins
@@ -10397,7 +10576,7 @@ func _attachments() -> void:
 				_mesh_on("Head", band.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0)))
 			else:
 				_hitai_head(bc)
-	if PROF: print("PROFA band %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
+	if PROF: print("PROFA band %.0f wear=%s style=%s anime=%s sk=%s" % [(Time.get_ticks_usec() - _pa) / 1000.0, str(look.get("band_wear")), str(look.get("band_style")), not _anime_hair_vs.is_empty(), _sk_key]); _pa = Time.get_ticks_usec()
 	# --- yelek: kumaş katmanına boyanır; üstüne sadece yaka + parşömen cepleri (dış giysi altındayken yok: taşıyordu)
 	if look["vest"] != null and (look.get("outer_style") == null or String(look.get("outer_style")) in ["atki", "kisa", "kesa"]):
 		var v = MB.new()

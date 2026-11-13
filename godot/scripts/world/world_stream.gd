@@ -87,7 +87,10 @@ func _process(dt: float) -> void:
 		var reg = regions.get(pq[0])
 		if reg != null and is_instance_valid(pq[1]) and reg["node"] == pq[1]:
 			var before := Interact.items.size()
+			var tp := Time.get_ticks_usec()
 			PoiBuilder.build(pq[1], pq[2])
+			if _prof and Time.get_ticks_usec() - tp > 6000:
+				print("YER_US ", Time.get_ticks_usec() - tp, " ", str(pq[2]).left(160))
 			reg["inter"].append_array(Interact.items.slice(before))
 
 

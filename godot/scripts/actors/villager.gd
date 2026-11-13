@@ -77,8 +77,15 @@ var folk_vid := ""           # kalıcı sivil: yeni yüzse bu köyün kaydına g
 var folk_site := ""
 
 
-func _ready() -> void:
-	team = "neutral"
+var _planned := false
+
+
+## Görünüşün kararı (rol kalıbı + kıyafet + yaş). Sahneye girmeden de çağrılabilir: doğuran taraf yüzü / saçı arka planda
+## hazırlatıp (CharacterModel.prepare) kişiyi hazır olunca sahneye alır; yoksa yeni yüz karede hesaplanıp oyunu takıyordu.
+func plan_look() -> void:
+	if _planned:
+		return
+	_planned = true
 	var tops := [Color(0.5, 0.6, 0.45), Color(0.6, 0.35, 0.3), Color(0.8, 0.75, 0.55), Color(0.4, 0.45, 0.6), Color(0.7, 0.55, 0.65),
 		Color(0.85, 0.85, 0.85), Color(0.55, 0.3, 0.45), Color(0.9, 0.6, 0.3)]
 	var t: Color = tops.pick_random()
@@ -152,6 +159,12 @@ func _ready() -> void:
 	if look_extra.is_empty():
 		lk["npc"] = true   # CharacterModel: hazır saç önbelleğini tercih et (kurulum donması olmasın)
 	look = lk
+
+
+func _ready() -> void:
+	team = "neutral"
+	plan_look()
+	var lk = look
 	var new_folk := {}
 	if folk_vid != "" and look_extra.is_empty() and display_override == "":
 		new_folk = WorldFolk.adopt(folk_vid, role, lk, folk_site)   # ilk kez görülen sivil: adı, yaşı, görünüşü kalıcı olur

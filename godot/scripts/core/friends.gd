@@ -1210,6 +1210,26 @@ func _visit(dt: float) -> void:
 	Hud.msg(("%s seni gördü, yanına geliyor." if b >= 0 else "%s sana doğru geliyor... pek dostça görünmüyor.") % f["name"], level_color(b))
 
 
+var _prep_looks := {}   # id -> sahneye girmeden hazırlanan görünüş
+
+
+func _npc_look(id: String) -> Dictionary:
+	var f: Dictionary = all()[id]
+	var lk = look_of(f)
+	if int(f.get("rank", 0)) >= 1:
+		Outfits.village_set(lk, Progress.home(), int(f.get("rank", 0)) >= 2)
+	lk["keep_hair"] = true
+	return lk
+
+
+## Tanıdığın yüzü / saçı hazır mı (değilse arka planda başlar): hazır olmadan sahneye girerse saçı karede hesaplanıp
+## oyunu takıyordu (300 ms). Hazırlanan görünüş saklanır, kişi aynı görünüşle doğar.
+func npc_ready(id: String) -> bool:
+	if not _prep_looks.has(id):
+		_prep_looks[id] = _npc_look(id)
+	return CharacterModel.prepare(_prep_looks[id])
+
+
 ## Dostu dünyada köylü olarak doğur (ziyaret / haritada bulma); walk: oyuncuya yürüsün
 func _spawn_npc(id: String, at: Vector3, walk: bool) -> Villager:
 	var f: Dictionary = all()[id]
@@ -1227,10 +1247,8 @@ func _spawn_npc(id: String, at: Vector3, walk: bool) -> Villager:
 	else:
 		vg = Villager.new()
 	vg.role = "nurse"
-	var lk = look_of(f)
-	if int(f.get("rank", 0)) >= 1:
-		Outfits.village_set(lk, Progress.home(), int(f.get("rank", 0)) >= 2)
-	lk["keep_hair"] = true
+	var lk: Dictionary = _prep_looks[id] if _prep_looks.has(id) else _npc_look(id)
+	_prep_looks.erase(id)
 	vg.look_extra = lk
 	vg.display_override = String(f["name"])
 	vg.set_meta("friend_id", id)
@@ -1459,6 +1477,8 @@ func _world_tick(dt: float) -> void:
 				here = true
 		if here:
 			continue
+		if not npc_ready(id):
+			continue   # sonraki turda yeniden bakılır
 		present[id] = _spawn_npc(id, p, false)
 		if all()[id].get("rogue", false):
 			_lair_props(present[id])

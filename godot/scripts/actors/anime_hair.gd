@@ -55,6 +55,19 @@ static func _real_r(d: Vector3) -> float:
 
 ## Izgaradan o yöndeki deri yarıçapı (komşu hücrelerle yumuşatılmış; boş hücre = 0)
 static func _grid_r(d: Vector3) -> float:
+	return grid_r_of(_grid, d)
+
+
+## Ortak duruma dokunmayan sürümler: ana iş parçacığı (bant, miğfer, başlık) arka plandaki saç hesabını beklemeden kullanır
+static func real_r_of(d: Vector3, r: Vector3, grid: PackedFloat32Array) -> float:
+	var g = grid_r_of(grid, d)
+	if g > 0.0:
+		return g
+	var front = smoothstep(0.25, 0.85, d.z) * smoothstep(0.75, 0.2, d.y)
+	return (d * (r * (1.0 + 0.11 * front))).length()   # ızgara boşsa (g = 0) _rr elipsoidin kendisidir
+
+
+static func grid_r_of(_grid: PackedFloat32Array, d: Vector3) -> float:
 	if _grid.is_empty():
 		return 0.0
 	var yw = rad_to_deg(atan2(d.x, d.z)); var pt = rad_to_deg(acos(clampf(d.y, -1.0, 1.0)))

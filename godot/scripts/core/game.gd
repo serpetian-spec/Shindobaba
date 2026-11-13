@@ -731,7 +731,14 @@ func display_key() -> String:
 
 func apply_settings() -> void:
 	var d = display_key()
-	if d == "full":
+	if Array(OS.get_cmdline_user_args()).any(func(ta): return String(ta).begins_with("--test=")) and not "--onscreen" in OS.get_cmdline_user_args():
+		# test koşusu: pencere ekranın dışında açılır (kullanıcının önüne gelmesin), boyutu ekran kadar (ölçümler aynı kalsın)
+		var tscr = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
+		DisplayServer.window_set_size(tscr.size)
+		DisplayServer.window_set_position(tscr.position + Vector2i(tscr.size.x * 3 + 400, 0))
+	elif d == "full":
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	elif d == "max":
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)

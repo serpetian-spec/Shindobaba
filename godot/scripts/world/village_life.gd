@@ -40,6 +40,7 @@ func _ready() -> void:
 var hair_wait := 0     # yüzü / saçı hazırlanırken geri çevrilen kişi sayısı (üst sınır: sonsuza dek beklenmez)
 var allow_defer := false   # yalnız sıradan gelen isteklerde: kişi hazır değilse istek sıraya geri döner
 var deferred := false
+var _planned := {}      # rol|yer -> sahneye girmeyi bekleyen (yüzü hazırlanan) yeni köylü
 
 
 func _village_at(p: Vector3) -> Dictionary:
@@ -168,6 +169,10 @@ func _process(dt: float) -> void:
 				if is_instance_valid(n) and n is Villager and n.global_position.distance_to(p) < 220.0:
 					n.queue_free()
 					active_sites[key]["nodes"].erase(n)
+		for pv in _planned.values():
+			if is_instance_valid(pv):
+				pv.free()   # sahneye hiç girmedi
+		_planned.clear()
 		queue.clear()
 		return
 	var v = _village_at(p)
@@ -505,12 +510,31 @@ func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", f
 					return null
 				hair_wait = 0
 				extra.merge(fdr, true)
-	var vg = Villager.new()
-	vg.role = role
-	vg.points = pts
-	vg.night = phase == "gece"
+	# yeni yüz (kayıtlı kişi değil): görünüşü sahneye girmeden kararlaştırılır, yüzü / saçı arka planda hazırlanır; hazır
+	# değilse istek sıraya döner ve AYNI kişi (aynı görünüş) hazır olunca çıkar
+	var plain = wp.is_empty() and fk.is_empty() and fid == "" and not extra.has("look_extra")
+	var pkey = "%s|%s" % [role, skey]
+	var vg: Villager = null
+	if plain and _planned.has(pkey):
+		vg = _planned[pkey]
+		_planned.erase(pkey)
+		if not is_instance_valid(vg):
+			vg = null
+	if vg == null:
+		vg = Villager.new()
+		vg.role = role
 	for k in extra:
 		vg.set(k, extra[k])
+	vg.points = pts
+	vg.night = phase == "gece"
+	if plain and allow_defer and hair_wait < 60:
+		vg.plan_look()
+		if not CharacterModel.prepare(vg.look):
+			_planned[pkey] = vg
+			hair_wait += 1
+			deferred = true
+			return null
+		hair_wait = 0
 	if skey != "":
 		vg.set_meta("site_key", skey)
 	if fid != "":

@@ -60,9 +60,16 @@ static func _villager(node: Node3D, b: Builder, role: String, lp: Vector3, pts: 
 		wp.y = Game.terrain_height(wp.x, wp.z)
 		wpts.append(wp)
 	vg.points = wpts
-	node.add_child(vg)
 	var wp0 = b.w(lp)
 	wp0.y = Game.terrain_height(wp0.x, wp0.z) + 0.1
+	# kişiler yapıyla aynı karede kurulmaz (mezra 3-5 köylüyle tek karede 150 ms takıyordu): yüzü / saçı arka planda
+	# hazırlanır, her biri ayrı karede sahneye girer
+	vg.plan_look()
+	await CharacterModel.ready_turn(node, vg.look)
+	if not is_instance_valid(node) or not node.is_inside_tree():
+		vg.free()
+		return
+	node.add_child(vg)
 	vg.global_position = wp0
 	vg.home = wp0
 	vg.goal = wp0
@@ -71,9 +78,13 @@ static func _villager(node: Node3D, b: Builder, role: String, lp: Vector3, pts: 
 static func _enemy(node: Node3D, b: Builder, kind: String, i: int, lp: Vector3) -> void:
 	var e = Enemy.new()
 	e.setup(Enemy.archetype(kind, i))
-	node.add_child(e)
 	var wp = b.w(lp)
 	wp.y = Game.terrain_height(wp.x, wp.z) + 0.2
+	await CharacterModel.ready_turn(node, e.look if e.look is Dictionary else {})   # köylülerle aynı: ayrı karede, hazır olunca
+	if not is_instance_valid(node) or not node.is_inside_tree():
+		e.free()
+		return
+	node.add_child(e)
 	e.global_position = wp
 	e.home = wp
 
