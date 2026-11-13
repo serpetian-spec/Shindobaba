@@ -189,6 +189,16 @@ func take_hit(info: Dictionary) -> void:
 		model.flash(0.5)
 		velocity += dir * 1.5
 		return
+	# güç farkı (kanon): kendinden çok zayıfın darbesi güçlü ninjayı sersemletmez / yere sermez — hasarı alır ama akışı bozulmaz.
+	# Güç oranı 0.6'nın altında hafif darbe hiç sersemletmez, ağır darbe yalnız sendeletir; 0.45'in altında ağır darbe de sersemletmez.
+	var atkp = info.get("attacker")
+	if atkp != null and is_instance_valid(atkp) and atkp != self and not info.get("execute", false):
+		var pgap = Combat.power_of(atkp) / maxf(Combat.power_of(self), 1.0)
+		if pgap < 0.6:
+			if not heavy or pgap < 0.45:
+				velocity += dir * float(info.get("knock", 2.0)) * pgap / size
+				return
+			heavy = false
 	var now = Time.get_ticks_msec()
 	if now < stun_armor_ms:
 		return   # kilit kırıldı: kısa süre sersemlemez (hasar yine alınır)

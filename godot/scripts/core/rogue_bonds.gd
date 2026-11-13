@@ -30,6 +30,10 @@ static func pr() -> Dictionary:
 static func spareable(e: Enemy, info: Dictionary) -> bool:
 	if not info.get("attacker") is Player or e.team != "enemy" or e.has_meta("yielded"):
 		return false
+	# dövüşü kazanmakta olan pes etmez: rakibinin canı (oran olarak) kendisininkinden azsa bitirmeye oynar
+	var atk: Player = info.get("attacker")
+	if atk.hp / maxf(atk.max_hp, 1.0) <= e.hp / maxf(e.max_hp, 1.0):
+		return false
 	if String(e.arch.get("kind", "")) not in ["rogue", "jinchuriki"] or e.arch.has("boss"):
 		return false
 	if e.has_meta("rorg") or e.has_meta("spar") or e.has_meta("friend_id") or e.has_meta("teammate") or (e.get_node_or_null("ClanTrait") != null and e.get_node("ClanTrait").duel):   # dostça düello: kendi teslim akışı var

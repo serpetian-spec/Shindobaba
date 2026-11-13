@@ -1315,6 +1315,7 @@ func is_dead() -> bool:
 
 
 func take_hit(info: Dictionary) -> void:
+	Combat.note_hit(self, info)
 	if evade_t > 0.14 and not info.get("sure", false):   # kaçış atlayışının ilk anı: darbe boşa gider
 		Combat.popup_text(global_position + Vector3.UP * 2.1, "Iska!", Color(0.75, 0.9, 1.0))
 		return

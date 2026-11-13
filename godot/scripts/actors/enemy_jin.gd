@@ -16,6 +16,8 @@ static func tick(e: Enemy) -> void:
 	var tails = BeastCloak.beast_tails(bid)
 	var lvl = int(e.get_meta("jin_lvl", 0))
 	var r = e.hp / maxf(1.0, e.max_hp)
+	if e.has_meta("amb"):
+		r -= 0.4   # güce takmış kişi canavarın gücüne erken sarılır (tam dönüşüm can %60'ta)
 	var maxl = 2 if bid == "raiju" else 6
 	if lvl >= maxl:
 		return
@@ -99,6 +101,8 @@ static func _full_transform(e: Enemy, bid: String) -> void:
 	e.collision_layer = 0
 	e.remove_from_group("fighters")
 	b._start_fight()
+	if e.has_meta("amb"):
+		WorldAmbition.beast_armor(b, e)   # Mangekyō / Rinnegan sahibinin canavarı Susanoo zırhı giyer
 
 
 ## Canavar bastırıldı: form dağılır, jinchūriki bitkin hâlde geri gelir (bir daha dönüşemez)

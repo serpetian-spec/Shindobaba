@@ -336,7 +336,7 @@ static func on_hit(target: Node, info: Dictionary) -> float:
 				f.apply_status("burn", 3.0)
 				FX.burst(f.global_position + Vector3.UP, {"amount": 14, "life": 0.6, "size": 1.0, "vmin": 2, "vmax": 5,
 					"colors": [Color(1, 0.8, 0.3, 1), Color(1, 0.3, 0.05, 0)]})
-	if has_part(el, "doton") and el != "jinton":
+	if has_part(el, "doton") and not el in ["jinton", "shoton"]:   # toz ve kristal çamur değildir
 		target.apply_status("mud", 2.0)
 		target.apply_status("slow", 2.0)
 		if randf() < 0.3:

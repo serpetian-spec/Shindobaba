@@ -178,6 +178,13 @@ static func npc_power(lv: float) -> float:
 	return 1.0 + avg * 0.045
 
 
+## NPC ninjanın chakra ustalığı karşılığı: jutsu kullanan ninja chakrasını oyuncu gibi yaptıkça büyütür — gerçek oyuncu kaydında
+## chakra ustalığı ortalamanın ~2.4 katı (Güç 107: ortalama 110, chakra 262). Eskiden havuz 80 + Güç x 3.5 idi: Güç 80 ninja
+## 3 jutsuda kuruyup 50 sn'de bir jutsu atabiliyordu (aynı Güçteki oyuncunun dörtte biri).
+static func npc_chakra_mastery(lv: float) -> float:
+	return 100.0 * pow(maxf(lv, 1.0) / 100.0, 1.0 / 0.7) * 2.0
+
+
 ## [C] chakra toplama hızı (/sn): chakra ustalığıyla büyür — eskiden hep 32/sn (ustalık 50'de havuz 430: 13 sn); şimdi
 ## ustalık 50'de 80/sn (~5 sn), havuz büyüdükçe doldurma süresi kısalır (gelişim hissedilsin)
 static func charge_rate(p: Dictionary) -> float:

@@ -27287,7 +27287,7 @@
   ],
   "canon_rank": "A",
   "tier": 4,
-  "dmg_k": 1.0,
+  "dmg_k": 0.65,
   "category": "kekkei_genkai",
   "shape": "wall",
   "meaning": "Kristal Duvar Sekizli Düzen"
@@ -27345,7 +27345,7 @@
   ],
   "canon_rank": "S",
   "tier": 5,
-  "dmg_k": 0.83,
+  "dmg_k": 0.6,
   "category": "kekkei_genkai",
   "shape": "projectile",
   "meaning": "Kırık Kristal İnen Ejder"
@@ -27402,7 +27402,7 @@
   ],
   "canon_rank": "A",
   "tier": 4,
-  "dmg_k": 1.03,
+  "dmg_k": 0.55,
   "category": "kekkei_genkai",
   "shape": "bind",
   "meaning": "Kristal Kale Duvarı"

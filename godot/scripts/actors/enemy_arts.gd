@@ -38,9 +38,18 @@ static func tick(e: Enemy, dt: float) -> void:
 	elif kind == 4 and e.get_meta("ms_open", false):
 		_ms_strain(e, dt * 0.0012)   # açık Mangekyō da yorar (oyuncuyla aynı oran)
 	# Mangekyō: can yarıya inince Susanoo (kör Mangekyō açamaz)
-	if kind in [4, 5] and not e.has_meta("ea_susanoo") and e.hp < e.max_hp * 0.5 and (kind == 5 or eblind < 1.0):
-		ms_open(e)
+	# güce takmış kişi beklemez: dövüş ısınınca (can %85) açar; Rinnegan sahibi de (eski Ebedi Mangekyō) Susanoo kullanır
+	var amb = e.has_meta("amb")
+	if (kind in [4, 5] or (kind == 6 and amb)) and not e.has_meta("ea_susanoo") and e.hp < e.max_hp * (0.85 if amb else 0.5) and (kind != 4 or eblind < 1.0):
+		if kind in [4, 5]:
+			ms_open(e)
 		_susanoo(e)
+	# emrindeki kuyruklu canavarı savaş alanına çağırır (Madara)
+	if e.has_meta("amb_ctrl") and e.hp < e.max_hp * 0.9 and float(e.get_meta("amb_sum_cd", 0.0)) <= 0.0 and d < 60.0:
+		e.set_meta("amb_sum_cd", 25.0)
+		WorldAmbition.summon(e)
+	if e.has_meta("amb_sum_cd"):
+		e.set_meta("amb_sum_cd", float(e.get_meta("amb_sum_cd")) - dt)
 	var sn = e.get_meta("ea_susanoo") if e.has_meta("ea_susanoo") else null
 	if sn and is_instance_valid(sn):
 		sn.rotation.y = e.facing
@@ -192,7 +201,7 @@ static func _susanoo(e: Enemy) -> void:
 	var sn = Susanoo.new()
 	sn.name = "Susanoo"
 	e.add_child(sn)
-	sn.build(pr, 3, e.model)
+	sn.build(pr, int(e.get_meta("sus_tier", 3)), e.model)
 	_susanoo_after(e, sn, col)
 
 

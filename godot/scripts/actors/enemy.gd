@@ -243,6 +243,8 @@ static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
 
 ## Oyuncunun PlayerCombat.jutsu_cost formülü, düşmanın kendi seviyesiyle
 func jutsu_cost(id: String) -> float:
+	if Game.has_meta("sandbox"):   # deneme alanında oyuncuya bedava: düşmana da (AI eşitliği)
+		return 0.0
 	return float(Data.jutsu.get(id, {}).get("cost", 0)) * (1.0 + (float(level) - 1.0) * 0.045)
 
 
@@ -257,7 +259,7 @@ func setup(a: Dictionary) -> void:
 	max_hp = a["hp"]; hp = max_hp
 	power = a["power"]; element = a["element"]
 	level = a["level"]; xp = a["xp"]; ryo = a["ryo"]
-	max_chakra = 80.0 + float(level) * 3.5   # oyuncu: 80 + chakra ustalığı x7 (ustalık ~ Güç/2)
+	max_chakra = 80.0 + Stats.npc_chakra_mastery(level) * 7.0   # oyuncuyla aynı formül: 80 + chakra ustalığı x7
 	chakra = max_chakra
 	# NPC "yetenek ağacı": oyuncunun seviyeyle aldığı yetenek puanlarının karşılığı (can + güç) düşman ninjalara da
 	if k in CLAN_KINDS or k in ["samurai", "jinchuriki", "bandit"]:
@@ -407,7 +409,7 @@ func _physics_process(dt: float) -> void:
 				nameplate.visible = false
 		return
 	if not has_meta("shoten_copy"):   # Shōten kopyası: aktarılan pay yenilenmez, bitince teknik çözülür
-		chakra = minf(max_chakra, chakra + 1.5 * (1.0 + float(level) * 0.01) * dt)   # oyuncuyla aynı yenilenme
+		chakra = minf(max_chakra, chakra + 1.5 * (1.0 + Stats.npc_chakra_mastery(level) * 0.02) * dt)   # oyuncuyla aynı yenilenme (ustalık x0.02)
 	_stam_rest += dt
 	stamina = minf(100.0, stamina + (3.0 if _stam_rest < 2.0 else 7.0) * dt)
 	var pl = Game.player
@@ -657,7 +659,7 @@ func _chase(dt: float) -> void:
 	# jutsu kullanan düşman: uzaktan ve sık atar, yakında da arada bir (eskiden 5-24 m, %30)
 	var jl: Array = arch.get("jutsu", [])
 	var far_ok = (d > 4.0 or elevated) and d < 42.0   # yüksekteki hedefe dibinden de atar
-	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < (0.55 if (has_meta("kage_of") or has_meta("elite_boss")) else 0.15)   # Kage dibinde de jutsu atar
+	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < (0.55 if (has_meta("kage_of") or has_meta("elite_boss")) else 0.15 + skill * 0.45)   # usta ninja dibinde de jutsu atar (Güç 80: %42)
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
 		ranged_cd = randf_range(1.6, 3.2) / (float(arch["aggr"]) * (1.0 + skill))   # usta ninja daha sık jutsu atar
 		# her jutsu oyuncudakiyle aynı bekleme süresine tabi (aynı dalga jutsusu 15 sn'de 6 kez gelmez)
@@ -691,7 +693,7 @@ func _chase(dt: float) -> void:
 			jcd[pick] = nowj + Combat.jutsu_cd(Data.jutsu.get(pick, {})) * randf_range(1.0, 1.25)
 			_jdmg[pick] = 0.0
 			_jcast_t[pick] = nowj
-			jgap = nowj + randf_range(2.5, 4.0)
+			jgap = nowj + randf_range(2.5, 4.0) / (1.0 + skill * 1.5)   # usta ninja mühürü hızlı dizer: Güç 30 1.7-2.8 sn, Güç 80 1.3-2.1 sn
 			set_meta("cast_id", pick)
 			state = "cast"
 			CastAnim.play(self, get_meta("cast_id"), 0.55)  # mühür + atma koreografisi
@@ -1118,6 +1120,7 @@ func threat_color() -> Color:
 
 
 func take_hit(info: Dictionary) -> void:
+	Combat.note_hit(self, info)
 	if Combat.shirahadori_catch(self, info):   # çıplak avuçla bıçak yakalama (Shinken Shirahadori)
 		return
 	info = Combat.cap_one_shot(self, info)   # tek atan darbe: hedef güçlüyse kırpılır (AI eşitliği)

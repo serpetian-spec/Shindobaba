@@ -60,12 +60,14 @@ func _process(dt: float) -> void:
 	WorldKin.tick(dt)
 	WorldNews.tick(dt)
 	WorldDay.tick(dt)
+	WorldAmbition.tick(dt)
 	_t -= dt
 	if _t > 0.0:
 		return
 	_t = TICK
 	world_tick()
 	WorldKin.world_tick(TICK)
+	WorldAmbition.world_tick()   # güce takmış kişiler hedeflerine doğru adım atar
 
 
 # ------------------------------------------------------------------ nüfus
@@ -603,6 +605,7 @@ static func arch_of(p: Dictionary, outfit := "") -> Dictionary:
 	Stats.npc_ninja(a, lv)
 	a["look"] = look_of(p)
 	a["world_person"] = String(p["id"])
+	WorldAmbition.arch(a, p)   # bedenine canavar mühürlüyse jinchūriki olarak dövüşür
 	return a
 
 
@@ -699,6 +702,7 @@ static func on_enemy_ready(e: Node) -> void:
 	if e.has_meta("eyes") and int(eye[0]) > 0:
 		e.set_meta("eyes", {"kind": int(eye[0]), "lvl": int(eye[1])})   # Sharingan seviyesi kişininki (klan varsayılanı değil)
 	e.set_meta("world_person", String(p["id"]))
+	WorldAmbition.arm(e, p)   # güce takmış kişi / Kage: Susanoo kademesi, emrindeki canavarlar
 
 
 ## Enemy.die: dünyadaki kişi de ölür (Bingo kaydı varsa o da kapanır); yakını yas tutar, intikam/uyanış zinciri başlar

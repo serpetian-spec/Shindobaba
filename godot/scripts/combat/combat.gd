@@ -97,9 +97,51 @@ func punch_fist(model, style_id: String, armed: bool, dur: float) -> void:
 				ov.fist.erase("Left"))
 
 
+## Güç farkı (kanon: güçlü ninja zayıfın bağını / yavaşlatmasını kırar). Tekniği yapan hedeften zayıfsa süre güç oranı kadar
+## kısalır (Güç 30 -> Güç 80: x0.375, en az x0.2); eşit ya da güçlüyse değişmez. Oyuncu ve düşman aynı kural.
+## Kaynak: az önce jutsu yapan (Jutsu.execute) ya da hedefe son vuran (take_hit).
+var cc_src: Node = null
+var cc_src_t := -99.0
+const SLOWS := ["slow", "mud", "chill", "chilled"]
+
+
+func note_caster(c: Node) -> void:
+	cc_src = c
+	cc_src_t = Time.get_ticks_msec() / 1000.0
+
+
+func note_hit(target: Node, info: Dictionary) -> void:
+	var a = info.get("attacker")
+	if a != null and is_instance_valid(a) and a != target:
+		target.set_meta("hit_by", weakref(a))
+		target.set_meta("hit_by_t", Time.get_ticks_msec() / 1000.0)
+
+
+func cc_power_k(n: Node) -> float:
+	var now = Time.get_ticks_msec() / 1000.0
+	var src: Node = null
+	if cc_src != null and is_instance_valid(cc_src) and now - cc_src_t < 2.5 and cc_src != n and hostile(cc_src, n):
+		src = cc_src
+	elif n.has_meta("hit_by") and now - float(n.get_meta("hit_by_t", -99.0)) < 4.0:
+		src = (n.get_meta("hit_by") as WeakRef).get_ref()
+	if src == null or not is_instance_valid(src):
+		return 1.0
+	return clampf(power_of(src) / maxf(power_of(n), 1.0), 0.2, 1.0)
+
+
 func cc_dur(n: Node, kind: String, d: float) -> float:
-	if not kind in CC or d <= 0.0:
+	if d <= 0.0:
 		return d
+	if kind in SLOWS:
+		return d * cc_power_k(n)
+	if not kind in CC:
+		return d
+	var pk = cc_power_k(n)
+	if pk < 0.999:
+		d *= pk
+		if float(n.get_meta("_ccp_pop", 0.0)) < Time.get_ticks_msec() / 1000.0:
+			n.set_meta("_ccp_pop", Time.get_ticks_msec() / 1000.0 + 3.0)
+			_cc_pop(n, "Kırdı!")
 	# kanon teknikler ortak sınırdan muaf (kullanıcı kuralı: anime neyse o) — ör. Kagemane chakra yettikçe tutar
 	if kind == "bind" and (n.has_meta("kagemane_hold") or n.has_meta("chibaku_hold") or n.has_meta("gaki_hold")):
 		return d
