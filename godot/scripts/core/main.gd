@@ -317,6 +317,19 @@ func load_slot(slot: int) -> void:
 var perf_panel: Control
 
 
+## Oyuncunun kendi görünüşü (saç, kıyafet) açılışta bir kez gizlice kurulur: klon / kılık teknikleri ilk atışta gövdeyi sıfırdan hesaplamaz
+func _prewarm_player_look() -> void:
+	if player == null or player.model == null:
+		return
+	var m = CharacterModel.new()
+	m.visible = false
+	add_child(m)
+	m.setup(player.model.look.duplicate())
+	await get_tree().create_timer(1.0).timeout
+	if is_instance_valid(m):
+		m.queue_free()
+
+
 func _make_perf_panel() -> void:
 	var cl = CanvasLayer.new()
 	cl.layer = 120
@@ -326,6 +339,7 @@ func _make_perf_panel() -> void:
 
 
 func _begin_game(pos: Vector3) -> void:
+	get_tree().create_timer(2.5).timeout.connect(_prewarm_player_look)
 	if perf_panel == null:
 		_make_perf_panel()   # gizliyken de toplar: oturum grafiği baştan dolar
 	if preview:
@@ -626,7 +640,39 @@ var _fps_worst := 0.0
 var _census_k := 0
 
 
+var _census := {}
+var _census_stack: Array = []
+var _census_line := ""
+
+
+func _census_step() -> void:
+	var budget = 1500
+	while budget > 0 and not _census_stack.is_empty():
+		var nd = _census_stack.pop_back()
+		if not is_instance_valid(nd):
+			continue
+		budget -= 1
+		var key = nd.get_class()
+		if nd.get_script() != null:
+			key = String(nd.get_script().resource_path).get_file()
+		_census[key] = int(_census.get(key, 0)) + 1
+		if not (nd is StaticBody3D):   # çarpışma gövdelerinin içi sayılmaz (sabit, çok kalabalık)
+			_census_stack.append_array(nd.get_children(true))
+	if _census_stack.is_empty():
+		var top := []
+		for key in _census:
+			if not (key in ["CollisionShape3D", "MultiMeshInstance3D", "StaticBody3D"]):
+				top.append([_census[key], key])
+		top.sort_custom(func(x, y): return x[0] > y[0])
+		for e in top.slice(0, 28):
+			_census_line += " | %s %d" % [e[1], e[0]]
+		print(_census_line)
+		_census = {}
+
+
 func _vram_log(dt: float) -> void:
+	if not _census_stack.is_empty():
+		_census_step()
 	_fps_n += 1
 	_fps_t += dt
 	_fps_worst = maxf(_fps_worst, dt)
@@ -647,24 +693,12 @@ func _vram_log(dt: float) -> void:
 		var line = "SAYIM dugum %d | nesne %d | kaynak %d | yetim %d | bellek %d MB" % [int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), int(Performance.get_monitor(Performance.OBJECT_COUNT)),
 			int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)), int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)), int(Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0)]
 		_census_k += 1
-		if _census_k % 5 == 1:
-			var cen := {}
-			var stack: Array = [get_tree().root]
-			while not stack.is_empty():
-				var nd: Node = stack.pop_back()
-				var key = nd.get_class()
-				if nd.get_script() != null:
-					key = String(nd.get_script().resource_path).get_file()
-				cen[key] = int(cen.get(key, 0)) + 1
-				stack.append_array(nd.get_children(true))
-			var top := []
-			for key in cen:
-				if not (key in ["CollisionShape3D", "MultiMeshInstance3D", "StaticBody3D"]):
-					top.append([cen[key], key])
-			top.sort_custom(func(x, y): return x[0] > y[0])
-			for e in top.slice(0, 28):
-				line += " | %s %d" % [e[1], e[0]]
-		print(line)
+		if _census_k % 5 == 1 and _census_stack.is_empty():
+			_census_line = line
+			_census = {}
+			_census_stack = [get_tree().root]   # sayım _census_step ile karelere yayılır (tek karede 190 bin düğüm gezmek takılma yapıyordu)
+		else:
+			print(line)
 	_fps_n = 0
 	_fps_t = 0.0
 	_fps_worst = 0.0

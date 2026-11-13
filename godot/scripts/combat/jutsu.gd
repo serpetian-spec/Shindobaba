@@ -1190,6 +1190,11 @@ func j_raiton_armor(c: Node3D, _t: Node3D) -> void:
 # ================================================================== GENEL / AKADEMİ
 func j_bunshin(c: Node3D, _t: Node3D) -> void:
 	for i in 2:
+		if i > 0:   # iki gövde aynı karede kurulmasın (ilk atışta takılma)
+			await get_tree().process_frame
+			await get_tree().process_frame
+			if not is_instance_valid(c):
+				return
 		var off = c.global_transform.basis.x * (2.5 if i == 0 else -2.5)
 		var cl = ShadowClone.new()
 		cl.team = c.team

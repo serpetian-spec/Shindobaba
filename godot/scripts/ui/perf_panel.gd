@@ -64,9 +64,10 @@ func toggle_vsync() -> void:
 
 func _people() -> Array:
 	var out := []
-	for f in get_tree().get_nodes_in_group("fighters"):
-		if is_instance_valid(f) and f != Game.player:
-			out.append(f)
+	for grp in ["fighters", "talkers"]:   # köylüler dövüşçü grubundan çıkar, konuşanlar grubundadır
+		for f in get_tree().get_nodes_in_group(grp):
+			if is_instance_valid(f) and f != Game.player and f is CharacterBody3D and not out.has(f):
+				out.append(f)
 	return out
 
 
