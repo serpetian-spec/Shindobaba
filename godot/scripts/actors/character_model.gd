@@ -253,6 +253,37 @@ static func ready_turn(n, l: Dictionary) -> void:   # n türsüz: beklerken sili
 		await build_turn(n)
 
 
+static var _stage_holder: Node3D
+
+
+## Modeli sahne dışında (gizli tutucuda), kurulum aşamalarını ayrı karelere yayarak kurar ve hazır modeli döndürür.
+## Çağıran, dönen modeli gövdeye `model` olarak verir (Fighter: ebeveynsiz hazır modeli devralır) ya da doğrudan add_child eder.
+## n: bekleme sırasında geçerliliği izlenen düğüm (silinirse null döner). Tek karede tam kurulum 25-70 ms takılma yapıyordu.
+static func staged_model(n, l: Dictionary) -> CharacterModel:
+	if not is_instance_valid(n) or not n.is_inside_tree() or OS.get_environment("VL_NOSTAGE") != "":
+		return null
+	var tree: SceneTree = n.get_tree()
+	if _stage_holder == null or not is_instance_valid(_stage_holder):
+		_stage_holder = Node3D.new()
+		_stage_holder.visible = false
+		tree.current_scene.add_child(_stage_holder)
+		_stage_holder.position = Vector3(0, -900, 0)
+	var m = CharacterModel.new()
+	m.staged = true
+	_stage_holder.add_child(m)
+	m.setup(l)
+	var t0 = Time.get_ticks_msec()
+	while is_instance_valid(m) and not m.built and Time.get_ticks_msec() - t0 < 3000:
+		await tree.process_frame
+	if not is_instance_valid(m) or not m.built or not is_instance_valid(n) or not n.is_inside_tree():
+		if is_instance_valid(m):
+			m.queue_free()
+		return null
+	_stage_holder.remove_child(m)
+	m.position = Vector3.ZERO
+	return m
+
+
 static func build_turn(n) -> void:
 	while Engine.get_process_frames() == _build_frame and is_instance_valid(n) and n.is_inside_tree():
 		await n.get_tree().process_frame
@@ -1421,7 +1452,23 @@ static func settle_hair(look: Dictionary) -> void:
 		look["hair_style"] = "kısa" if look.get("own_hair", false) else npc_hair(look)   # karşı cinsin saçı: NPC kendi cinsinin anime saçına, oyuncu düz saça
 
 
+var staged := false   # true: kurulum aşamaları ayrı karelere yayılır (sahne dışı ön kurulum; bkz. VillageLife._villager)
+var built := false
+
+
+static var _stg_t := 0
+static func _stg_begin() -> void:
+	_stg_t = Time.get_ticks_usec()
+static func _stg_end(nm := "") -> void:
+	if PROF and Time.get_ticks_usec() - _stg_t > 15000:
+		print("STG %s %.0f" % [nm, (Time.get_ticks_usec() - _stg_t) / 1000.0])
+	Engine.set_meta("stg_us", int(Engine.get_meta("stg_us", 0)) + Time.get_ticks_usec() - _stg_t)
+	Engine.set_meta("stg_n", int(Engine.get_meta("stg_n", 0)) + 1)
+
+
 func setup(l: Dictionary) -> void:
+	if staged:
+		_stg_begin()
 	look = default_look()
 	look.merge(l, true)
 	Aging.apply_look(look)   # yaş: evre, ağaran saç, solan ten (look "years" varsa)
@@ -1448,16 +1495,36 @@ func setup(l: Dictionary) -> void:
 		sec.queue_free()
 	inst.scale = Vector3.ONE * VROID_SCALE  # VRoid ~1.6 m -> ~1.78 m
 	inst.rotation.y = PI  # VRoid kökü +Z'ye çevrildi (glb); biz -Z ileri kullanıyoruz
+	if staged:
+		_stg_end("ac")
+		await build_turn(self)
+		_stg_begin()
 	var _t0 = Time.get_ticks_usec()
 	_face_and_hair()
+	if staged:
+		_stg_end("yuz+sac")
+		await build_turn(self)
+		_stg_begin()
 	var _t1 = Time.get_ticks_usec()
-	_paint_body()
+	await _paint_body()
 	var _t2 = Time.get_ticks_usec()
 	_cloth_details()
+	if staged:
+		_stg_end("boya+kumas")
+		await build_turn(self)
+		_stg_begin()
 	var _t3 = Time.get_ticks_usec()
-	_attachments()
+	await _attachments()   # aşamalı kurulumda içeride kare bekler; değilse tek seferde biter
+	if staged:
+		_stg_end("takma")
+		await build_turn(self)
+		_stg_begin()
 	var _t4 = Time.get_ticks_usec()
 	_accessories()
+	if staged:
+		_stg_end("aksesuar")
+		await build_turn(self)
+		_stg_begin()
 	var _t5 = Time.get_ticks_usec()
 	_apply_hair_mask()
 	if PROF:
@@ -1483,6 +1550,9 @@ func setup(l: Dictionary) -> void:
 	stance = _stance_for_look()
 	play("idle", 0.0)
 	_queue_shadow_trim()
+	if staged:
+		_stg_end("son")
+	built = true
 
 
 ## Performans: küçük parçalar (kıyafet ayrıntısı, aksesuar, küçük silah) gölge düşürmez. Güneş gölgesi 4 kademeli olduğundan
@@ -2005,6 +2075,10 @@ func _paint_body() -> void:
 	var _pb1 = Time.get_ticks_usec()
 	_cloth_rings(g, shell_mat, vest_mat)
 	var _pb2 = Time.get_ticks_usec()
+	if staged:
+		_stg_end("boya")
+		await build_turn(self)
+		_stg_begin()
 	_garments(g)
 	if PROF: print("PROFA paint vest+shell %.0f rings %.0f garments %.0f set=%s" % [(_pb1 - _pb0) / 1000.0, (_pb2 - _pb1) / 1000.0, (Time.get_ticks_usec() - _pb2) / 1000.0, str(look.get("set", look.get("outfit", "")))])
 
@@ -10560,6 +10634,10 @@ func _attachments() -> void:
 	if brows_mesh:
 		brows_mesh.material_override = hair_mat
 	if PROF: print("PROFA mat %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
+	if staged:
+		_stg_end("takma-bas")
+		await build_turn(self)
+		_stg_begin()
 	# --- alın koruyucu
 	if look["band"] != null and look["band_style"] != "none":
 		var band = MB.new()
@@ -10578,6 +10656,10 @@ func _attachments() -> void:
 			else:
 				_hitai_head(bc)
 	if PROF: print("PROFA band %.0f wear=%s style=%s anime=%s sk=%s" % [(Time.get_ticks_usec() - _pa) / 1000.0, str(look.get("band_wear")), str(look.get("band_style")), not _anime_hair_vs.is_empty(), _sk_key]); _pa = Time.get_ticks_usec()
+	if staged:
+		_stg_end("bant")
+		await build_turn(self)
+		_stg_begin()
 	# --- yelek: kumaş katmanına boyanır; üstüne sadece yaka + parşömen cepleri (dış giysi altındayken yok: taşıyordu)
 	if look["vest"] != null and (look.get("outer_style") == null or String(look.get("outer_style")) in ["atki", "kisa", "kesa"]):
 		var v = MB.new()
@@ -10613,6 +10695,10 @@ func _attachments() -> void:
 	if PROF: print("PROFA vest %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	_outfit_extras()
 	# --- eldeki silahlar (ekipman: sağ el / sol el) ve kınları
+	if staged:
+		_stg_end("yelek+ek")
+		await build_turn(self)
+		_stg_begin()
 	if PROF: print("PROFA extras %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	_weapons()
 	if PROF: print("PROFA weapons %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
@@ -10625,6 +10711,10 @@ func _attachments() -> void:
 		if _sk_plate(0.0, hy, 0.12, 0.075, 0.022, bc, 0.002, false):
 			_sk_plate(0.0, hy + 0.028, 0.124, 0.024, 0.008, bc.darkened(0.18), 0.024, false)   # kapak
 		_sk_end(_geo_for(look["gender"]))
+	if staged:
+		_stg_end("silah+canta")
+		await build_turn(self)
+		_stg_begin()
 	if PROF: print("PROFA pouch %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	_thigh_holster()
 	if PROF: print("PROFA holster %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()

@@ -122,6 +122,12 @@ func _spawn(pp: Vector3) -> void:
 		var lk = CharacterModel.default_look()
 		lk.merge(look, true)
 		n.look = lk
+		var pm = await CharacterModel.staged_model(self, lk)   # model aşama aşama, sahne dışında kurulur
+		if not is_inside_tree():
+			n.free()
+			return
+		if pm != null:
+			n.model = pm
 		n.line = String((SENSEI_LINES if rank >= 2 else LINES).pick_random())
 		n.set_meta("vt", [vid, ti, pi])
 		n.add_to_group("ambient_team")   # doğrudan vurulunca takım saldırıya geçer (Combat.provoke)

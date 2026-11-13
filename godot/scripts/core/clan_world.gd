@@ -655,11 +655,15 @@ func residents(vid: String) -> Array:
 	return out
 
 
+var _spawn_cd := 0.0
+
+
 func _process(dt: float) -> void:
 	if Game.paused or Game.profile.is_empty() or Game.player == null:
 		return
 	# karakter modeli pahalı: her karede en fazla bir sakin doğar
-	if not _queue.is_empty():
+	_spawn_cd -= dt
+	if not _queue.is_empty() and _spawn_cd <= 0.0:
 		var q: Array = _queue[0]
 		if q.size() < 3:
 			q.append(_resident_plan(q[0], q[1]))
@@ -669,6 +673,7 @@ func _process(dt: float) -> void:
 		else:
 			_queue.pop_front()
 			_make_resident(q[0], q[1], q[2])
+			_spawn_cd = 0.22   # sakinler art arda karelerde değil aralıklı girer: peş peşe ağır kareler gözle görülür takılma yapıyordu
 	_res_t -= dt
 	if _res_t <= 0.0:
 		_res_t = 1.5

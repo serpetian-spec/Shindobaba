@@ -139,16 +139,22 @@ func _process(dt: float) -> void:
 	if Game.player == null or Game.paused:
 		return
 	spawn_cd -= dt
-	if not queue.is_empty() and spawn_cd <= 0.0:
+	# ön kurulum sürerken sıra dönmez: biten kişi hemen girer (sıra dönünce her kişi bir tam tur bekliyor, köy dolmuyordu)
+	var staging = is_instance_valid(_building) and not _building.built and Time.get_ticks_msec() - _building_t < 3000
+	if not queue.is_empty() and spawn_cd <= 0.0 and not staging:
 		# oyuncu koşarken / atılırken (Ctrl) yeni karakter kurma: hareket bitince sırayla gelirler
 		var spd = Game.player.velocity.length() if "velocity" in Game.player else 0.0
 		if spd < 9.0 or npcs.size() < 4:
 			var rq = queue.pop_front()
 			allow_defer = true
 			deferred = false
+			_stage_front = false
 			_spawn(rq)
 			allow_defer = false
-			if deferred:
+			if deferred and _stage_front:
+				queue.push_front(rq)   # modeli ön kurulumda: bitince ilk o girer
+				spawn_cd = 0.0
+			elif deferred:
 				queue.push_back(rq)   # yüzü / saçı arka planda hazırlanıyor: biraz sonra yeniden
 				spawn_cd = 0.12
 			else:
@@ -157,6 +163,7 @@ func _process(dt: float) -> void:
 	if t > 0.0:
 		return
 	t = 0.8
+	_sweep_pend()
 	var p = Game.player.global_position
 	# Chūnin Sınavı sürerken (orman, ön eleme, final yolu/final) sınav alanında sıradan köylü olmaz: sokak ve mekân NPC'leri kalkar, yenisi gelmez
 	if int(ChuninExam.stage) in [2, 3, 4, 5]:
@@ -476,6 +483,28 @@ func _site_pos(vid: String, type: String) -> Vector3:
 
 
 func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", fid := "") -> Villager:
+	# ön kurulum: kişinin modeli sahne dışında, aşamaları ayrı karelere yayılarak kurulur (giriş karesi takılmaz).
+	# Kararlar (kim, hangi görünüş) bir kez verilir ve _pend'de saklanır; istek geri döndükçe yalnız "bitti mi" bakılır.
+	# mekân kişisinde yer her denemede yeniden aranır (boş nokta): anahtar mekândan; sokak kişisinde istek yeri sabittir
+	var rk = ("%s|%s|%s" % [role, skey, fid]) if skey != "" else ("%s|%.1f|%.1f" % [role, at.x, at.z])
+	var stage_on = allow_defer and OS.get_environment("VL_NOSTAGE") == ""
+	if stage_on:
+		if _pend.has(rk):
+			var pd: Dictionary = _pend[rk]
+			pd["seen"] = Time.get_ticks_msec()
+			pd["at"] = at
+			if is_instance_valid(pd["m"]) and not pd["m"].built and Time.get_ticks_msec() - int(pd["t0"]) < 3000:
+				deferred = true
+				_stage_front = true
+				return null
+			_pend.erase(rk)
+			if is_instance_valid(pd["m"]) and not pd["m"].built:
+				pd["m"].queue_free()   # 3 sn'de bitmedi (kurulum bir yerde kaldı): eski yolla, tek karede kurulur
+				pd["m"] = null
+			return _enter(pd)
+		elif is_instance_valid(_building) and not _building.built and Time.get_ticks_msec() - _building_t < 3000:
+			deferred = true   # aynı anda tek ön kurulum
+			return null
 	# bu işi şu an yapan gerçek bir dünya ninjası varsa o gelir (adı, yüzü, hayatı kendi)
 	var wp := {}
 	var wact = String(WorldDay.ROLE_ACT.get(role, ""))
@@ -535,21 +564,80 @@ func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", f
 			deferred = true
 			return null
 		hair_wait = 0
-	if skey != "":
-		vg.set_meta("site_key", skey)
-	if fid != "":
-		vg.set_meta("friend_id", fid)
+	var pd2 := {"vg": vg, "m": null, "at": at, "role": role, "wp": wp, "wact": wact, "fk": fk, "skey": skey, "fid": fid, "seen": Time.get_ticks_msec()}
+	if stage_on:
+		vg.plan_look()
+		if _holder == null:
+			_holder = Node3D.new()
+			_holder.visible = false
+			add_child(_holder)
+			_holder.position = Vector3(0, -900, 0)
+		var pm = CharacterModel.new()
+		pm.staged = true
+		_holder.add_child(pm)
+		pm.setup(vg.look)
+		_building = pm
+		_building_t = Time.get_ticks_msec()
+		pd2["m"] = pm
+		pd2["t0"] = _building_t
+		_pend[rk] = pd2
+		deferred = true
+		_stage_front = true
+		return null
+	return _enter(pd2)
+
+
+var _pend := {}        # istek anahtarı -> ön kurulumu süren kişi (kararları verilmiş, henüz sahnede değil)
+var _holder: Node3D
+var _building: CharacterModel
+var _building_t := 0
+var _stage_front := false
+var staged_n := 0
+
+
+## Kararı verilmiş (ve varsa modeli hazır) kişiyi sahneye sokar
+func _enter(pd: Dictionary) -> Villager:
+	var vg: Villager = pd["vg"]
+	var at: Vector3 = pd["at"]
+	if not is_instance_valid(vg):
+		return null
+	var pm = pd["m"]
+	if pm != null and is_instance_valid(pm):
+		_holder.remove_child(pm)
+		pm.position = Vector3.ZERO
+		vg.model = pm
+		staged_n += 1
+	if pd["skey"] != "":
+		vg.set_meta("site_key", pd["skey"])
+	if pd["fid"] != "":
+		vg.set_meta("friend_id", pd["fid"])
 	add_child(vg)
-	at.y = Game.ground_height(at.x, at.z) if role != "roof" else at.y
+	at.y = Game.ground_height(at.x, at.z) if pd["role"] != "roof" else at.y
 	vg.global_position = at
 	vg.home = at
 	vg.goal = at   # _ready konum verilmeden çalışır: hedef dünya sıfırında kalıyor, herkes ilk anda oraya yürüyordu
 	npcs.append(vg)
-	if not wp.is_empty():
-		WorldDay.on_stage(wp, vg, wact)
-	if not fk.is_empty():
-		WorldFolk.on_stage(fk, vg)
+	if not pd["wp"].is_empty():
+		WorldDay.on_stage(pd["wp"], vg, pd["wact"])
+	if not pd["fk"].is_empty():
+		WorldFolk.on_stage(pd["fk"], vg)
 	return vg
+
+
+## İsteği düşmüş (köyden çıkıldı, sıra temizlendi) ön kurulumlar: modeli bitince silinir
+func _sweep_pend() -> void:
+	var now = Time.get_ticks_msec()
+	for k in _pend.keys():
+		var pd: Dictionary = _pend[k]
+		if now - int(pd["seen"]) < 5000:
+			continue
+		if is_instance_valid(pd["m"]) and not pd["m"].built:
+			continue
+		if is_instance_valid(pd["m"]):
+			pd["m"].queue_free()
+		if is_instance_valid(pd["vg"]):
+			pd["vg"].free()
+		_pend.erase(k)
 
 
 # ------------------------------------------------------------------ sabit mekânlar

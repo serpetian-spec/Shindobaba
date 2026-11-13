@@ -97,9 +97,15 @@ class TravelGroup extends Node3D:
 			await CharacterModel.ready_turn(self, lki)   # yüzü / saçı arka planda hazırlanır, üyeler ayrı karelerde kurulur (donma olmasın)
 			if not is_inside_tree():
 				return
-			var cm = CharacterModel.new()
-			add_child(cm)
-			cm.setup(lki)
+			var cm = await CharacterModel.staged_model(self, lki)   # model aşama aşama, sahne dışında kurulur
+			if not is_inside_tree():
+				return
+			if cm == null:
+				cm = CharacterModel.new()
+				add_child(cm)
+				cm.setup(lki)
+			else:
+				add_child(cm)
 			cm.play("run" if kind == "ninja" else "walk", 0.0)
 			members.append([cm, 2.0 + i * 1.8 + (6.0 if kind == "kervan" else 0.0), randf_range(-1.2, 1.2), true])
 		_place()

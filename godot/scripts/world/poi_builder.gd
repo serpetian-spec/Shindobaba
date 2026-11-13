@@ -66,9 +66,14 @@ static func _villager(node: Node3D, b: Builder, role: String, lp: Vector3, pts: 
 	# hazırlanır, her biri ayrı karede sahneye girer
 	vg.plan_look()
 	await CharacterModel.ready_turn(node, vg.look)
+	var pm = await CharacterModel.staged_model(node, vg.look)   # model aşama aşama, sahne dışında kurulur
 	if not is_instance_valid(node) or not node.is_inside_tree():
+		if is_instance_valid(pm):
+			pm.queue_free()
 		vg.free()
 		return
+	if pm != null:
+		vg.model = pm
 	node.add_child(vg)
 	vg.global_position = wp0
 	vg.home = wp0
@@ -81,9 +86,14 @@ static func _enemy(node: Node3D, b: Builder, kind: String, i: int, lp: Vector3) 
 	var wp = b.w(lp)
 	wp.y = Game.terrain_height(wp.x, wp.z) + 0.2
 	await CharacterModel.ready_turn(node, e.look if e.look is Dictionary else {})   # köylülerle aynı: ayrı karede, hazır olunca
+	var pm = await CharacterModel.staged_model(node, e.look) if e.look is Dictionary else null
 	if not is_instance_valid(node) or not node.is_inside_tree():
+		if is_instance_valid(pm):
+			pm.queue_free()
 		e.free()
 		return
+	if pm != null:
+		e.model = pm
 	node.add_child(e)
 	e.global_position = wp
 	e.home = wp
