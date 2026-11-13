@@ -608,6 +608,19 @@ func _make_resident(g: Dictionary, i: int, plan := {}) -> void:
 	elif kind == 3 and age != "child":
 		r.eye_kind = 3
 		r.eye_lvl = 1
+	# model sahne dışında, aşamaları ayrı karelere yayılarak kurulur (klan kıyafetli sakin tek karede 34-72 ms takıyordu)
+	var gen = int(g.get("gen", 0))
+	r.plan_look()
+	g["pending"] = int(g.get("pending", 0)) + 1   # kurulumu süren sakin: mahalle "boş" sayılıp yeniden sıraya alınmasın
+	var pm = await CharacterModel.staged_model(self, r.look)
+	g["pending"] = int(g.get("pending", 0)) - 1
+	if int(g.get("gen", 0)) != gen:   # beklerken mahalle boşaltıldı
+		if is_instance_valid(pm):
+			pm.queue_free()
+		r.free()
+		return
+	if pm != null:
+		r.model = pm
 	get_tree().current_scene.add_child(r)
 	var at: Vector3 = g["spots"][i]
 	at.y = Game.ground_height(at.x, at.z)
@@ -621,6 +634,7 @@ func _free_group(g: Dictionary) -> void:
 		if is_instance_valid(r):
 			r.queue_free()
 	g["nodes"] = []
+	g["gen"] = int(g.get("gen", 0)) + 1
 	_queue = _queue.filter(func(q): return q[0] != g)
 
 
@@ -637,7 +651,7 @@ func _tick_residents() -> void:
 	if here.is_empty():
 		return
 	for g in _groups_of(here):
-		if not g["nodes"].is_empty() or g["spots"].is_empty() or _queue.any(func(q): return q[0] == g):
+		if not g["nodes"].is_empty() or g["spots"].is_empty() or int(g.get("pending", 0)) > 0 or _queue.any(func(q): return q[0] == g):
 			continue
 		var spot: Vector3 = g["spots"][0]
 		if Vector2(p.x - spot.x, p.z - spot.z).length() < 280.0:
