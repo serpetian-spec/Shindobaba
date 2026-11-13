@@ -28,6 +28,11 @@ func _ready() -> void:
 	add_child(r)
 	_setup_input()
 	_parse_args()
+	if test_script.ends_with("test_gdcheck.gd"):   # sözdizimi denetimi: dünya kurulmadan çalışır ve çıkar (tools/gdcheck.py)
+		var gdc = Node.new()
+		gdc.set_script(load(test_script))
+		add_child(gdc)
+		return
 	_show_loading()
 	await get_tree().process_frame
 	world = GameWorld.new()

@@ -9,6 +9,7 @@ const DIR := "user://bake"
 const VL = preload("res://scripts/world/village_life.gd")
 const RM = preload("res://scripts/world/road_map.gd")
 static var _key := ""
+static var _dev := false
 
 
 static func key() -> String:
@@ -18,6 +19,7 @@ static func key() -> String:
 	if bj is Dictionary and String(bj.get("world", "")) != "":
 		_key = String(bj["world"])
 		return _key
+	_dev = true
 	var files: Array = []
 	for d in ["res://scripts/world", "res://data/world"]:
 		for f in DirAccess.get_files_at(d):
@@ -33,8 +35,38 @@ static func key() -> String:
 	return _key
 
 
+## Geliştirme koşuları (kaynaktan, build.json'da dünya anahtarı yok) kendi klasörüne pişirir: eskiden test koşuları oyunla aynı
+## klasörü paylaşıyor, her kayıtta oyunun Konoha önbelleğini siliyordu (oyun bir sonraki açılışta köyü baştan kuruyordu).
+static var _dev_dir := ""
+static func _dir() -> String:
+	key()
+	if not _dev:
+		return DIR
+	if _dev_dir == "":
+		_dev_dir = ProjectSettings.globalize_path("res://").path_join("../_tmp/bake_dev").simplify_path()
+	return _dev_dir
+
+
 static func _path(vid: String, ext: String) -> String:
-	return DIR.path_join("%s_%s.%s" % [vid, key(), ext])
+	return _dir().path_join("%s_%s.%s" % [vid, key(), ext])
+
+
+## BAKE_ANY=1 (yalnız geliştirme; ölçüm / sözdizimi koşuları): tam anahtar yoksa o köyün en yeni önbelleği kullanılır. Köy
+## kurulumuna dokunmayan bir betik değişikliği (character_model, village_life...) anahtarı değiştirip her koşuda Konoha'yı
+## 35-47 sn baştan kurduruyordu. Köy binalarını / yerleşimini değiştirdiğin koşuda KULLANMA (eski köy görünür).
+static func _any_path(vid: String, ext: String) -> String:
+	var exact = _path(vid, ext)
+	if FileAccess.file_exists(exact) or not _dev or OS.get_environment("BAKE_ANY") == "":
+		return exact
+	var best = ""
+	var bt = 0
+	for f in DirAccess.get_files_at(_dir()):
+		if f.begins_with(vid + "_") and f.ends_with(".scn") and FileAccess.file_exists(_dir().path_join(f.get_basename() + ".dat")):
+			var mt = FileAccess.get_modified_time(_dir().path_join(f))
+			if mt > bt:
+				bt = mt
+				best = f.get_basename()
+	return exact if best == "" else _dir().path_join(best + "." + ext)
 
 
 static func snapshot(vid: String) -> Dictionary:
@@ -54,10 +86,10 @@ static func save(root: Node3D, vid: String, snap: Dictionary) -> void:
 	# çok şekilli gövdeler KAYITTAN ÖNCE bölünür: Konoha'nın peyzaj gövdesi (~16 bin şekil) bölünmeden kaydediliyor,
 	# her açılışta yüklemede bölünüyordu (Konoha yüklemesi 7 sn -> 40 sn + binlerce "owner" uyarısı)
 	split_bodies(root)
-	DirAccess.make_dir_recursive_absolute(DIR)
-	for f in DirAccess.get_files_at(DIR):   # aynı köyün eski sürümleri
+	DirAccess.make_dir_recursive_absolute(_dir())
+	for f in DirAccess.get_files_at(_dir()):   # aynı köyün eski sürümleri
 		if f.begins_with(vid + "_") and not f.contains(key()):
-			DirAccess.remove_absolute(DIR.path_join(f))
+			DirAccess.remove_absolute(_dir().path_join(f))
 	var lk = vid.to_lower()
 	var data = {
 		# kimlikle: kurulum boyunca başka sistemler listeden silince dilim kayıyor, köyün ilk eklenen noktaları
@@ -166,8 +198,8 @@ static func _mm_ok(root: Node) -> bool:
 static func try_load(parent: Node3D, vid: String) -> Node3D:
 	if OS.get_environment("NO_BAKE") != "":
 		return null
-	var sp = _path(vid, "scn")
-	var dp = _path(vid, "dat")
+	var sp = _any_path(vid, "scn")
+	var dp = _any_path(vid, "dat")
 	if not FileAccess.file_exists(sp) or not FileAccess.file_exists(dp):
 		return null
 	var t0 = Time.get_ticks_msec()

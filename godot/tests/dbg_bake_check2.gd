@@ -2,10 +2,10 @@ extends Node
 var main: Node
 func _ready() -> void:
 	await get_tree().process_frame
-	for f in DirAccess.get_files_at("user://bake"):
+	for f in DirAccess.get_files_at("res://../_tmp/bake_dev"):
 		if not f.ends_with(".scn") or not (f.begins_with("kumo") or f.begins_with("kiri") or f.begins_with("konoha")):
 			continue
-		var ps = ResourceLoader.load("user://bake/" + f, "", ResourceLoader.CACHE_MODE_IGNORE)
+		var ps = ResourceLoader.load("res://../_tmp/bake_dev/" + f, "", ResourceLoader.CACHE_MODE_IGNORE)
 		var root = ps.instantiate()
 		var st = {}
 		for m in root.find_children("*", "MeshInstance3D", true, false):

@@ -2,10 +2,10 @@ extends Node
 var main: Node
 func _ready() -> void:
 	await get_tree().process_frame
-	for f in DirAccess.get_files_at("user://bake"):
+	for f in DirAccess.get_files_at("res://../_tmp/bake_dev"):
 		if not f.ends_with(".scn"):
 			continue
-		var ps = ResourceLoader.load("user://bake/" + f, "", ResourceLoader.CACHE_MODE_IGNORE)
+		var ps = ResourceLoader.load("res://../_tmp/bake_dev/" + f, "", ResourceLoader.CACHE_MODE_IGNORE)
 		if not ps is PackedScene:
 			continue
 		var root = ps.instantiate()
