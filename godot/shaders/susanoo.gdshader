@@ -13,6 +13,7 @@ uniform float flow_speed = 1.0;  // içindeki chakra akış hızı
 uniform float ground_y = -100000.0;   // yere gömülü kademeler: zemin altı çizilmez
 uniform float cut_y = 0.0;       // >0: dinlenme pozunda bu yüksekliğin altı çizilmez (üst gövde kademesi)
 uniform float force_kind = 0.0;  // >0: bütün yüzey bu türden boyanır (canavar kuyrukları Susanoo plakasına bürünür)
+uniform float grid_k = 1.0;      // lamel ızgarasının ölçeği (canavar gövdesi büyük birimlerle kurulu)
 uniform float flesh_a = 1.0;     // chakra etinin dolgunluk çarpanı (canavarın giydiği zırhta et silikleşir, plaka kalır)
 uniform float all_a = 1.0;       // tüm yüzeyin dolgunluk çarpanı (canavar bedenindeki ince enerji katmanı)
 uniform float vcol = 1.0;        // 0: gövde ağı (köşe rengi tür taşımaz, hepsi chakra eti)
@@ -71,13 +72,13 @@ void fragment() {
 			vec3 an = abs(normalize(on));
 			float u = an.y > 0.8 ? op.x : (an.z > an.x ? op.x : op.z);
 			float v = an.y > 0.8 ? op.z : op.y;
-			float ch = 0.17, cw = 0.044;
+			float ch = 0.17 * grid_k, cw = 0.044 * grid_k;
 			float fv = fract(v / ch);
 			float fu = fract(u / cw);
 			float dv = min(fv, 1.0 - fv) * ch, du = min(fu, 1.0 - fu) * cw;
-			float wv = max(0.0045, fwidth(v) * 1.1), wu = max(0.0045, fwidth(u) * 1.1);
+			float wv = max(0.0045 * grid_k, fwidth(v) * 1.1), wu = max(0.0045 * grid_k, fwidth(u) * 1.1);
 			float grid = max(1.0 - smoothstep(0.0, wv, dv), 1.0 - smoothstep(0.0, wu, du));
-			grid *= clamp(0.012 / max(fwidth(u), 0.0001), 0.0, 1.0);   // uzakta ızgara kırpışmasın
+			grid *= clamp(0.012 * grid_k / max(fwidth(u), 0.0001), 0.0, 1.0);   // uzakta ızgara kırpışmasın
 			lines = max(lines * 0.5, grid);
 			fill = 0.62;
 		}

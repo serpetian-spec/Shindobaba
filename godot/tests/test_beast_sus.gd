@@ -37,6 +37,7 @@ func _ready() -> void:
 		TailedBeasts.make_jinchuriki(id)
 		TailedBeasts.beasts()[id]["trust"] = 100.0
 		var cl: BeastCloak = pl.combat.modes.cloak
+		var cam0 = pl.cam_dist
 		cl.set_level(6)
 		await get_tree().create_timer(1.0).timeout
 		eyes._start_susanoo()
@@ -56,11 +57,23 @@ func _ready() -> void:
 			cc.look_at(ctr)
 			await get_tree().create_timer(0.25).timeout
 			await main.shot("bs_%s_%s_%s" % [ver, id, s[0]])
+		if bs and bs.back_arms.size() > 0:
+			for kk in [0.28, 0.46]:
+				cl.rig.action = "bite"
+				cl.rig.action_dur = 1000.0
+				cl.rig.action_t = kk * 1000.0
+				cc.global_position = ctr + (f + r * 0.9).normalized() * h * 3.0 + Vector3.UP * h * 0.4
+				cc.look_at(ctr)
+				await get_tree().create_timer(0.2).timeout
+				await main.shot("bs_%s_%s_vur%d" % [ver, id, int(kk * 100)])
+			cl.rig.action = ""
 		pl.set_process(true)
 		pl.set_physics_process(true)
-		eyes._end_susanoo()
-		await get_tree().create_timer(0.6).timeout
-		print("BSUS %s: susanoo kapaninca zirh kalkti=%s" % [id, cl.rig.get_node_or_null("BeastSus") == null])
+		pl.cam.make_current()
 		cl.set_level(0)
 		await get_tree().create_timer(0.8).timeout
+		print("BSUS %s kamera: baslangic=%.1f  biju kapandi (Susanoo acik)=%.1f yukseklik=%.1f  susanoo_gorunur=%s" % [id, cam0, pl.cam_dist, pl.cam_lift, eyes.susanoo_node.visible])
+		eyes._end_susanoo()
+		await get_tree().create_timer(0.6).timeout
+		print("BSUS %s kamera: ikisi kapandi=%.1f yukseklik=%.1f dev=%s" % [id, pl.cam_dist, pl.cam_lift, pl.cam_giant])
 	get_tree().quit()

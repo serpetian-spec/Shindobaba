@@ -278,12 +278,8 @@ func _full_transform() -> void:
 				fades[m].set_shader_parameter("near_fade", h * 1.1)
 			mi.material_override = fades[m]
 	p.model.visible = false
-	saved_cam = p.cam_dist
-	# kamera canavarın boyuna göre: omuz üstünden, tüm gövde ve önündeki alan görünür; tekerle h*0.9..h*3 arası
-	p.cam_range = Vector2(h * 1.2, h * 3.5)
-	p.cam_dist = h * 1.8
-	p.cam_lift = h * 0.8
-	p.cam_giant = true
+	rig.set_meta("cam_h", h)
+	BeastSus.cam(p)   # kamera canavarın boyuna göre: omuz üstünden, tüm gövde ve önündeki alan görünür
 	p.cam.far = maxf(p.cam.far, 6000.0)
 	Buffs.add("beast", 9999.0, {"melee": 1.5, "speed": 1.5, "armor": 0.6, "jutsu": 1.2})
 	FX.smoke_puff(p.global_position + Vector3.UP * h * 0.4, h * 0.25, 30)
@@ -298,10 +294,7 @@ func _end_transform() -> void:
 	rig = null
 	BeastSus.sync(p)
 	p.model.visible = true
-	p.cam_dist = saved_cam
-	p.cam_lift = 0.0
-	p.cam_range = Vector2(2.2, 14.0)
-	p.cam_giant = false
+	BeastSus.cam(p)
 	if is_instance_valid(cloak_mesh):
 		cloak_mesh.visible = true
 	if is_instance_valid(ears):
