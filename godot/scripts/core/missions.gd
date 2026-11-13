@@ -2686,7 +2686,57 @@ func _process(dt: float) -> void:
 		has_marker = _track_base[0]; target_marker = _track_base[1]; target_name = _track_base[2]; story_target = _track_base[3]
 		_track_base = null
 	_process_steps(dt)
+	_aim_objective()
 	_apply_track()
+
+
+## Ok her adımda yerde gerçekten duran nesneyi gösterir: o adımın kalan [F] noktalarından oyuncuya en yakını.
+## Omuzda yük varken alınacak yeni yük değil, bırakılacak yer gösterilir. Nokta yoksa adımın kendi işareti kalır.
+func _aim_objective() -> void:
+	var m = active()
+	if m.is_empty() or m.get("type", "") != "quest" or Game.player == null or Game.paused:
+		return
+	if String(_cur().get("work", "")) == "hunt":   # av: canlı hayvan / askı mantığı kendi işaretini verir
+		return
+	var sp = objective_spot()
+	if sp != null:
+		target_marker = sp
+	elif String(_cur().get("kind", "")) == "kill" and _cur().has("at"):
+		# dövüş adımı: ok her kare sana en yakın canlı görev düşmanının üstünde (koşan düşmanın gerisinde kalmaz)
+		var c = _w(_cur()["at"])
+		var pp = Game.player.global_position
+		var bd = 1e18
+		for e in step_nodes:
+			# kampın çevresindeki ya da (inin içindeysen) yanındaki düşman; in dışındayken ok in ağzında kalır
+			if is_instance_valid(e) and e is Enemy and not e.dead and e.get_meta("q", "") == _key() and (e.global_position.distance_to(c) < 300.0 or e.global_position.distance_to(pp) < 200.0):
+				var d = e.global_position.distance_squared_to(pp)
+				if d < bd:
+					bd = d
+					target_marker = e.global_position
+		if bd > 1e17 and String(st.get("lair", "")) in ["cave", "lab"]:
+			target_marker = c
+
+
+func objective_spot():
+	var k = _key()
+	var pp = Game.player.global_position
+	var carry = is_instance_valid(MissionWork.inst) and is_instance_valid(MissionWork.inst.rider)
+	var best = null
+	var bd = 1e18
+	for pass_i in 2:
+		for it in Interact.items:
+			if it.get("kind", "") != "quest" or it.get("qkey", "") != k:
+				continue
+			if pass_i == 0 and carry and String(it.get("work", "")) in ["loot", "carcass", "sack", "chest"]:
+				continue
+			var p: Vector3 = it["pos"]
+			var d = pp.distance_squared_to(p)
+			if d < bd:
+				bd = d
+				best = p
+		if best != null:
+			break
+	return best
 
 
 ## Takip edilebilecek şu an aktif her şey: [anahtar, etiket] — ok/ışık sütunu bunlardan birini gösterir (menüde ◀ ▶, oyunda L tuşu)
@@ -2938,10 +2988,11 @@ func _tick_kill_guard(dt: float, s: Dictionary) -> void:
 			e.wander_to = e.global_position
 			e.target = null
 	# işaretçi: kampta kimse yoksa en yakın canlı görev düşmanını göster (boş kampı gösterip duruyordu)
-	var in_camp = alive.filter(func(e): return e.global_position.distance_to(c) < 40.0)
-	if in_camp.is_empty() and not alive.is_empty():
-		var best = alive[0]
-		for e in alive:
+	# ok kampın ortasını değil sana en yakın canlı görev düşmanını gösterir (indeki düşman hariç: orada ok in ağzında kalır)
+	var seen = alive.filter(func(e): return e.global_position.distance_to(c) < 300.0)
+	if not seen.is_empty():
+		var best = seen[0]
+		for e in seen:
 			if e.global_position.distance_to(pp) < best.global_position.distance_to(pp):
 				best = e
 		target_marker = best.global_position

@@ -45,6 +45,15 @@ var cam_range := Vector2(2.2, 14.0)   # fare tekeri yakınlaştırma sınırı (
 var model_lift := 0.0   # model görsel olarak bu kadar yukarıda (Susanoo içinde süzülme)
 var cam_giant := false   # dev form: kamera küçük engellere (ağaç, ev) çarpıp canavarın içine sıçramasın
 var leap_charge = -1.0     # Ctrl basılı: 0..1 şarj (Striker süper zıplaması), -1 = şarj yok
+var flip_kind := ""        # "" = öne takla; "tuck" / "lay" / "twist" = kaçış atlayışı (yöne göre geri ya da yana)
+var flip_axis := Vector3.RIGHT
+var flip_sgn := 1.0
+var evade_t := 0.0         # kaçış atlayışı sürüyor: yüz dönmez, darbe ıskalar
+var evade_n := 0
+var evade_face := false    # kaçış atlayışından yere inene dek yüz dönmez
+var ndash_t := 0.0         # öne ninja atılışı sürüyor
+var ndash_ghost := 0.0
+var jump_ms := 0
 var flip_t = -1.0          # havada takla zamanlayıcısı
 var leap_ui: Control
 var leap_bar: ProgressBar
@@ -261,10 +270,13 @@ func _jump() -> void:
 		grounded = false
 		swimming = false
 		jumps = 1
+		jump_ms = Time.get_ticks_msec()
 		Sfx.play("jump", global_position)
 		model.play("jump", 0.05, 1.3, true)
 		FX.dust(global_position, 0.6)
 	elif jumps < 2 + int(Stats.skill(Game.profile, "jumps")):
+		if _try_evade():
+			return
 		velocity.y = JUMP * 0.92
 		jumps = 2
 		var d = wish_dir()
@@ -276,7 +288,74 @@ func _jump() -> void:
 		# bacakları tuttuğu için yalnız üst gövde dönüyordu)
 		model.play("air", 0.05)
 		model.overlay.set_pose("leap", 0.0)
+		flip_kind = ""
 		flip_t = 0.001
+
+
+## Çift Space + geri / sağ / sol: o yöne alçak, hızlı kaçış atlayışı. Yüz dönmez (rakibe bakmaya devam eder), gövde gidilen
+## yöne doğru döner: geriye basınca geri takla, yana basınca yan takla. Her basışta sırayla başka bir hareket:
+## toplanmış takla -> gergin (uzanmış) takla -> burgu.
+const EVADE_SPEED := 15.0
+func _try_evade() -> bool:
+	if Time.get_ticks_msec() - jump_ms > 340 or cam_giant or fly_src != "":
+		return false
+	var v = Input.get_vector("left", "right", "back", "forward")
+	if not ((v.y < -0.4) or (absf(v.x) > 0.4 and v.y < 0.5)):
+		return _ninja_dash()
+	var d = wish_dir()
+	if d.length() < 0.1:
+		return false
+	d = d.normalized()
+	jumps = 2
+	evade_face = true
+	velocity = d * EVADE_SPEED + Vector3.UP * 3.0   # alçak ve seri: yükselmez, yana / geriye kayar
+	dash_t = 0.3
+	evade_t = 0.46
+	# yüz: kameranın baktığı yön (rakibe dönük kalır)
+	var cf = cam_forward()
+	facing = atan2(-cf.x, -cf.z)
+	flip_axis = Vector3.UP.cross(d).normalized()
+	var fwd = Basis(Vector3.UP, facing) * Vector3.FORWARD
+	flip_sgn = 1.0 if fwd.cross(d).y < 0.0 else -1.0
+	flip_kind = ["tuck", "lay", "twist"][evade_n % 3]
+	evade_n += 1
+	flip_t = 0.001
+	model.play("air", 0.05)
+	model.overlay.set_pose("leap", 0.0 if flip_kind == "tuck" else 1.0)
+	FX.dust(global_position, 0.5)
+	FX.speed_lines(global_position + Vector3.UP, d)
+	Sfx.play("whoosh", global_position, 1.45, 0.6)
+	return true
+
+
+## Çift Space + ileri (ya da yönsüz): ninja atılışı. Yere paralel, alçak ve çok hızlı bir hamleyle öne fırlar; kilitli
+## hedef varsa ona doğru. Gövde öne yatık, kollar geride; arkasında silik görüntüleri kalır.
+const NDASH_SPEED := 30.0
+func _ninja_dash() -> bool:
+	if chakra < 4.0:
+		return false
+	var d = wish_dir()
+	if combat and is_instance_valid(combat.lock_target):
+		d = combat.lock_target.global_position - global_position
+		d.y = 0.0
+	if d.length() < 0.1:
+		d = cam_forward()
+	d = d.normalized()
+	chakra -= 4.0
+	jumps = 2
+	velocity = d * NDASH_SPEED + Vector3.UP * 1.2
+	dash_t = 0.3
+	ndash_t = 0.3
+	ndash_ghost = 0.0
+	facing = atan2(-d.x, -d.z)
+	flip_kind = ""
+	flip_t = -1.0
+	model.play("run", 0.04, 1.7)
+	model.overlay.set_pose("leap", 1.0)
+	FX.dust(global_position, 0.7)
+	FX.speed_lines(global_position + Vector3.UP, d)
+	Sfx.play("whoosh", global_position, 1.25, 0.8)
+	return true
 
 
 ## Ctrl: ileri doğru uzun, yüksek ninja sıçrayışı (yerde ya da havada bir kez; duvarda duvardan sek)
@@ -301,6 +380,7 @@ func _leap(power := 1.0) -> void:
 	var lm = 1.0 + Stats.skill(Game.profile, "leap")
 	# 2x mesafe ve 2x yükseklik: aynı yerçekiminde yatay ve dikey hız √2 katı
 	velocity = d * lerpf(24.0, 56.0, k) * 1.414 * lm + Vector3.UP * lerpf(12.0, 22.5, k) * 1.414 * sqrt(lm) * (0.8 if air else 1.0)
+	flip_kind = ""
 	flip_t = 0.0 if k > 0.45 else -1.0
 	facing = atan2(-d.x, -d.z)
 	grounded = false
@@ -603,7 +683,7 @@ func _ground_air_move(dt: float) -> void:
 			flip_t = -1.0
 		leaping = false
 	# duvar koşusuna geç
-	if is_on_wall() and wall_cd <= 0.0 and not swimming and not cam_giant:   # dev canavar ağaca/eve duvar koşusu yapmaz (gövde havada asılı kalıyordu)
+	if is_on_wall() and wall_cd <= 0.0 and not swimming and not cam_giant and evade_t <= 0.0 and ndash_t <= 0.0:   # dev canavar ağaca/eve duvar koşusu yapmaz (gövde havada asılı kalıyordu)
 		var n = get_wall_normal()
 		n.y = 0.0
 		if n.length() > 0.5:
@@ -613,7 +693,24 @@ func _ground_air_move(dt: float) -> void:
 	# yön + animasyon
 	var hv = Vector3(velocity.x, 0, velocity.z)
 	var sp = hv.length()
-	if sp > 0.5 and (combat == null or not combat.busy()):
+	if evade_t > 0.0 and evade_t - dt <= 0.0:
+		velocity.x *= 0.4   # atlayış bitti: savrulup gitmez, olduğu yere iner
+		velocity.z *= 0.4
+	evade_t = maxf(0.0, evade_t - dt)
+	if grounded and evade_t <= 0.0:
+		evade_face = false
+	if ndash_t > 0.0:
+		# ninja atılışı: yer çekimi neredeyse yok (dümdüz gider), arkada silik görüntüler
+		ndash_t -= dt
+		velocity.y = maxf(velocity.y, -1.0)
+		ndash_ghost -= dt
+		if ndash_ghost <= 0.0:
+			ndash_ghost = 0.09
+			FX.afterimage(self, 0.45, 0.22)
+		if ndash_t <= 0.0:
+			velocity.x *= 0.45
+			velocity.z *= 0.45
+	if sp > 0.5 and (combat == null or not combat.busy()) and evade_t <= 0.0 and not evade_face:
 		facing = lerp_angle(facing, atan2(-hv.x, -hv.z), minf(1.0, dt * (8.0 if grounded else 4.0)))
 	model.rotation = Vector3(0, facing, 0)
 	# eğimde aşağıdaki ayak yere değsin: modeli eğime göre biraz alçalt
@@ -743,18 +840,26 @@ func _apply_flip(dt: float) -> void:
 		return
 	if velocity.y < 4.0 or flip_t > 0.0:
 		flip_t += dt
-	var dur = 0.5
+	var dur = 0.5 if flip_kind == "" else 0.44
 	var k = clampf(flip_t / dur, 0.0, 1.0)
 	var ang = -TAU * (k * k * (3.0 - 2.0 * k))
 	var c = Vector3(0, 0.95 * model.age_scale, 0)
 	var b = Basis(Vector3.UP, facing) * Basis(Vector3.RIGHT, ang)
+	if flip_kind == "twist":
+		# burgu: gövde gidilen yöne yatıp kendi ekseninde bir tam tur döner
+		b = Basis(flip_axis, sin(PI * k) * 1.15) * Basis(Vector3.UP, facing + ang * flip_sgn)
+	elif flip_kind != "":
+		b = Basis(flip_axis, -ang) * Basis(Vector3.UP, facing)
 	model.transform = Transform3D(b, model.position + c - b * c + Basis(Vector3.UP, facing) * Vector3.ZERO)
 	model.scale = Vector3.ONE * model.age_scale
 	# takla boyunca top gibi toplan (bacaklar süzülme pozunda donuk kalmasın)
 	model.overlay.tuck = clampf(sin(PI * k) * 1.6, 0.0, 1.0) if flip_t > 0.0 else 0.0
-	if flip_t > 0.0:
+	if flip_kind in ["lay", "twist"]:
+		model.overlay.tuck = clampf(sin(PI * k) * 0.35, 0.0, 1.0)   # gergin: hafifçe toplanır
+	if flip_t > 0.0 and flip_kind in ["", "tuck"]:
 		model.overlay.snap("leap", 0.0)
 	if k >= 1.0:
+		flip_kind = ""
 		flip_t = -1.0
 		model.overlay.tuck = 0.0
 		model.overlay.set_pose("leap", 1.0)  # taklanın ardından süzülme
@@ -1210,6 +1315,9 @@ func is_dead() -> bool:
 
 
 func take_hit(info: Dictionary) -> void:
+	if evade_t > 0.14 and not info.get("sure", false):   # kaçış atlayışının ilk anı: darbe boşa gider
+		Combat.popup_text(global_position + Vector3.UP * 2.1, "Iska!", Color(0.75, 0.9, 1.0))
+		return
 	if Combat.shirahadori_catch(self, info):   # çıplak avuçla bıçak yakalama (Shinken Shirahadori)
 		return
 	info = Combat.cap_one_shot(self, info)   # tek atan darbe: hedef güçlüyse kırpılır (AI eşitliği)

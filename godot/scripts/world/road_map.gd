@@ -149,12 +149,29 @@ func _process(dt: float) -> void:
 	_rebuild()
 
 
-func _rebuild() -> void:
+var _job := []   # arka planda kurulan ağlar: [yol, patika, küçük harita yolları]
+
+
+## Şerit ağları arka planda kurulur (ana iş parçacığında 240 ms donduruyordu: hızlı koşarken ve köy kurulurken her yenilemede takılma)
+func _build_job(ls: Array) -> void:
 	var m = Vector2(center.x, -center.y)
-	var segs = Game.road_segments_near(m, SIZE * 0.75)
-	_mesh.mesh = _ribbons(segs, 1.0, false)
-	_lane_mesh.mesh = _lane_ribbons()
-	_mroads.mesh = _ribbons(Game.road_segments_near(m, MAP_SIZE * 0.75), 2.6, true)
+	var a = _ribbons(Game.road_segments_near(m, SIZE * 0.75), 1.0, false)
+	var b = _lane_ribbons(ls)
+	var c = _ribbons(Game.road_segments_near(m, MAP_SIZE * 0.75), 2.6, true)
+	_job = [a, b, c]
+
+
+func _rebuild() -> void:
+	_pending = 1
+	var ls = lanes.duplicate()
+	var tid = WorkerThreadPool.add_task(_build_job.bind(ls))
+	while not WorkerThreadPool.is_task_completed(tid):
+		await get_tree().process_frame
+	WorkerThreadPool.wait_for_task_completion(tid)
+	_mesh.mesh = _job[0]
+	_lane_mesh.mesh = _job[1]
+	_mroads.mesh = _job[2]
+	_job = []
 	for cam in [_cam, _mcam]:
 		cam.position = Vector3(center.x, 1000.0, center.y)
 	_mground.position = Vector3(center.x, 0, center.y)
@@ -163,7 +180,6 @@ func _rebuild() -> void:
 	local_rect = Vector4(center.x - MAP_SIZE * 0.5, center.y - MAP_SIZE * 0.5, MAP_SIZE, 0)
 	_sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_msv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	_pending = 1
 	# çizim bitince görüntü kapısı dokusunu kalıcı dokuya kopyala (başka materyallerde güvenle örneklenir)
 	for i in 3:
 		await RenderingServer.frame_post_draw
@@ -178,11 +194,11 @@ func _rebuild() -> void:
 
 
 ## Ara sokak patikaları (pencere içindekiler): yarı genişlik 2.4 m (patika 1.5 m + kenar; 2 m/piksel dokuda kaybolmasın)
-func _lane_ribbons() -> ArrayMesh:
+func _lane_ribbons(ls: Array) -> ArrayMesh:
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var n = 0
-	for ln in lanes:
+	for ln in ls:
 		var a: Vector2 = ln[0]
 		var e: Vector2 = ln[1]
 		var half: float = ln[2]

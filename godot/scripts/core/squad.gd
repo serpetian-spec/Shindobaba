@@ -400,11 +400,7 @@ func _process(dt: float) -> void:
 			var f: Dictionary = Friends.all().get(fid(m["key"]), {})
 			if not f.is_empty() and randf() < (0.03 if m["key"] == "sensei" else 0.05):
 				# kalıcı ölüm (nadir): Friends kaydı ölür; yakın ölüm Mangekyō uyanışını tetikleyebilir
-				if n is Node3D and Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
-					Game.player.combat.modes.eyes.on_ally_died(n)
-				f["status"] = "öldü"
-				Friends.log_event(f, "Takım görevinde senin yanında öldü")
-				Hud.banner("%s ÖLDÜ" % nm.to_upper(), "Takımın artık eksik. Onu asla unutmayacaksın.", Color(0.85, 0.85, 0.95))
+				KinDrama.slain(fid(m["key"]), n, [], Game.player.global_position, "Takım görevinde senin yanında öldü")
 				m["node"] = null
 				m["down"] = 1e9
 			else:

@@ -7,6 +7,7 @@ extends RefCounted
 static var node: Node3D = null
 static var shown := ""
 static var item := {}
+static var raiders := []   # barakayı basan av takımı (sen yetiştiysen sahnede)
 
 
 static func d() -> Dictionary:
@@ -62,8 +63,8 @@ static func tick() -> void:
 		return
 	var pos = Missions._w(h["at"])
 	var dist = Vector2(pos.x - Game.player.global_position.x, pos.z - Game.player.global_position.z).length()
-	if h.get("raid", false) and String(h["state"]) == "ok" and dist > 250.0:
-		_burn(h)
+	if h.get("raid", false) and String(h["state"]) == "ok":
+		_raid_tick(h, pos, dist)
 	if dist > 450.0:
 		if is_instance_valid(node):
 			_free()
@@ -84,9 +85,58 @@ static func tick() -> void:
 	shown = want
 
 
+## Baskın sessizce olmaz: av takımı yola çıkınca haberi gelir, barakanın yeri işaretlenir. Vaktinde yetişirsen takım
+## barakanın başında karşına çıkar; yenersen baraka kurtulur. Yetişmezsen (ya da bırakıp kaçarsan) yakılır.
+## Görev / antrenman sırasında baskın başlamaz: haber iş bitince gelir.
+static func _raid_tick(h: Dictionary, pos: Vector3, dist: float) -> void:
+	var now = Time.get_unix_time_from_system()
+	if not h.has("raid_at"):
+		if Missions.quiet():
+			return
+		h["raid_at"] = now + 200.0 + dist / 7.0
+		raiders = []
+		Game.profile["waypoint"] = [pos.x, pos.y, pos.z, "Barakan — av takımı yolda"]
+		Game.profile["track"] = "waypoint"
+		Hud.banner("BARAKAN TEHLİKEDE", "Av takımı barakanın izini buldu ve yola çıktı. %d sn içinde yetişirsen savunabilirsin." % int(float(h["raid_at"]) - now), Color(1, 0.5, 0.4))
+		Sfx.play("alarm", null, 1.0, 0.6)
+		return
+	var live = raiders.filter(func(e): return is_instance_valid(e) and not e.is_dead())
+	if not raiders.is_empty():
+		if live.is_empty():
+			# takım yenildi: baraka kurtuldu
+			raiders = []
+			h["raid"] = false
+			h.erase("raid_at")
+			RogueJobs.add_trail(-30.0)
+			_clear_mark()
+			Hud.banner("BARAKAN KURTULDU", "Av takımını barakanın başında durdurdun. İzin soğudu.", Color(0.6, 1.0, 0.7))
+			Game.save_game()
+		elif dist > 300.0:
+			_burn(h)   # bırakıp gittin
+		return
+	if dist < 70.0:
+		raiders = Orgs.hunters_at(pos, 16.0)
+		Hud.banner("AV TAKIMI BARAKANDA", "Meşalelerle geldiler. Durdurursan baraka ayakta kalır.", Color(0.9, 0.3, 0.3))
+	elif now > float(h["raid_at"]):
+		_burn(h)
+
+
+static func _clear_mark() -> void:
+	var wp = Game.profile.get("waypoint")
+	if wp is Array and wp.size() >= 4 and String(wp[3]).begins_with("Barakan"):
+		Game.profile.erase("waypoint")
+
+
 static func _burn(h: Dictionary) -> void:
 	h["state"] = "burnt"
 	h["raid"] = false
+	h.erase("raid_at")
+	for e in raiders:
+		if is_instance_valid(e) and not e.is_dead() and e.global_position.distance_to(Game.player.global_position) > 200.0:
+			e.queue_free()
+	raiders = []
+	_clear_mark()
+	Hud.banner("BARAKAN YAKILDI", "Av takımı barakana senden önce vardı ve ateşe verdi.", Color(1, 0.5, 0.4))
 	var l = loot()
 	var lost = int(l.get("chest", 0)) - int(l.get("chest", 0)) / 2 + int(l.get("sack", 0)) - int(l.get("sack", 0)) / 2
 	l["chest"] = int(l.get("chest", 0)) / 2

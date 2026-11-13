@@ -93,12 +93,13 @@ class TravelGroup extends Node3D:
 				display = "Gezgin Ninja"
 				speed = 4.2
 		for i in n:
-			await CharacterModel.build_turn(self)   # kafile üyeleri ayrı karelerde kurulur (donma olmasın)
+			var lki = _look(i)
+			await CharacterModel.ready_turn(self, lki)   # yüzü / saçı arka planda hazırlanır, üyeler ayrı karelerde kurulur (donma olmasın)
 			if not is_inside_tree():
 				return
 			var cm = CharacterModel.new()
 			add_child(cm)
-			cm.setup(_look(i))
+			cm.setup(lki)
 			cm.play("run" if kind == "ninja" else "walk", 0.0)
 			members.append([cm, 2.0 + i * 1.8 + (6.0 if kind == "kervan" else 0.0), randf_range(-1.2, 1.2), true])
 		_place()

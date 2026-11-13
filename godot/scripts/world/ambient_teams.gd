@@ -112,7 +112,7 @@ func _spawn(pp: Vector3) -> void:
 		if rank >= 1:
 			# köyün kendi chūnin/jōnin seti (yelek modeli, üst/alt, koruyucular): eskiden yalnız yelek RENGİ köyün, modeli Konoha'nındı
 			Outfits.village_set(look, vid, rank >= 2)
-		await CharacterModel.build_turn(self)   # takım üyeleri ayrı karelerde kurulur (donma olmasın)
+		await CharacterModel.ready_turn(self, look)   # yüzü / saçı arka planda hazırlanır, üyeler ayrı karelerde kurulur (donma olmasın)
 		var n = EncounterNPC.new()
 		n.team = "neutral"
 		var nm = String(f.get("name", person["name"])) if not f.is_empty() else String(person["name"])

@@ -554,22 +554,37 @@ func _groups_of(v: Dictionary) -> Array:
 	return out
 
 
-func _make_resident(g: Dictionary, i: int) -> void:
+## Sakinin kim olacağı önceden belirlenir: yüzü ve saçı arka planda hazırlanır, hazır olunca sahneye girer
+## (eskiden her sakin doğduğu karede 200-350 ms donduruyordu).
+func _resident_plan(g: Dictionary, i: int) -> Dictionary:
+	var c: String = g["clan"]
+	var female := randf() < 0.45
+	var age: String = ["adult", "adult", "young", "teen", "child", "adult"][i % 6]
+	var arch: String = "chunin" if age in ["adult", "young"] and randf() < 0.5 else ("genin" if age == "teen" else "civ")
+	if age == "child":
+		arch = "kid"
+	var lk := clan_look(c, arch, g["vid"], female, age)
+	var fid = Friends.at_site(Friends.site_key(g["spots"][i]))
+	if fid != "" and String(Friends.all()[fid].get("clan", "")) == c:
+		lk = Friends.look_of(Friends.all()[fid])
+	return {"female": female, "age": age, "look": lk}
+
+
+func _make_resident(g: Dictionary, i: int, plan := {}) -> void:
 	var c: String = g["clan"]
 	var vid: String = g["vid"]
 	var r := ClanResident.new()
 	r.clan = c
 	r.vid = vid
-	var female := randf() < 0.45
-	var age: String = ["adult", "adult", "young", "teen", "child", "adult"][i % 6]
+	if plan.is_empty():
+		plan = _resident_plan(g, i)
+	var female: bool = plan["female"]
+	var age: String = plan["age"]
 	r.given = person_name(c, female)
 	r.display_override = r.given if age != "child" else "%s (çocuk)" % r.given
 	r.role = "nurse" if age != "child" else "kid"
 	r.wander_r = 7.0
-	var arch: String = "chunin" if age in ["adult", "young"] and randf() < 0.5 else ("genin" if age == "teen" else "civ")
-	if age == "child":
-		arch = "kid"
-	r.look_extra = clan_look(c, arch, vid, female, age)
+	r.look_extra = plan["look"]
 	r.lines_override = LORE.get(c, ["%s klanındanım. Köyümüzü korumak görevimiz." % clan_name(c)])
 	# bu yuvada tanıştığın klan üyesi varsa o (adı, görünüşü, gözleri)
 	var skey = Friends.site_key(g["spots"][i])
@@ -579,7 +594,6 @@ func _make_resident(g: Dictionary, i: int) -> void:
 		var f: Dictionary = Friends.all()[fid]
 		r.given = String(f["name"])
 		r.display_override = r.given
-		r.look_extra = Friends.look_of(f)
 		var ek: Array = f.get("eye", [0, 0])
 		r.eye_kind = int(ek[0])
 		r.eye_lvl = int(ek[1])
@@ -646,8 +660,15 @@ func _process(dt: float) -> void:
 		return
 	# karakter modeli pahalı: her karede en fazla bir sakin doğar
 	if not _queue.is_empty():
-		var q: Array = _queue.pop_front()
-		_make_resident(q[0], q[1])
+		var q: Array = _queue[0]
+		if q.size() < 3:
+			q.append(_resident_plan(q[0], q[1]))
+			q.append(0)
+		if q[3] < 600 and not CharacterModel.prepare(q[2]["look"]):
+			q[3] += 1   # yüzü / saçı arka planda hazırlanıyor: sonraki karede yeniden bakılır
+		else:
+			_queue.pop_front()
+			_make_resident(q[0], q[1], q[2])
 	_res_t -= dt
 	if _res_t <= 0.0:
 		_res_t = 1.5

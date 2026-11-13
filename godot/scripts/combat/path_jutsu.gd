@@ -4629,31 +4629,7 @@ func _held_or(c: Node3D, fallback: String) -> String:
 
 ## Hız ardıl görüntüsü (anime: kendi renklerinde yarı saydam kopyalar): o anki pozdan pişirilmiş gövde, kendi malzemeleriyle; kısa sürede söner
 func _trail_ghost(c: Node3D, alpha: float, life: float) -> void:
-	var m = c.get("model")
-	if m == null or not is_instance_valid(m):
-		return
-	for mi in m.find_children("*", "MeshInstance3D", true, false):
-		var src = mi as MeshInstance3D
-		if src.mesh == null or not src.is_visible_in_tree():
-			continue
-		var mesh: Mesh = src.mesh
-		if src.skin != null or src.get_node_or_null(src.skeleton) is Skeleton3D:
-			var baked = src.bake_mesh_from_current_skeleton_pose()
-			if baked:
-				mesh = baked
-		var e = MeshInstance3D.new()
-		e.mesh = mesh
-		for si in mesh.get_surface_count():
-			var mat = src.get_active_material(si)
-			if mat:
-				e.set_surface_override_material(si, mat)
-		e.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		get_tree().current_scene.add_child(e)
-		e.global_transform = src.global_transform
-		e.transparency = 1.0 - alpha
-		var tw = e.create_tween()
-		tw.tween_property(e, "transparency", 1.0, life)
-		tw.tween_callback(e.queue_free)
+	FX.afterimage(c, alpha, life)
 
 
 ## Göğü Delen Topuk: havaya sıçrayıp topukla iner, yer patlar
@@ -27183,7 +27159,8 @@ func p_obore_awa(c: Node3D, t: Node3D) -> void:
 		if not live(c) or not tt:
 			return
 		var b = _bubble(2.6, Color(0.4, 0.7, 1.0))
-		b.material_override.albedo_color = Color(0.4, 0.7, 1.0, 0.35)
+		if b.material_override is BaseMaterial3D:
+			b.material_override.albedo_color = Color(0.4, 0.7, 1.0, 0.35)
 		tt.add_child(b)
 		fit_body(tt, b)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		b.position = Vector3.UP * 1.0
@@ -27435,7 +27412,8 @@ func p_mizufusen_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var from = hand_pos(c, true)
 	var m = Node3D.new()
 	var b = _bubble(0.9, Color(0.35, 0.65, 1.0))
-	b.material_override.albedo_color = Color(0.35, 0.65, 1.0, 0.6)
+	if b.material_override is BaseMaterial3D:
+		b.material_override.albedo_color = Color(0.35, 0.65, 1.0, 0.6)
 	m.add_child(b)
 	var pr = shot(c, from, (aim_at(c, tt, from) + Vector3.UP * 0.25).normalized(), 18.0, m, inf(c, "mizufusen_no_jutsu", 0.8, {"knock": 9.0, "kind": "heavy", "element": "suiton"}), tt, false, 1.8, func(p, _h):
 		VFX.splash(p, 2.2)

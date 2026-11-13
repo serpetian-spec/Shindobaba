@@ -968,9 +968,15 @@ func _hunter_tick(dt: float) -> void:
 	_hunter_t = 0.0
 	_hunter_next = randf_range(600.0, 1200.0)
 	var vid = String(flags().get("rogue_from", "konoha"))
-	var kind = vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue"
-	var pp = Game.player.global_position
 	Hud.banner("AV-NİNJALARI", "%s seni buldu!" % Game.village(vid).get("name", vid), Color(0.9, 0.3, 0.3))
+	hunters_at(Game.player.global_position, 30.0)
+
+
+## Köyünün av takımı verilen yerin çevresine çıkar (seni bulduklarında ya da barakanı bastıklarında aynı takım)
+func hunters_at(pp: Vector3, ring: float) -> Array:
+	var out = []
+	var vid = String(flags().get("rogue_from", "konoha"))
+	var kind = vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue"
 	var base_n = 2 if rogue_rank() < 2 else 3
 	var hn = Combat.foe_count(base_n)
 	for i in hn:   # takımın kadar: yalnızken tek av-ninjası (eksik kalan güç ona biner: aşırı kolay olmasın)
@@ -991,10 +997,12 @@ func _hunter_tick(dt: float) -> void:
 		e.set_meta("hunter_nin", true)
 		e.set_meta("faction", "hunter")
 		get_tree().current_scene.add_child(e)
-		var q = Missions.open_ground(pp + Vector3(cos(i * 2.1), 0, sin(i * 2.1)) * 30.0, 15.0)   # ağaç/bina içinde doğmasın
+		var q = Missions.open_ground(pp + Vector3(cos(i * 2.1), 0, sin(i * 2.1)) * ring, 15.0)   # ağaç/bina içinde doğmasın
 		e.global_position = q
 		e.home = q
 		_spawned.append(e)
+		out.append(e)
+	return out
 
 
 func on_enemy_killed(e: Node) -> void:

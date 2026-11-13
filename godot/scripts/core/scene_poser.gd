@@ -47,13 +47,30 @@ func _floor_y(p: Vector3) -> float:
 ## Dünya konumuna yürüt (keep: verilmiş pozu bozmadan, ör. tepsi taşırken)
 func _go_w(n: Node3D, tgt: Vector3, spd := 1.5, keep := false, stop := 0.1) -> void:
 	var t0 := 0.0
+	if n == Game.player:
+		spd = maxf(spd, 4.5 if keep else 10.0)   # oyuncu nesneye ağır ağır yürümez: bir ninja adımıyla, göz açıp kapayana dek yanındadır
+	# süre sınırı yola göre (eskiden 30 sn: bir engele sürtünüp hedefe 10 cm kalamayınca yarım dakika yerinde yürüyordu)
+	var lim := 30.0
+	var best := 1e9
+	var stuck := 0.0
+	if is_instance_valid(n):
+		var d0 = tgt - n.global_position
+		d0.y = 0
+		lim = d0.length() / maxf(spd, 0.1) + 0.8
 	while is_instance_valid(n):
 		var to = tgt - n.global_position
 		to.y = 0
-		if to.length() < stop or t0 > 30.0:
+		if to.length() < stop or t0 > lim or stuck > 0.25:
 			break
 		var dt = get_process_delta_time()
 		t0 += dt
+		if to.length() < best - 0.01:
+			best = to.length()
+			stuck = 0.0
+		else:
+			stuck += dt   # ilerlemiyor (önünde engel): bekleme, olduğun yerden yap
+		if n == Game.player:
+			n.input_locked = maxf(n.input_locked, 0.15)   # yürürken teknik / saldırı araya girmez
 		_turn(n, atan2(-to.x, -to.z), dt * 9.0)
 		n.global_position += to.normalized() * minf(spd * dt, to.length())
 		if n == Game.player:
@@ -64,7 +81,7 @@ func _go_w(n: Node3D, tgt: Vector3, spd := 1.5, keep := false, stop := 0.1) -> v
 		elif n.get("interior") != true:
 			n.global_position.y = _floor_y(n.global_position)
 		if not keep:
-			n.model.play("walk" if spd < 2.6 else "run", 0.2, spd / 1.5 if spd < 2.6 else 0.8)
+			n.model.play("walk" if spd < 2.6 else "run", 0.1 if spd > 8.0 else 0.2, spd / 1.5 if spd < 2.6 else (1.35 if spd > 8.0 else 0.8))
 		await get_tree().process_frame
 	if is_instance_valid(n) and not keep:
 		n.model.play("idle", 0.25)

@@ -552,8 +552,10 @@ func j_suiton_suijinheki(c: Node3D, _t: Node3D) -> void:
 			Combat.hit_sphere(c, c.global_position + Vector3.UP, 3.6, {"dmg": 2.0, "element": "suiton", "knock": 10.0, "kind": "light"}))
 		tw.tween_interval(0.15)
 	tw.tween_callback(func():
-		e.emitting = false
-		dome.queue_free()
+		if is_instance_valid(e):
+			e.emitting = false
+		if is_instance_valid(dome):
+			dome.queue_free()
 		get_tree().create_timer(1.0).timeout.connect(e.queue_free))
 	if c is Player:
 		c.combat.invuln = 0.6

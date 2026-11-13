@@ -13,6 +13,7 @@ var poi_by_region := {}        # Vector2i -> [poi]
 var regions := {}              # Vector2i -> {node, inter: Array, pois: bool}
 var _queue: Array = []
 var _road_job := {}
+var _poi_q: Array = []         # [bölge, düğüm, poi]: bir bölgenin yerleri (mezra, kamp, han...) ayrı karelerde kurulur
 var _prof := OS.get_cmdline_user_args().has("--prof")
 var _t := 0.0
 
@@ -80,6 +81,14 @@ func _process(dt: float) -> void:
 		_build(q[1], q[2])
 		if _prof:
 			print("BOLGE_US ", Time.get_ticks_usec() - tb, " pois=", q[2])
+	elif not _poi_q.is_empty() and Engine.get_process_frames() % 3 == 2:
+		# bölgenin yerleri: karede bir tane (eskiden bölgenin tümü tek karede kuruluyor, 100-270 ms donduruyordu)
+		var pq: Array = _poi_q.pop_front()
+		var reg = regions.get(pq[0])
+		if reg != null and is_instance_valid(pq[1]) and reg["node"] == pq[1]:
+			var before := Interact.items.size()
+			PoiBuilder.build(pq[1], pq[2])
+			reg["inter"].append_array(Interact.items.slice(before))
 
 
 ## Yol kenarı süsleri: bölge başına onlarca ms sürebiliyor -> adımlara bölünüp karede ~2 ms bütçeyle kurulur
@@ -101,6 +110,8 @@ func _road_jobs() -> void:
 				reg["inter"].append(it)
 			if reg["pois"]:
 				Roadside.spawn_npcs_deferred(_road_job["node"], _road_job["holder"]["npcs"])
+			else:
+				reg["road_npcs"] = [_road_job["node"], _road_job["holder"]["npcs"]]   # yaklaşınca doğarlar
 			_road_job = {}
 			continue
 		var ts := Time.get_ticks_usec()
@@ -143,7 +154,16 @@ func _free(k: Vector2i) -> void:
 
 func _build(k: Vector2i, with_pois: bool) -> void:
 	if regions.has(k):
-		_free(k)
+		# bölge kurulu, yalnız yerleri eksik: yapılar baştan kurulmaz, yerler sıraya girer
+		var r0: Dictionary = regions[k]
+		if with_pois and not r0["pois"]:
+			r0["pois"] = true
+			if r0.has("road_npcs") and is_instance_valid(r0["road_npcs"][0]):
+				Roadside.spawn_npcs_deferred(r0["road_npcs"][0], r0["road_npcs"][1])
+			r0.erase("road_npcs")
+			for p in poi_by_region.get(k, []):
+				_poi_q.append([k, r0["node"], p])
+		return
 	var node := Node3D.new()
 	node.name = "Bolge_%d_%d" % [k.x, k.y]
 	add_child(node)
@@ -166,6 +186,6 @@ func _build(k: Vector2i, with_pois: bool) -> void:
 		b.finish()
 	if with_pois:
 		for p in poi_by_region.get(k, []):
-			PoiBuilder.build(node, p)
+			_poi_q.append([k, node, p])
 	var inter: Array = Interact.items.slice(before)
 	regions[k] = {"node": node, "inter": inter, "pois": with_pois, "road": false}

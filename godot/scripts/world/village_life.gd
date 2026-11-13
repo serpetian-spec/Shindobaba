@@ -37,6 +37,11 @@ func _ready() -> void:
 	WorldDay.vl = self
 
 
+var hair_wait := 0     # yüzü / saçı hazırlanırken geri çevrilen kişi sayısı (üst sınır: sonsuza dek beklenmez)
+var allow_defer := false   # yalnız sıradan gelen isteklerde: kişi hazır değilse istek sıraya geri döner
+var deferred := false
+
+
 func _village_at(p: Vector3) -> Dictionary:
 	if interiors and interiors.inside != "":
 		return {}
@@ -137,8 +142,16 @@ func _process(dt: float) -> void:
 		# oyuncu koşarken / atılırken (Ctrl) yeni karakter kurma: hareket bitince sırayla gelirler
 		var spd = Game.player.velocity.length() if "velocity" in Game.player else 0.0
 		if spd < 9.0 or npcs.size() < 4:
-			_spawn(queue.pop_front())
-			spawn_cd = 0.3
+			var rq = queue.pop_front()
+			allow_defer = true
+			deferred = false
+			_spawn(rq)
+			allow_defer = false
+			if deferred:
+				queue.push_back(rq)   # yüzü / saçı arka planda hazırlanıyor: biraz sonra yeniden
+				spawn_cd = 0.12
+			else:
+				spawn_cd = 0.3
 	t -= dt
 	if t > 0.0:
 		return
@@ -422,9 +435,13 @@ func _spawn(req: Array) -> void:
 		"chat2":
 			# sohbet çifti: ikinci kişi bir sonraki karede gelir
 			var a = _villager("chat", req[1], req[2])
+			if a == null:
+				return
 			queue.push_front(["chat_b", req[1] + Vector3(1.4, 0, 0.3), req[2], a])
 		"chat_b":
 			var b = _villager("chat", req[1], req[2])
+			if b == null:
+				return
 			var a = req[3]
 			if is_instance_valid(a):
 				a.buddy = b
@@ -434,6 +451,8 @@ func _spawn(req: Array) -> void:
 			_spawn_site_actor(req[1], req[2], req[3])
 		_:
 			var vg = _villager(req[0], req[1], req[2])
+			if vg == null:
+				return
 			if req[0] == "shopper":
 				vg._pick_stall()
 			elif req[0] == "kid" and phase == "sabah":
@@ -458,8 +477,15 @@ func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", f
 	if wact != "" and fid == "" and not extra.has("look_extra") and not extra.has("display_override"):
 		wp = WorldDay.cast(WorldDay.village_of(at), wact, at)
 		if not wp.is_empty():
+			var wd: Dictionary = WorldDay.dress(wp, wact)
+			# yüzü / saçı henüz hazır değilse (arka planda başlatıldı) kişi şimdi gelmez: istek sıraya döner, hazır olunca çıkar
+			if allow_defer and hair_wait < 60 and not CharacterModel.prepare(wd.get("look_extra", {})):
+				hair_wait += 1
+				deferred = true
+				return null
+			hair_wait = 0
 			extra = extra.duplicate()
-			extra.merge(WorldDay.dress(wp, wact), true)
+			extra.merge(wd, true)
 	# ninja değilse: köyün kalıcı sivillerinden biri (yoksa yeni yüz kayda geçer)
 	var fk := {}
 	if wp.is_empty() and fid == "" and role in WorldFolk.ROLES and not extra.has("look_extra") and not extra.has("display_override") and not extra.get("interior", false):
@@ -472,7 +498,13 @@ func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", f
 				extra["folk_vid"] = fvid
 				extra["folk_site"] = fsite
 			else:
-				extra.merge(WorldFolk.dress(fk), true)
+				var fdr: Dictionary = WorldFolk.dress(fk)
+				if allow_defer and hair_wait < 60 and not CharacterModel.prepare(fdr.get("look_extra", {})):
+					hair_wait += 1
+					deferred = true
+					return null
+				hair_wait = 0
+				extra.merge(fdr, true)
 	var vg = Villager.new()
 	vg.role = role
 	vg.points = pts
@@ -594,6 +626,8 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 	if not role in ["sitter", "vendor", "eat", "bench"]:
 		at = _free_spot(at)   # fener / sandık / duvarın içine ya da arkasına düşen nöbetçi vb. yakındaki boş noktaya
 	var vg = _villager(role, at, [], extra, skey, fid)
+	if vg == null:
+		return
 	npcs.erase(vg)  # mekân aktörleri sokak sayısına dahil değil
 	if d.has("face"):
 		vg.facing = d["face"]

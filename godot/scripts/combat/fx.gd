@@ -706,3 +706,32 @@ func aura(parent: Node3D, col: Color, s := 1.0, offset := Vector3(0, 0.9, 0), du
 					if is_instance_valid(p):
 						p.queue_free()))
 	return p
+
+
+## Silik görüntü: modelin o anki pozunun yarı saydam kopyası, kısa sürede söner (hızlı atılış / ışınlanma izi)
+func afterimage(c: Node3D, alpha: float, life: float) -> void:
+	var m = c.get("model")
+	if m == null or not is_instance_valid(m):
+		return
+	for mi in m.find_children("*", "MeshInstance3D", true, false):
+		var src = mi as MeshInstance3D
+		if src.mesh == null or not src.is_visible_in_tree():
+			continue
+		var mesh: Mesh = src.mesh
+		if src.skin != null or src.get_node_or_null(src.skeleton) is Skeleton3D:
+			var baked = src.bake_mesh_from_current_skeleton_pose()
+			if baked:
+				mesh = baked
+		var e = MeshInstance3D.new()
+		e.mesh = mesh
+		for si in mesh.get_surface_count():
+			var mat = src.get_active_material(si)
+			if mat:
+				e.set_surface_override_material(si, mat)
+		e.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		get_tree().current_scene.add_child(e)
+		e.global_transform = src.global_transform
+		e.transparency = 1.0 - alpha
+		var tw = e.create_tween()
+		tw.tween_property(e, "transparency", 1.0, life)
+		tw.tween_callback(e.queue_free)

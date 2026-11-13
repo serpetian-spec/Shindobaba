@@ -350,7 +350,7 @@ static func done(m: Dictionary, ok: bool) -> void:
 	add_trail(left)
 	if left > 0.0 or wiped > 0:
 		Hud.msg("Geride bıraktığın iz: +%d%s  •  toplam iz %d/100" % [int(left), (" (%d iz sildin)" % wiped) if wiped > 0 else "", int(trail())], Color(1, 0.8, 0.6), 6.0)
-	RogueHut.heat(trail() / 200.0)
+	RogueHut.heat(clampf((trail() - 45.0) / 160.0, 0.0, 0.35))   # iz 60'ın altındaysa baraka bulunmaz; 60'ta ~%9, 100'de %34
 	var me = String(Game.profile.get("name", "Bir kaçak"))
 	var vid = String(Orgs.flags().get("rogue_from", Progress.home()))
 	var vn = WorldPeople.vname(vid)

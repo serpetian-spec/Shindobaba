@@ -230,6 +230,108 @@ static func _kill(fid: String, node: Node, seen: bool) -> void:
 	Game.save_game()
 
 
+## Tanıdık dövüşte öldü: katili bellidir. Katil sağsa adıyla Bingo Kitabı'na yazılır (o an karşındaki kişi odur: orada öldürürsen
+## intikam orada alınır, kaçarsa kitaptan izini sürersin); dövüşte çoktan düştüyse intikam alınmış sayılır.
+## body: ölen kişinin düğümü (yoksa null), foes: o dövüşteki düşmanlar, at: dövüş yeri, what: kayda geçecek söz
+static func slain(fid: String, body, foes: Array, at: Vector3, what: String) -> void:
+	if not Friends.all().has(fid):
+		return
+	var f: Dictionary = Friends.all()[fid]
+	var pl = Game.player
+	var has_body = body != null and is_instance_valid(body) and body is Node3D
+	var bp: Vector3 = body.global_position if has_body else at
+	if has_body and pl.global_position.distance_to(bp) < 60.0 and pl.combat and pl.combat.modes and pl.combat.modes.get("eyes"):
+		pl.combat.modes.eyes.on_ally_died(body)
+	f["status"] = "öldü"
+	f["party"] = false
+	f.erase("injury")
+	var cand: Array = foes.filter(func(e): return is_instance_valid(e) and e is Enemy and not e.is_dead())
+	if cand.is_empty():
+		for e in pl.get_tree().get_nodes_in_group("fighters"):
+			if e is Enemy and not e.is_dead() and e.team != "player" and e.global_position.distance_to(bp) < 40.0 and (e.target == body or e.target == pl):
+				cand.append(e)
+	var killer: Enemy = null
+	var bd = 1e18
+	for e in cand:
+		var dd: float = e.global_position.distance_to(bp) * (0.3 if has_body and e.target == body else 1.0)
+		if dd < bd:
+			bd = dd
+			killer = e
+	var up = String(f["name"]).to_upper()
+	if killer == null:
+		var dead_foes = foes.filter(func(e): return is_instance_valid(e) and e is Enemy)
+		if not dead_foes.is_empty():
+			f["killer"] = -1
+			f["killer_name"] = String(dead_foes[0].display_name)
+			f["avenged"] = true
+			Friends.log_event(f, "%s — %s tarafından öldürüldü; katili orada senin elinle öldü" % [what, f["killer_name"]])
+			Hud.banner("%s ÖLDÜ" % up, "Katili %s de orada can verdi. Mezarına gidip söyleyebilirsin." % f["killer_name"], Color(0.85, 0.85, 0.95))
+		else:
+			Friends.log_event(f, what)
+			Hud.banner("%s ÖLDÜ" % up, what, Color(0.85, 0.85, 0.95))
+		Game.save_game()
+		return
+	var e2: Dictionary = {}
+	if killer.has_meta("bingo_id"):
+		for x in Missions._bingo()["list"]:
+			if int(x["id"]) == int(killer.get_meta("bingo_id")):
+				e2 = x
+	if e2.is_empty():
+		var lv = int(killer.level)
+		e2 = Missions._bb_new("C" if lv < 65 else ("B" if lv < 115 else ("A" if lv < 170 else "S")))
+		e2["name"] = String(killer.display_name)
+		e2["level"] = lv
+		e2["hp"] = float(killer.max_hp)
+		e2["power"] = float(killer.arch.get("power", e2["power"]))
+		if String(killer.element) != "":
+			e2["element"] = String(killer.element)
+		e2["escorts"] = 0
+		var mp = Game.to_map(bp)
+		e2["hide"] = [mp.x, mp.y]
+		e2["area"] = [mp.x, mp.y]
+		e2["known"] = 30.0
+		Missions._bingo()["list"].append(e2)
+		killer.set_meta("bingo_id", int(e2["id"]))
+		Missions._bb_spawned[int(e2["id"])] = [killer]
+	e2["kin_victim"] = fid
+	(e2["crimes"] as Array).insert(0, "Öldürdüğü kişi: %s" % String(f["name"]))
+	e2["bounty"] = int(e2["bounty"]) + 2000
+	f["killer"] = int(e2["id"])
+	f["killer_name"] = "«%s» %s" % [e2["alias"], e2["name"]]
+	Friends.log_event(f, "%s — %s tarafından öldürüldü" % [what, f["killer_name"]])
+	if is_family(fid) or Friends.closeness(fid) >= 40:
+		for x in Missions._bingo()["list"]:
+			x["tracked"] = false
+		e2["tracked"] = true
+		Journal.add("%s öldü. Katili: %s. Bingo Kitabı'nda adı var — bulacağım." % [String(f["name"]), f["killer_name"]], "milestone")
+	Hud.banner("%s ÖLDÜ" % up, "Katili: %s. Adı Bingo Kitabı'na yazıldı — intikamını alabilirsin." % f["killer_name"], Color(1, 0.5, 0.45))
+	Game.save_game()
+
+
+## Tanıdık uzakta, görevde öldü: onu öldüren de dünyada biridir — adı Bingo Kitabı'na yazılır
+static func slain_far(fid: String, what: String) -> void:
+	if not Friends.all().has(fid):
+		return
+	var f: Dictionary = Friends.all()[fid]
+	f["status"] = "öldü"
+	f["party"] = false
+	f.erase("injury")
+	var e2: Dictionary = Missions._bb_new(["C", "B", "A", "A"][clampi(int(f.get("rank", 0)), 0, 3)])
+	e2["kin_victim"] = fid
+	(e2["crimes"] as Array).insert(0, "Öldürdüğü kişi: %s" % String(f["name"]))
+	Missions._bingo()["list"].append(e2)
+	f["killer"] = int(e2["id"])
+	f["killer_name"] = "«%s» %s" % [e2["alias"], e2["name"]]
+	Friends.log_event(f, "%s — %s tarafından öldürüldü" % [what, f["killer_name"]])
+	if is_family(fid) or Friends.closeness(fid) >= 40:
+		for x in Missions._bingo()["list"]:
+			x["tracked"] = false
+		e2["tracked"] = true
+		Journal.add("%s öldü. Katili: %s. Bingo Kitabı'nda adı var — bulacağım." % [String(f["name"]), f["killer_name"]], "milestone")
+	Hud.banner("%s ÖLDÜ" % String(f["name"]).to_upper(), "%s. Katili: %s — adı Bingo Kitabı'nda." % [what, f["killer_name"]], Color(1, 0.5, 0.45))
+	Game.save_game()
+
+
 ## Bingo kaçağı öldürüldü (Missions._bingo_killed çağırır)
 static func on_bingo_killed(e: Dictionary) -> void:
 	var fid = String(e.get("kin_victim", ""))

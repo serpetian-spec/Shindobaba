@@ -243,6 +243,15 @@ static var PROF := false   # TEMP: kurulum adımı süreleri
 
 ## Ortam NPC'leri (yolcu, gezgin takım) için model kurma sırası: karede en fazla bir model kurulur, gerisi sonraki karelere
 ## kayar (bir karede 3-4 model = 300-650 ms donma). Kullanım: await CharacterModel.build_turn(self); sonra is_instance_valid kontrol.
+## Kişinin yüzü / saçı arka planda hazırlanana dek bekle (en çok ~1,5 sn), sonra kurulum sırasını al
+static func ready_turn(n: Node, l: Dictionary) -> void:
+	var tries = 0
+	while tries < 600 and is_instance_valid(n) and n.is_inside_tree() and not prepare(l):
+		tries += 1
+		await n.get_tree().process_frame
+	await build_turn(n)
+
+
 static func build_turn(n: Node) -> void:
 	while Engine.get_process_frames() == _build_frame and is_instance_valid(n) and n.is_inside_tree():
 		await n.get_tree().process_frame
@@ -551,6 +560,127 @@ static func face_cut_of(look_d: Dictionary) -> int:
 
 
 ## Kişinin yüz değerleri: seçilmiş parçalar ("face_v") > hat numarası > yüz kimliğinden türetme
+## Ağ yüzeyi dizileri: önbellekte varsa oradan (arka plan işi ekran kartından okuyamaz), yoksa ağdan
+static var _arr_cache := {}
+static var _arr_mx := Mutex.new()
+
+static func _marr(m: ArrayMesh, si: int) -> Array:
+	_arr_mx.lock()
+	var c = _arr_cache.get(m.get_instance_id())
+	_arr_mx.unlock()
+	if c != null and si < (c as Array).size():
+		return (c[si] as Array).duplicate(true)   # derin kopya: paketli diziler paylaşılır, sığ kopyada önbellekteki kaynak ağ bozuluyordu
+	return m.surface_get_arrays(si)
+
+
+## ---- Yüzün arka planda hazırlanması -----------------------------------------------------------------------------
+## Her yeni kişinin yüzü (biçim + anime göz yüzeyi) kurulurken 35-140 ms sürüyordu ve kişi sahneye girdiği karede
+## oyunu donduruyordu. Kişi sahneye girmeden önce prepare() çağrılır: yüzü ve saçı hazır değilse hesap arka planda
+## başlar ve false döner; çağıran o kişiyi biraz sonra yeniden dener.
+static var _face_job := -1
+static var _face_job_vkey := ""
+static var _face_job_fd := {}
+static var _face_job_res := []
+
+
+static func _face_job_run(donor: String, mv: Array, soft: bool, fd: Dictionary, do_var: bool, do_anime: bool) -> void:
+	var f2: Dictionary = fd
+	if do_var:
+		f2 = _face_variant(donor, mv, soft, fd, false)
+	var af = null
+	if do_anime:
+		af = _anime_face(f2, false)
+	if do_var:
+		_arr_mx.lock()
+		_arr_cache.erase((f2["mesh"] as ArrayMesh).get_instance_id())
+		_arr_mx.unlock()
+	_face_job_res = [f2 if do_var else null, af]
+
+
+static func face_pump_s() -> void:
+	if _face_job < 0 or not WorkerThreadPool.is_task_completed(_face_job):
+		return
+	WorkerThreadPool.wait_for_task_completion(_face_job)
+	_face_job = -1
+	if _face_job_res.size() == 2:
+		var base: Dictionary = _face_job_fd
+		if _face_job_res[0] != null:
+			_donor_cache[_face_job_vkey] = _face_job_res[0]
+			base = _face_job_res[0]
+		if _face_job_res[1] != null:
+			_donor_cache["anime|%d" % (base["mesh"] as ArrayMesh).get_instance_id()] = _face_job_res[1]
+	_face_job_res = []
+	_face_job_fd = {}
+
+
+static func face_prepare(l: Dictionary) -> bool:
+	face_pump_s()
+	var g = String(l.get("gender", "m"))
+	var donors: Array = FACE_DONORS_F if g == "f" else FACE_DONORS_M
+	var fi = int(l.get("face_id", -1))
+	if fi < 0:
+		if l.get("face") == null:
+			return true
+		fi = absi(hash(str(l.get("face")))) % donors.size()
+	var donor = String(donors[fi % donors.size()])
+	var age = String(l.get("age", "adult"))
+	if g == "m" and age in ["child", "teen"]:
+		donor = ["HairSample_Male", "Sakurada_Fumiriya"][fi % 2]
+	var fd: Dictionary = _donor_part(donor, "Face")
+	if fd.is_empty() or (fd["iris_c"] as Array).size() < 3 or fd["iris_c"][0] == Vector3.ZERO:
+		return true
+	var l2 = l.duplicate()
+	l2["face_id"] = fi
+	var art = eye_art_of(l2) if ANIME_EYES else -1
+	var mv: Array = face_values(l2).duplicate()
+	if art >= 0:
+		for k in [4, 5, 6, 7, 8, 13]:
+			mv[k] = 0.0
+	var soft = age in ["child", "teen"]
+	var need_var: bool = mv.any(func(x): return absf(float(x)) > 0.001)
+	var vkey = "%s|FaceCut|%s|%s" % [donor, str(mv.map(func(x): return snappedf(float(x), 0.05))), str(soft)]
+	var base: Dictionary = fd
+	if need_var and _donor_cache.has(vkey):
+		base = _donor_cache[vkey]
+		need_var = false
+	var need_anime = art >= 0 and (need_var or not _donor_cache.has("anime|%d" % (base["mesh"] as ArrayMesh).get_instance_id()))
+	if not need_var and not need_anime:
+		return true
+	if _face_job >= 0:
+		return false
+	# kaynak ağın dizileri ana iş parçacığında bir kez okunur
+	var bm: ArrayMesh = base["mesh"]
+	_arr_mx.lock()
+	var have = _arr_cache.has(bm.get_instance_id())
+	_arr_mx.unlock()
+	if not have:
+		var lst = []
+		for si in bm.get_surface_count():
+			lst.append(bm.surface_get_arrays(si))
+		_arr_mx.lock()
+		_arr_cache[bm.get_instance_id()] = lst
+		_arr_mx.unlock()
+	_face_job_vkey = vkey
+	_face_job_fd = base
+	_face_job_res = []
+	_face_job = WorkerThreadPool.add_task(_face_job_run.bind(donor, mv, soft, base, need_var, need_anime))
+	return false
+
+
+## Kişi sahneye girmeden: yüzü ve saçı hazır mı (değilse arka planda başlatılır)
+static func prepare(l: Dictionary) -> bool:
+	if l.is_empty():
+		return true
+	if int(l.get("face_id", -1)) < 0 and l.get("face") == null:
+		l["face_id"] = randi() % 64   # yüzü belirsiz kişi: model kurulurken rastgele seçilecekti; şimdi seçilir ki hazırlanan yüz / saç o olsun
+	var l2 = l.duplicate()
+	if l2.has("years"):
+		Aging.apply_look(l2)
+	var a = face_prepare(l2)
+	var b = hair_prepare(l2)
+	return a and b
+
+
 static func face_values(look_d: Dictionary) -> Array:
 	var fv = look_d.get("face_v")
 	if fv is Array and fv.size() == FP.size():
@@ -558,10 +688,11 @@ static func face_values(look_d: Dictionary) -> Array:
 	return face_shape(face_cut_of(look_d))
 
 
-static func _face_variant(donor: String, sh: Array, soft: bool, fd: Dictionary) -> Dictionary:
+static func _face_variant(donor: String, sh: Array, soft: bool, fd: Dictionary, store := true) -> Dictionary:
 	var key = "%s|FaceCut|%s|%s" % [donor, str(sh.map(func(x): return snappedf(float(x), 0.05))), str(soft)]
-	if _donor_cache.has(key):
+	if store and _donor_cache.has(key):
 		return _donor_cache[key]
+	var stash = []   # arka plan işi: üretilen yüzün dizileri (sonraki adım ekran kartından geri okumasın)
 	var k = 0.65 if soft else 1.0   # çocuk / genç: hatlar daha yumuşak
 	var ic: Array = fd["iris_c"]
 	var e0: Vector3 = ic[0]
@@ -597,14 +728,14 @@ static func _face_variant(donor: String, sh: Array, soft: bool, fd: Dictionary) 
 			else "brow" if mn.contains("FaceBrow") else "mouth" if mn.contains("FaceMouth") else "skin"
 		kinds.append(kd)
 		if kd == "brow":
-			for q in (src.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+			for q in (_marr(src, si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
 				var s2 = 0 if q.x < c.x else 1
 				bsum[s2] += q
 				bn[s2] += 1
 		elif kd == "mouth":
 			var ab := AABB()
 			var f1 = true
-			for q in (src.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+			for q in (_marr(src, si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
 				if f1:
 					ab = AABB(q, Vector3.ZERO); f1 = false
 				else:
@@ -614,7 +745,7 @@ static func _face_variant(donor: String, sh: Array, soft: bool, fd: Dictionary) 
 	var bc = [bsum[0] / maxf(1.0, bn[0]), bsum[1] / maxf(1.0, bn[1])]
 	var am = ArrayMesh.new()
 	for si in src.get_surface_count():
-		var a = src.surface_get_arrays(si)
+		var a = _marr(src, si)
 		var vv: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
 		var kd: String = kinds[si]
 		for vi in vv.size():
@@ -668,7 +799,17 @@ static func _face_variant(donor: String, sh: Array, soft: bool, fd: Dictionary) 
 				q.x = mc.x + (q.x - mc.x) * (1.0 + mouth * wm)
 			vv[vi] = q
 		a[Mesh.ARRAY_VERTEX] = vv
+		if PROF:
+			for ai in [Mesh.ARRAY_TANGENT, Mesh.ARRAY_BONES, Mesh.ARRAY_WEIGHTS]:
+				if a[ai] != null and a[ai].size() != vv.size() * 4:
+					print("DBGARR donor=%s si=%d dizi=%d boy=%d kose=%d bicim=%d onbellek=%s ana=%s" % [donor, si, ai, a[ai].size(), vv.size(), src.surface_get_format(si), _arr_cache.has(src.get_instance_id()), OS.get_thread_caller_id() == OS.get_main_thread_id()])
 		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a)
+		if not store:
+			stash.append(a)
+	if not store:
+		_arr_mx.lock()
+		_arr_cache[am.get_instance_id()] = stash
+		_arr_mx.unlock()
 	var out: Dictionary = fd.duplicate()
 	out["mesh"] = am
 	var ic2: Array = ic.duplicate()
@@ -678,7 +819,8 @@ static func _face_variant(donor: String, sh: Array, soft: bool, fd: Dictionary) 
 	if ic2.size() > 3:
 		ic2[3] = float(ic[3]) * (1.0 + esize) * (1.0 + iris_k)
 	out["iris_c"] = ic2
-	_donor_cache[key] = out
+	if store:
+		_donor_cache[key] = out
 	return out
 
 
@@ -737,9 +879,9 @@ static func eye_art_params(art: int, fv: Array, female: bool) -> Dictionary:
 
 
 ## Yüz ağını çizilmiş göz için hazırlar: göz deliklerini kapatır, VRoid göz parçalarını atar, göz katmanını kurar
-static func _anime_face(fd: Dictionary) -> Dictionary:
+static func _anime_face(fd: Dictionary, store := true) -> Dictionary:
 	var key = "anime|%d" % (fd["mesh"] as ArrayMesh).get_instance_id()
-	if _donor_cache.has(key):
+	if store and _donor_cache.has(key):
 		return _donor_cache[key]
 	var ic: Array = fd["iris_c"]
 	var es = [ic[0] as Vector3, ic[1] as Vector3]
@@ -758,7 +900,7 @@ static func _anime_face(fd: Dictionary) -> Dictionary:
 		var mn = String(mats[si].resource_name) if si < mats.size() and mats[si] else ""
 		if mn.contains("_EYE"):
 			continue   # göz küresi, iris, parlama: artık çiziliyor
-		var a = src.surface_get_arrays(si)
+		var a = _marr(src, si)
 		var vv: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
 		var nn: PackedVector3Array = a[Mesh.ARRAY_NORMAL]
 		var uu: PackedVector2Array = a[Mesh.ARRAY_TEX_UV]
@@ -908,7 +1050,8 @@ static func _anime_face(fd: Dictionary) -> Dictionary:
 	out["mats"] = mats2
 	out["flat_uv"] = flat_uv
 	out["eye_d"] = d
-	_donor_cache[key] = out
+	if store:
+		_donor_cache[key] = out
 	return out
 
 
@@ -1094,16 +1237,19 @@ func _face_and_hair() -> void:
 				# bu yüz/yaş için hiç hazır saç yok: aynı cinsiyet+yaşın başka yüz için hesaplanmış anime saçını ödünç al,
 				# kafatası merkez/yarıçap farkına göre taşı-ölçekle (beklemek 100-300 ms donma)
 				var borrowed = false
-				for key in _hair_cache.keys():
-					var ks = String(key).split("|")
-					if ks.size() >= 5 and ks[2] == String(look["gender"]) and ks[4] == String(look.get("age", "adult")) and AnimeHair.has(ks[1]) and (ks.size() == 6) == (sfx != ""):
-						var src = _skull_cache.get("%s|%s|%s" % [ks[2], ks[3], ks[4]])
-						if src == null:
-							continue
-						_hair_borrow = [key, src[0], src[1]]
-						look["hair_style"] = ks[1]
-						hd = HAIR_DONORS[ks[1]]
-						borrowed = true
+				for any_age in [false, true]:   # önce aynı yaş; yoksa başka yaşın saçı kafatasına uydurulur (iş beklenmez: 160-250 ms donuyordu)
+					for key in _hair_cache.keys():
+						var ks = String(key).split("|")
+						if ks.size() >= 5 and ks[2] == String(look["gender"]) and (any_age or ks[4] == String(look.get("age", "adult"))) and AnimeHair.has(ks[1]) and (ks.size() == 6) == (sfx != ""):
+							var src = _skull_cache.get("%s|%s|%s" % [ks[2], ks[3], ks[4]])
+							if src == null:
+								continue
+							_hair_borrow = [key, src[0], src[1]]
+							look["hair_style"] = ks[1]
+							hd = HAIR_DONORS[ks[1]]
+							borrowed = true
+							break
+					if borrowed:
 						break
 				if not borrowed:
 					_hair_lock()   # hiç hazır saç yok (oyunun ilk köylüleri): işi bekle
@@ -1128,6 +1274,30 @@ func _face_and_hair() -> void:
 		if AnimeHair.has(hd[2]) and banded:
 			hk += "|band"   # alın bandı takılı: kâkül bandın altında, bandın üstünden dik tutamlar (saçak gibi raf olmasın)
 		var bxf = Transform3D.IDENTITY
+		if _hair_borrow.is_empty() and not look.get("own_hair", false) and AnimeHair.has(hd[2]):
+			# kimliği olan kişi (dünya ninjası, tanıdık): saçı değişmez. Bu yüz için hesaplanmamışsa aynı saçın başka yüz
+			# için hazır olanı kafatasına uydurulup takılır (göze aynı saç), asıl hesap arka planda yapılır. Eskiden burada
+			# oyun 150-380 ms bekliyordu: köyde her yeni ninja bir takılma demekti.
+			_hair_pump()
+			if not _hair_cache.has(hk):
+				var same = ""
+				for key in _hair_cache.keys():
+					var ks = String(key).split("|")
+					if ks.size() < 5 or ks[1] != String(hd[2]) or ks[2] != String(look["gender"]) or (ks.size() == 6) != banded:
+						continue
+					if not _skull_cache.has("%s|%s|%s" % [ks[2], ks[3], ks[4]]):
+						continue
+					if same == "" or ks[4] == String(look.get("age", "adult")):
+						same = key
+				if same != "":
+					var sks = same.split("|")
+					var src2 = _skull_cache["%s|%s|%s" % [sks[2], sks[3], sks[4]]]
+					_hair_borrow = [same, src2[0], src2[1]]
+					if _hair_job < 0:
+						var by2 = (band_ring[0] + 0.01) if (banded and not band_ring.is_empty()) else -INF
+						_hair_job_key = hk
+						_hair_job_res = []
+						_hair_job = WorkerThreadPool.add_task(_hair_job_run.bind([hd[2], skull_c, skull_r, banded, by2, _radial_cached(), BAND_DROP]))
 		if not _hair_borrow.is_empty():   # ödünç saç: kaynak kafatasından bu kafatasına
 			hk = String(_hair_borrow[0])
 			var sc0: Vector3 = _hair_borrow[1]
@@ -1139,6 +1309,9 @@ func _face_and_hair() -> void:
 		if not _hair_cache.has(hk):
 			_hair_lock()
 		if not _hair_cache.has(hk):
+			if PROF:
+				print("DBGSYNC %s keep=%s npc=%s strict=%s job=%d jobkey=%s sk=%s" % [hk, look.get("keep_hair", false), look.get("npc", false), look.get("npc_strict", false), _hair_job, _hair_job_key, _skull_cache.keys().size()])
+				print_stack()
 			if AnimeHair.has(hd[2]):   # sıfırdan anime saçı (VRoid tabanı yok)
 				_hair_cache[hk] = AnimeHair.build(hd[2], skull_c, skull_r, banded, (band_ring[0] + 0.01) if (banded and not band_ring.is_empty()) else -INF, _radial_cached(), BAND_DROP)
 				_hair_dyn[hk] = _anime_dangle(_hair_cache[hk], AnimeHair.strands)   # kâkül/ense/favori salınır, dikenler hafif yaylanır
@@ -6467,9 +6640,19 @@ func _strap_mesh(sx: float, belt := false) -> Mesh:
 ## köşesinin ağırlıklarını taşır -> kabukla birlikte eğilir/bükülür, hiçbir açıdan havada kalmaz, kumaşın içine girmez.
 var _sk := {}
 
+## Kaynak kabuğun okunmuş köşe verisi saklanır: aynı kabuk (hazır gövde / yelek kabukları) her karakterde yeniden okunup
+## taranıyordu (karakter başına 30-130 ms donma: bel çantası, bant, cepler)
+static var _sk_src_cache := {}   # ağ kimliği -> [ağ, veri]
+
 func _sk_begin(src: ArrayMesh) -> bool:
 	if src == null:
 		return false
+	var ck = src.get_instance_id()
+	if _sk_src_cache.has(ck) and _sk_src_cache[ck][0] == src:
+		var d0: Dictionary = _sk_src_cache[ck][1]
+		_sk = {"v": d0["v"], "n": d0["n"], "b": d0["b"], "w": d0["w"], "per": d0["per"], "ov": PackedVector3Array(), "on": PackedVector3Array(), "oc": PackedColorArray(),
+			"ob": PackedInt32Array(), "ow": PackedFloat32Array(), "oi": PackedInt32Array(), "custom": d0["custom"]}
+		return true
 	var a = src.surface_get_arrays(0)
 	var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX]
 	var used := {}
@@ -6486,6 +6669,9 @@ func _sk_begin(src: ArrayMesh) -> bool:
 		bb.append(B.slice(i * per, i * per + per)); ww.append(W.slice(i * per, i * per + per))
 	_sk = {"v": vv, "n": nn, "b": bb, "w": ww, "per": per, "ov": PackedVector3Array(), "on": PackedVector3Array(), "oc": PackedColorArray(),
 		"ob": PackedInt32Array(), "ow": PackedFloat32Array(), "oi": PackedInt32Array(), "custom": a[Mesh.ARRAY_CUSTOM0] != null}
+	if _sk_src_cache.size() > 48:
+		_sk_src_cache.clear()
+	_sk_src_cache[ck] = [src, {"v": vv, "n": nn, "b": bb, "w": ww, "per": per, "custom": _sk["custom"]}]
 	return true
 
 
@@ -6527,6 +6713,25 @@ func _sk_box(c: Vector3, u: Vector3, v: Vector3, n: Vector3, col: Color) -> void
 				corners.append(c + u * sx + v * sy + n * sz)
 	var faces = [[0, 2, 3, 1], [4, 5, 7, 6], [0, 1, 5, 4], [2, 6, 7, 3], [0, 4, 6, 2], [1, 3, 7, 5]]
 	var fn = [-n, n, -v, v, -u, u]
+	# sekiz köşenin en yakın kabuk köşesi bir kez bulunur (eskiden 24 köşe için tüm kabuk 24 kez taranıyordu):
+	# önce kutunun çevresindeki kabuk köşeleri tek geçişte ayrılır, köşeler yalnız onların içinde aranır
+	var SV: PackedVector3Array = _sk["v"]
+	var rr = (u.length() + v.length() + n.length() + 0.08)
+	rr *= rr
+	var cand := PackedInt32Array()
+	for i in SV.size():
+		if SV[i].distance_squared_to(c) < rr:
+			cand.append(i)
+	var near8 = []
+	for q8 in corners:
+		var bj = -1
+		var bdq = 1e9
+		for i in cand:
+			var dq = SV[i].distance_squared_to(q8)
+			if dq < bdq:
+				bdq = dq
+				bj = i
+		near8.append(bj if bj >= 0 else _sk_nearest(q8))
 	for f in 6:
 		var base = (_sk["ov"] as PackedVector3Array).size()
 		for k in 4:
@@ -6534,7 +6739,7 @@ func _sk_box(c: Vector3, u: Vector3, v: Vector3, n: Vector3, col: Color) -> void
 			_sk["ov"].append(q)
 			_sk["on"].append(fn[f].normalized())
 			_sk["oc"].append(col)
-			var j = _sk_nearest(q)
+			var j: int = near8[faces[f][k]]
 			_sk["ob"].append_array(_sk["b"][j])
 			_sk["ow"].append_array(_sk["w"][j])
 		_sk["oi"].append_array(PackedInt32Array([base, base + 1, base + 2, base, base + 2, base + 3]))
@@ -7985,6 +8190,88 @@ static func _hair_touch(hk: String) -> void:
 static func _hair_job_run(args: Array) -> void:
 	var m = AnimeHair.build(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
 	_hair_job_res = [m, _anime_dangle_s(m, AnimeHair.strands, args[1], args[2], [AnimeHair.last_arrays])]   # sallanma paketi de burada (ana iş parçacığında 100-190 ms)
+
+
+## Kimliği olan kişi sahneye girmeden önce çağrılır: saçı hazırsa (ya da aynı saç başka yüzde hazırsa) true.
+## Hazır değilse hesap arka planda başlatılır ve false döner: çağıran kişiyi biraz sonra yeniden dener (takılma olmaz).
+## Bu yüz hiç kurulmadıysa (kafatası ölçüsü yok) hazırlanamaz: true döner, model kendi kurar.
+static func hair_prepare(l: Dictionary) -> bool:
+	var r = _hair_prepare(l)
+	if PROF and l.get("keep_hair", false): print("DBGPREP %s -> %s" % [_hp_why, r])
+	return r
+
+
+static var _hp_why := ""
+static func _hair_prepare(l: Dictionary) -> bool:
+	hair_pump_s()
+	if l.get("own_hair", false):
+		return true
+	var g = String(l.get("gender", "m"))
+	var st = String(HAIR_ALIAS.get(l.get("hair_style", "diken"), l.get("hair_style", "diken")))
+	var hd: Array = HAIR_DONORS.get(st, [])
+	if hd.size() < 3 or String(hd[2]) == "" or not AnimeHair.has(hd[2]):
+		_hp_why = "noanime " + st
+		return true
+	var donors: Array = FACE_DONORS_F if g == "f" else FACE_DONORS_M
+	var fi = int(l.get("face_id", -1))
+	if fi < 0:
+		if l.get("face") == null:
+			_hp_why = "noface"
+			return true
+		fi = absi(hash(str(l.get("face")))) % donors.size()
+	var donor = String(donors[fi % donors.size()])
+	var age = String(l.get("age", "adult"))
+	if g == "m" and age in ["child", "teen"]:
+		donor = ["HairSample_Male", "Sakurada_Fumiriya"][fi % 2]
+	var banded = l.get("band") != null and String(l.get("band_style", "none")) in ["head", "slashed"]
+	var hk = "vroid|%s|%s|%s|%s%s" % [hd[2], g, donor, age, "|band" if banded else ""]
+	_hp_why = hk
+	if _hair_cache.has(hk):
+		_hp_why += " cached"
+		return true
+	for key in _hair_cache.keys():
+		var ks = String(key).split("|")
+		if ks.size() >= 5 and ks[1] == String(hd[2]) and ks[2] == g and (ks.size() == 6) == banded and _skull_cache.has("%s|%s|%s" % [ks[2], ks[3], ks[4]]):
+			_hp_why += " borrow " + String(key)
+			return true
+	if _hair_job >= 0:
+		return false
+	var sk_key = "%s|%s|%s" % [g, donor, age]
+	var rk = sk_key + "|" + g
+	if not _skull_cache.has(sk_key) or not _radial_cache.has(rk):
+		# bu yüz / yaş daha önce hiç kurulmadı (kafatası ölçüsü yok): saç aynı cinsiyetten bilinen başka bir kafatası için
+		# hazırlanır; model onu kendi kafasına uydurur. Hiç kafatası bilinmiyorsa (oyunun ilk kişileri) hazırlanamaz.
+		var alt = ""
+		for k2 in _skull_cache.keys():
+			var p2 = String(k2).split("|")
+			if p2.size() == 3 and p2[0] == g and _radial_cache.has(String(k2) + "|" + g):
+				if alt == "" or p2[2] == age:
+					alt = String(k2)
+		if alt == "":
+			_hp_why += " noalt"
+			return true
+		sk_key = alt
+		rk = alt + "|" + g
+		var ap = alt.split("|")
+		hk = "vroid|%s|%s|%s|%s%s" % [hd[2], g, ap[1], ap[2], "|band" if banded else ""]
+	var sc: Array = _skull_cache[sk_key]
+	var ring: Array = sc[2]
+	var by = (float(ring[0]) + 0.01) if (banded and not ring.is_empty()) else -INF
+	_hair_job_key = hk
+	_hair_job_res = []
+	_hair_job = WorkerThreadPool.add_task(_hair_job_run.bind([hd[2], sc[0], sc[1], banded, by, _radial_cache[rk], BAND_DROP]))
+	return false
+
+
+static func hair_pump_s() -> void:
+	if _hair_job < 0 or not WorkerThreadPool.is_task_completed(_hair_job):
+		return
+	WorkerThreadPool.wait_for_task_completion(_hair_job)
+	_hair_job = -1
+	if _hair_job_res.size() == 2 and _hair_job_res[0] is ArrayMesh:
+		_hair_cache[_hair_job_key] = _hair_job_res[0]
+		_hair_dyn[_hair_job_key] = _hair_job_res[1]
+	_hair_job_res = []
 
 
 func _hair_pump() -> void:
@@ -10076,6 +10363,7 @@ func _dangle_process(dt: float) -> void:
 
 
 func _attachments() -> void:
+	var _pa = Time.get_ticks_usec()
 	var hc = _head_center()
 	var female: bool = look["gender"] == "f"
 	var hair_col: Color = look["hair"]
@@ -10091,6 +10379,7 @@ func _attachments() -> void:
 	materials.append(hair_mat)
 	if brows_mesh:
 		brows_mesh.material_override = hair_mat
+	if PROF: print("PROFA mat %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	# --- alın koruyucu
 	if look["band"] != null and look["band_style"] != "none":
 		var band = MB.new()
@@ -10108,6 +10397,7 @@ func _attachments() -> void:
 				_mesh_on("Head", band.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0)))
 			else:
 				_hitai_head(bc)
+	if PROF: print("PROFA band %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	# --- yelek: kumaş katmanına boyanır; üstüne sadece yaka + parşömen cepleri (dış giysi altındayken yok: taşıyordu)
 	if look["vest"] != null and (look.get("outer_style") == null or String(look.get("outer_style")) in ["atki", "kisa", "kesa"]):
 		var v = MB.new()
@@ -10140,9 +10430,12 @@ func _attachments() -> void:
 		_mesh_on("UpperChest", v.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
 		if not vlo.verts.is_empty():
 			_mesh_on("Chest", vlo.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
+	if PROF: print("PROFA vest %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	_outfit_extras()
 	# --- eldeki silahlar (ekipman: sağ el / sol el) ve kınları
+	if PROF: print("PROFA extras %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	_weapons()
+	if PROF: print("PROFA weapons %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	# --- çanta + kunai kılıfı
 	# bel çantası: kalça kemiğine yapışık katı kutu kumaşın/eteğin/paltonun içine giriyordu -> gövde kabuğunun arka yüzeyine
 	# derili ince kapaklı çanta (kumaşla eğilir); beli/kalçayı örten giysi, etek ya da hakama varsa hiç takılmaz
@@ -10152,7 +10445,9 @@ func _attachments() -> void:
 		if _sk_plate(0.0, hy, 0.12, 0.075, 0.022, bc, 0.002, false):
 			_sk_plate(0.0, hy + 0.028, 0.124, 0.024, 0.008, bc.darkened(0.18), 0.024, false)   # kapak
 		_sk_end(_geo_for(look["gender"]))
+	if PROF: print("PROFA pouch %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	_thigh_holster()
+	if PROF: print("PROFA holster %.0f" % [(Time.get_ticks_usec() - _pa) / 1000.0]); _pa = Time.get_ticks_usec()
 	if look.get("leg_warmers") is Color:
 		_leg_warmers(look["leg_warmers"])
 	if look.get("neck_warmer") is Color:

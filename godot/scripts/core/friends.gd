@@ -1035,10 +1035,7 @@ func _life_event() -> void:
 			f["news"] = "Hastaneden çıktım. Bir dahaki sefere kimseye sırtımı dönmeyeceğim."
 			Hud.msg("Haber: %s görevde yaralandı, hastanede yatıyor." % f["name"], Color(1, 0.75, 0.5))
 		elif r < defect_p + 0.81 and not close:
-			f["status"] = "öldü"
-			f["party"] = false
-			log_event(f, "Bir görevde öldü")
-			Hud.banner("KÖTÜ HABER", "%s bir görevden dönmedi. Köy onu kahraman olarak anıyor." % f["name"], Color(0.8, 0.8, 0.9))
+			KinDrama.slain_far(id, "Bir görevde öldü")
 		else:
 			var alive = fam.filter(func(m): return m.get("alive", true) and String(m["rel"]) in ["Babası", "Annesi"])
 			if not alive.is_empty():
@@ -1099,13 +1096,7 @@ func _defect(id: String) -> void:
 
 ## Dost gözünün önünde öldü: kalıcı. Mangekyō: yanında ölen dost da gözü uyandırır (yakın birini kendi elinle öldürmenin yanında).
 func _die_in_battle(id: String, n: Node) -> void:
-	var f: Dictionary = all()[id]
-	if n is Node3D and Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
-		Game.player.combat.modes.eyes.on_ally_died(n)
-	f["status"] = "öldü"
-	f["party"] = false
-	log_event(f, "Senin yanında savaşırken öldü")
-	Hud.banner("%s ÖLDÜ" % String(f["name"]).to_upper(), "Son nefesinde sana gülümsedi. %s onu asla unutmayacak." % Game.village(String(f.get("village", Progress.home()))).get("name", "Köy"), Color(0.85, 0.85, 0.95))
+	KinDrama.slain(id, n, [], Game.player.global_position, "Senin yanında savaşırken öldü")
 
 
 
@@ -1689,9 +1680,7 @@ func _fights_tick(dt: float) -> void:
 				Hud.msg("%s: \"Sen olmasan bitmiştim. Borçluyum.\"" % f["name"], Color(0.6, 1.0, 0.75), 5.0)
 			elif ally_dead or (far and randf() < 0.35):
 				if randf() < 0.15:
-					f["status"] = "öldü"
-					Friends.log_event(f, "%s sırasında öldü" % fg["title"])
-					Hud.banner("%s ÖLDÜ" % String(f["name"]).to_upper(), "%s sırasında hayatını kaybetti." % fg["title"], Color(0.85, 0.85, 0.95))
+					KinDrama.slain(id, al, fg["foes"], fg["at"], "%s sırasında öldü" % fg["title"])
 				else:
 					f["away"] = Time.get_unix_time_from_system() + 600.0
 					Friends.log_event(f, "%s: ağır yaralandı" % fg["title"])
@@ -1807,10 +1796,7 @@ static func on_mission_done(rank: String) -> void:
 				Hud.banner("ÖĞRENCİN %s OLDU" % rank_label(f0).to_upper(), "%s seninle çıktığı görevlerde büyüdü." % f0["name"], Color(0.7, 0.9, 1.0))
 		var r = randf()
 		if r < float(risk[0]):
-			f0["status"] = "öldü"
-			f0["party"] = false
-			log_event(f0, "%s-rank görevde hayatını kaybetti" % rank)
-			Hud.banner("%s ÖLDÜ" % String(f0["name"]).to_upper(), "Görevden dönemedi. Köye onun yerine yalnız bandı döndü.", Color(0.85, 0.85, 0.95))
+			KinDrama.slain_far(String(id), "%s-rank görevde hayatını kaybetti" % rank)
 			continue
 		elif r < float(risk[0]) + float(risk[1]):
 			injure(id, "görevde yaralandı")

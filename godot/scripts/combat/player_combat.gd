@@ -83,6 +83,8 @@ func busy() -> bool:
 func _unhandled_input(e: InputEvent) -> void:
 	if Game.paused or Game.ui_open:
 		return
+	if MissionWork.active():
+		return   # görev işi (nesneyi al / taşı / kur) sürerken saldırı ve teknik araya girmez
 	if modes and modes.handle_input(e):
 		return
 	if e.is_action_pressed("attack"):

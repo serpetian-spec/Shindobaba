@@ -931,12 +931,14 @@ static func tick(dt: float) -> void:
 		_road(4.0)
 	# uzaklaşan takım sahneden çekilir (yolculuk kayıtta sürer)
 	for g in _groups:
+		if (g["nodes"] as Array).is_empty():
+			continue
 		var ln = (g["nodes"] as Array)[0]
 		if not is_instance_valid(ln) or ln.global_position.distance_to(Game.player.global_position) > 115.0:
 			for n in g["nodes"]:
 				if is_instance_valid(n):
 					n.queue_free()
-	_groups = _groups.filter(func(g): return (g["nodes"] as Array).any(func(n): return is_instance_valid(n) and not n.is_queued_for_deletion()))
+	_groups = _groups.filter(func(g): return g.get("pending", false) or (g["nodes"] as Array).any(func(n): return is_instance_valid(n) and not n.is_queued_for_deletion()))
 
 
 static func _outdoors() -> bool:
@@ -1041,24 +1043,42 @@ static func _show(run: Dictionary, leaving: bool) -> Array:
 ## Takımı sahneye koy: lider hedefe yürür, diğerleri arkasında; varınca kaybolurlar
 static func stage_team(people: Array, from: Vector3, to: Vector3, line: String, slow := false) -> Array:
 	var nodes = []
+	var grp = {"nodes": nodes, "line": line, "said": false, "pending": true}
+	_groups.append(grp)
+	_stage_async(people, from, to, slow, grp)
+	return nodes
+
+
+## Üyeler ayrı karelerde, yüzü / saçı arka planda hazırlandıktan sonra sahneye girer (eskiden takımın tümü tek karede
+## kuruluyordu: 250-460 ms donma).
+static func _stage_async(people: Array, from: Vector3, to: Vector3, slow: bool, grp: Dictionary) -> void:
+	var nodes: Array = grp["nodes"]
 	var lead: Node3D = null
 	for i in people.size():
 		var q: Dictionary = people[i]
 		var ex = dress(q, "takim")
 		ex["speed"] = 2.1 if slow else 3.3
+		if is_instance_valid(vl):
+			await CharacterModel.ready_turn(vl, ex.get("look_extra", {}))
+		if not is_instance_valid(vl):
+			break
 		var at = from + Vector3(0.9 * (i % 2 * 2 - 1) * (1 if i > 0 else 0), 0, 1.2 * i)
+		if is_instance_valid(lead):
+			at = lead.global_position + Vector3(0.9 * (i % 2 * 2 - 1), 0, 1.2 * i)   # lider yürümeye başladı: arkasında doğar
+			at.y = Game.ground_height(at.x, at.z)
 		var n = vl._villager("team", at, vl.street_cache.get(village_of(from), []), ex)
+		if n == null:
+			continue
 		vl.npcs.erase(n)
 		on_stage(q, n, "takim")
-		if lead == null:
+		if not is_instance_valid(lead):
 			lead = n
 			n.dest = to
 		else:
 			n.follow = lead
 			n.follow_off = Vector3(0.85 * (i % 2 * 2 - 1), 0, 0.9 + 0.5 * i)
 		nodes.append(n)
-	_groups.append({"nodes": nodes, "line": line, "said": false})
-	return nodes
+	grp["pending"] = false
 
 
 static func _bubbles() -> void:
@@ -1066,6 +1086,8 @@ static func _bubbles() -> void:
 		return
 	for g in _groups:
 		if g["said"]:
+			continue
+		if (g["nodes"] as Array).is_empty():
 			continue
 		var n = (g["nodes"] as Array)[0]
 		if is_instance_valid(n) and n.global_position.distance_to(Game.player.global_position) < 16.0:
