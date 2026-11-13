@@ -23236,7 +23236,7 @@ func p_shi_tsu_hiko(c: Node3D, t: Node3D) -> void:
 	var holder: Node3D = c.model if "model" in c and c.model else c
 	holder.add_child(dragon)
 	# ayaklar ejderin omuzlarının üstünde (başın hemen ardı); model +Z'ye bakar
-	dragon.position = Vector3(0, -0.72, -0.4)
+	dragon.position = Vector3(0, -0.9, -0.4)
 	dragon.rotation.y = PI
 	dragon.scale = Vector3.ONE * 0.1
 	var tw = dragon.create_tween()

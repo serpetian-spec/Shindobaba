@@ -244,15 +244,16 @@ static var PROF := false   # TEMP: kurulum adımı süreleri
 ## Ortam NPC'leri (yolcu, gezgin takım) için model kurma sırası: karede en fazla bir model kurulur, gerisi sonraki karelere
 ## kayar (bir karede 3-4 model = 300-650 ms donma). Kullanım: await CharacterModel.build_turn(self); sonra is_instance_valid kontrol.
 ## Kişinin yüzü / saçı arka planda hazırlanana dek bekle (en çok ~1,5 sn), sonra kurulum sırasını al
-static func ready_turn(n: Node, l: Dictionary) -> void:
+static func ready_turn(n, l: Dictionary) -> void:   # n türsüz: beklerken silinen düğüm tür denetimine takılmasın
 	var tries = 0
 	while tries < 600 and is_instance_valid(n) and n.is_inside_tree() and not prepare(l):
 		tries += 1
 		await n.get_tree().process_frame
-	await build_turn(n)
+	if is_instance_valid(n) and n.is_inside_tree():
+		await build_turn(n)
 
 
-static func build_turn(n: Node) -> void:
+static func build_turn(n) -> void:
 	while Engine.get_process_frames() == _build_frame and is_instance_valid(n) and n.is_inside_tree():
 		await n.get_tree().process_frame
 	_build_frame = Engine.get_process_frames()
@@ -12894,7 +12895,30 @@ func _stance_for_look() -> String:
 	return ""
 
 
+const SKEL_RANGE := 90.0   # bundan uzaktaki / görünmeyen modelin iskelet katmanları (duruş, silah tutuşu) her kare işlemez
+var _skel_fr := randi() % 8
+
+
+func _skel_sleep() -> void:
+	_skel_fr += 1
+	if _skel_fr % 8 != 0 or skel == null:
+		return
+	var cam = get_viewport().get_camera_3d()
+	var r = SKEL_RANGE * maxf(1.0, global_transform.basis.get_scale().y)
+	var far = cam != null and (not is_visible_in_tree() or cam.global_position.distance_squared_to(global_position) > r * r)
+	var pm = Node.PROCESS_MODE_DISABLED if far else Node.PROCESS_MODE_INHERIT
+	if skel.process_mode != pm:
+		skel.process_mode = pm
+	# çok uzaktaki (görüş dışı) kişinin animasyonu da işlemez; yaklaşınca kaldığı yerden sürer
+	if anim:
+		var r2 = 160.0 * maxf(1.0, global_transform.basis.get_scale().y)
+		var pa = Node.PROCESS_MODE_DISABLED if (cam != null and cam.global_position.distance_squared_to(global_position) > r2 * r2) else Node.PROCESS_MODE_INHERIT
+		if anim.process_mode != pa:
+			anim.process_mode = pa
+
+
 func _process(dt: float) -> void:
+	_skel_sleep()
 	if anim:
 		var tc = _time_comp()
 		if absf(anim.speed_scale - _anim_speed * tc) > 0.001:

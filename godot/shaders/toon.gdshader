@@ -1163,8 +1163,8 @@ void fragment() {
 		// taş fener / kâğıt fener ateş odası: alacakaranlıkta da yanar, sıcak güçlü sarı (muhafız feneri gibi)
 		vec3 vl = COLOR.rgb;
 		float lamp0 = step(distance(vl, vec3(1.0, 0.85, 0.5)), 0.02) + step(distance(vl, vec3(1.0, 0.85, 0.55)), 0.02);
-		EMISSION += lamp0 * vec3(1.0, 0.55, 0.12) * (2.0 + g_night * 5.0);
-		ALBEDO = mix(ALBEDO, vec3(1.0, 0.72, 0.25), lamp0 * 0.85);
+		EMISSION += lamp0 * vec3(1.0, 0.55, 0.12) * g_night * 7.0;   // gündüz sönük (kullanıcı: ışıklar gündüz yanmasın)
+		ALBEDO = mix(ALBEDO, mix(vec3(0.84, 0.81, 0.72), vec3(1.0, 0.72, 0.25), g_night), lamp0 * 0.85);   // gündüz: sönük kâğıt rengi
 	}
 	if (g_night > 0.0 && use_vertex_color) {
 		// renk işaretleri: cam / shoji pencere, fener ışığı, kırmızı kâğıt fener (HouseKit, DoorKit, Builder.lantern)

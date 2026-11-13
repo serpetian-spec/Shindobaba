@@ -314,7 +314,20 @@ func load_slot(slot: int) -> void:
 	_begin_game(p)
 
 
+var perf_panel: Control
+
+
+func _make_perf_panel() -> void:
+	var cl = CanvasLayer.new()
+	cl.layer = 120
+	add_child(cl)
+	perf_panel = preload("res://scripts/ui/perf_panel.gd").new()
+	cl.add_child(perf_panel)
+
+
 func _begin_game(pos: Vector3) -> void:
+	if perf_panel == null:
+		_make_perf_panel()   # gizliyken de toplar: oturum grafiği baştan dolar
 	if preview:
 		preview.queue_free()
 		preview = null
@@ -387,6 +400,14 @@ func _route(e: InputEvent) -> void:
 		if preview:
 			preview.rotation.y = PI + preview_yaw   # kurulumla aynı (klan/saç değişince model ters dönüyordu)
 	if mode != "game":
+		return
+	if e is InputEventKey and e.pressed and not e.echo and e.keycode in [KEY_F3, KEY_F4, KEY_F5]:   # performans paneli
+		if perf_panel == null:
+			_make_perf_panel()
+		match e.keycode:
+			KEY_F3: perf_panel.toggle()
+			KEY_F4: perf_panel.next_test()
+			KEY_F5: perf_panel.toggle_vsync()
 		return
 	if e is InputEventKey and e.pressed and not e.echo and e.keycode == KEY_F9 and player != null:   # görünmez yapı teşhisi (oyuncu raporu)
 		preload("res://scripts/core/inv_check.gd").run(get_tree(), player.global_position)
@@ -602,6 +623,7 @@ var _vram_t := -100.0
 var _fps_n := 0
 var _fps_t := 0.0
 var _fps_worst := 0.0
+var _census_k := 0
 
 
 func _vram_log(dt: float) -> void:
@@ -621,6 +643,28 @@ func _vram_log(dt: float) -> void:
 		var ws = get_window().size
 		print("FPS %d dk: ort %.0f, en uzun kare %.0f ms | %s | kalite %d, görüş %.2f | %dx%d" % [int(Time.get_ticks_msec() / 60000.0), _fps_n / _fps_t, _fps_worst * 1000.0, where,
 			int(Game.settings.get("quality", 2)), float(Game.settings.get("view", 1.0)), ws.x, ws.y])
+		# sızıntı izi: sahnedeki düğüm sayısı her dakika; 5 dakikada bir en kalabalık türler (uzun oturumda neyin biriktiği loglardan okunsun)
+		var line = "SAYIM dugum %d | nesne %d | kaynak %d | yetim %d | bellek %d MB" % [int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), int(Performance.get_monitor(Performance.OBJECT_COUNT)),
+			int(Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT)), int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)), int(Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0)]
+		_census_k += 1
+		if _census_k % 5 == 1:
+			var cen := {}
+			var stack: Array = [get_tree().root]
+			while not stack.is_empty():
+				var nd: Node = stack.pop_back()
+				var key = nd.get_class()
+				if nd.get_script() != null:
+					key = String(nd.get_script().resource_path).get_file()
+				cen[key] = int(cen.get(key, 0)) + 1
+				stack.append_array(nd.get_children(true))
+			var top := []
+			for key in cen:
+				if not (key in ["CollisionShape3D", "MultiMeshInstance3D", "StaticBody3D"]):
+					top.append([cen[key], key])
+			top.sort_custom(func(x, y): return x[0] > y[0])
+			for e in top.slice(0, 28):
+				line += " | %s %d" % [e[1], e[0]]
+		print(line)
 	_fps_n = 0
 	_fps_t = 0.0
 	_fps_worst = 0.0

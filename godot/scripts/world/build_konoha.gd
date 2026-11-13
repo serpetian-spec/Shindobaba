@@ -301,7 +301,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		b.pack_mesh(tm, Vector3(ux, 0, un + 4), 180.0, 1.0, 1.5)
 		b._collide(b.w(Vector3(ux, 4.0, un + 4)), Vector3(14, 8, 14), 0.0)
 		for sx2 in [-7.0, 7.0]:
-			b.prop("stone_lamp", Vector3(ux + sx2, 0, un - 20), 0.0, 2.4, 0.4)
+			b.lantern(ux + sx2, un - 20, 3.2 + 0)
 	else:
 		# anime (refs/konoha/Naka_Shrine.png): taş kaide, krem panolu koyu kırmızı ahşap çatkılı ana salon, gri-yeşil geniş
 		# saçaklı çatı + önde üçgen alınlıklı giriş saçağı, mahya üstünde kütükler, iki yanda alçak kafesli kanatlar,
@@ -349,7 +349,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			for yy in [1.3, 2.7, 5.2]:
 				b.box(Vector3(wxk, yy, un - 3.6), Vector3(20.2, 0.3, 0.3), n_wood, 0, false)
 			b.roof(Vector3(wxk, 5.4, un + 1.0), Vector3(23, 3.0, 13), n_roof.darkened(0.04))
-			b.prop("stone_lamp", Vector3(ux + sxk * 6.2, 1.0, un - 10.5), 0.0, 2.0, 0.4)
+			b.lantern(ux + sxk * 6.2, un - 10.5, 3.2 + 1.0)
 		# torii
 		var tn0 = un - 19.0
 		for sxk in [-1.0, 1.0]:
@@ -423,7 +423,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.box(Vector3(yx, 0.06, yn - 31.0), Vector3(4.0, 0.12, 44.0), Color(0.7, 0.69, 0.66), 0, false)
 	for k in 4:
 		for sxk in [-1.0, 1.0]:
-			b.prop("stone_lamp", Vector3(yx + sxk * 4.0, 0.0, yn - 14.0 - k * 10.0), 0.0, 2.0, 0.4)
+			b.lantern(yx + sxk * 4.0, yn - 14.0 - k * 10.0, 3.2 + 0.0)
 	KageHall._water_disc(b, Vector3(yx + 22.0, 0.12, yn - 40.0), 16.0)
 	for k in 7:
 		var ra = k * 51.0

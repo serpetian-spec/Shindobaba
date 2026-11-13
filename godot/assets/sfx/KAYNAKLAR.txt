@@ -6,3 +6,5 @@ Ses efektleri (*_vN.ogg) — hepsi CC0 (kamu malı, atıf gerekmez, ticari kulla
 - heartbeat_v*.ogg: oyun içinde sentezlendi
 İşleme: _tmp/snd (indirme) -> sessizlik kırpma, süre sınırı, sönümleme, RMS -18 dBFS eşitleme (numpy/soundfile)
 - step_water_v*: OGA 100 CC0 SFX 2 (footstep_wet) + 40 CC0 Water/Splash SFX; step_sand_v*: Superpowers Asset Packs (CC0) western-fps-2d/sand-step, perde varyantları
+
+2026-11-13 ElevenLabs (tools/eleven_sfx.py, kullanıcının hesabı) — yalnız eski sentez seslerin yerine ve hiç sesi olmayan adlara: chidori, rasengan, poof, seal, genjutsu, hurt, levelup, hit_claw, hit_fan, hit_heavy, leap, sharingan, byakugan, jutsu_cast, alarm

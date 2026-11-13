@@ -62,4 +62,4 @@ TAG=X PROFV=1 bash _tmp/run_ht.sh       # 16 / 70 / 300 m/sn; 10 dakikayı aşar
 - Dosyalar CRLF; betikle yamalarken satır sonunu koru.
 - `PackedStringArray.any()` yok → `Array(...)` ile sar. İş parçacığında `surface_get_arrays` çöker → köşe dizilerini önbellekten ver.
 - Paketli diziler paylaşılır; önbellekten verirken derin kopya.
-- `character_model.gd` içinde `PROF` korumalı geçici satırlar var (PROFA, PROFB, PROFG, DBG*): takılma işi bitince silinecek.
+- `character_model.gd` içinde `PROF` korumalı geçici satırlar var (PROFA, PROFB, PROFG, DBG*): zararsız, o dosyada iş yaparken temizlenebilir.

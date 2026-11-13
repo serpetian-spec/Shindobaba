@@ -4,8 +4,8 @@ extends RefCounted
 ## Küre/kutu yığını yok — gövdeler Loft tüpleri (yumuşak normaller), kanatlar yassı elips kesitli dirsekli tüpler.
 ## Modeller +Z ile kurulur, dönen düğüm Godot standardında -Z'ye bakar (look_at / mermi yönüyle uyumlu); kanatlılar kendi kendine çırpar.
 
-const CLAY := Color(0.94, 0.92, 0.86)
-const CLAY_SHADE := Color(0.86, 0.84, 0.78)   # karın / kanat altı: hafif koyu (hacim okunsun)
+const CLAY := Color(0.95, 0.95, 0.93)
+const CLAY_SHADE := Color(0.74, 0.79, 0.8)   # karın / kanat altı: hafif koyu (hacim okunsun)
 const EYE := Color(0.12, 0.11, 0.12)
 
 static var _mat: ShaderMaterial
@@ -20,6 +20,9 @@ static func mat() -> ShaderMaterial:
 		_mat.set_shader_parameter("use_vertex_color", true)
 		_mat.set_shader_parameter("rim_amount", 0.25)
 		_mat.set_shader_parameter("detail_noise", 0.12)
+		var ol = ShaderMaterial.new()   # anime dış çizgisi (ters kabuk)
+		ol.shader = load("res://shaders/clay_outline.gdshader")
+		_mat.next_pass = ol
 	return _mat
 
 
@@ -102,87 +105,86 @@ static func _flap(piv: Node3D, sx: float, speed: float) -> void:
 	tw.tween_property(piv, "rotation:z", sx * -0.4, 0.28 / speed)
 
 
-## C2 ejderhası (anime referansı, Deidara C2): uzun yassı timsah burnu + ağız çizgisi boyunca kare dişler, yanda iri kara
-## göz deliği, başın üstünde kalın uçları yuvarlak kıvrık boynuzlar, uzun boyun, sırtta yumru sırası, insan eli gibi
-## parmaklı dört bacak (havada yavaşça kürek çeker), boncuk boncuk boğumlu kıvrık kuyruk (salınır), ince uzun kanat
-## kemiğinden parmak gibi sarkan tüyler (yavaş çırpar). s=1: ~7 m boy
+## C2 ejderhası (anime referansı: _tmp/ref/c2 — C2 Dragon / C2 Guided Missile / C2 Mines): iri şişkin gövde, kalın uzun boyun
+## (öne uzanıp aşağı kavis yapar), geniş küt su aygırı kafası + aşağı eğik kutu burun ve ucunda sivri gaga, üst dudaktan
+## sarkan kare dişler (kale burcu çizgisi), yanda yuvarlak kara göz deliği, burun üstünde iki delik; kafada ve boyun boyunca
+## çift çift ucu kesik kalın boynuz kütükleri; insan eli gibi dört parmaklı kalın bacaklar aşağı sarkar; geniş kılıç
+## kanatlar (ön kenarda yumrular, arka kenarda yuvarlak uçlu tüy lobları) + arkada küçük ikinci çift; gövde kalınlığında,
+## halka halka boğumlu çok uzun kıvrılan kuyruk. s=1: burun ucu +4.2, sırt üstü y≈0.7 (binici omuzların üstünde durur)
 static func c2_dragon(s := 1.0) -> Node3D:
 	var root = Node3D.new()
 	var b = MB.new()
-	# boyun + gövde (yuvarlak), kafatası şişkin
-	var pts = [Vector3(0, 0.3, 2.2), Vector3(0, 0.38, 1.95), Vector3(0, 0.3, 1.65),
-		Vector3(0, 0.15, 1.4), Vector3(0, 0.05, 1.1), Vector3(0, 0.0, 0.7), Vector3(0, 0.02, 0.0), Vector3(0, 0.05, -0.6), Vector3(0, 0.08, -1.05)]
-	var rad = [Vector2(0.5, 0.4), Vector2(0.6, 0.54), Vector2(0.5, 0.46),
-		Vector2(0.38, 0.38), Vector2(0.48, 0.44), Vector2(0.72, 0.6), Vector2(0.82, 0.68), Vector2(0.68, 0.58), Vector2(0.44, 0.42)]
-	Loft.tube(b, _sc(pts, s), _sc(rad, s), CLAY, 22, 3, true, true, _belly)
-	# anime burnu: köşeli (dikdörtgene yakın kesitli) uzun yassı timsah burnu, düz üst yüz, ucu hafif aşağı
-	var sn = [Vector3(0, 0.26, 2.1), Vector3(0, 0.22, 2.45), Vector3(0, 0.16, 2.85), Vector3(0, 0.1, 3.25), Vector3(0, 0.06, 3.5), Vector3(0, 0.05, 3.58)]
-	var sh = [Vector2(0.44, 0.33), Vector2(0.4, 0.28), Vector2(0.35, 0.24), Vector2(0.31, 0.21), Vector2(0.27, 0.17), Vector2(0.16, 0.1)]
-	_sbox_loft(b, _sc(sn, s), _sc(sh, s), 4.0, 28)
+	# kafatası → boyun (yukarı kavis) → omuz → şişkin gövde → kalça
+	var pts = [Vector3(0, 0.02, 3.42), Vector3(0, 0.2, 3.12), Vector3(0, 0.4, 2.75), Vector3(0, 0.52, 2.25), Vector3(0, 0.42, 1.7),
+		Vector3(0, 0.16, 1.25), Vector3(0, 0.0, 0.6), Vector3(0, -0.04, -0.2), Vector3(0, 0.0, -1.0), Vector3(0, 0.06, -1.6)]
+	var rad = [Vector2(0.5, 0.38), Vector2(0.58, 0.47), Vector2(0.42, 0.4), Vector2(0.4, 0.38), Vector2(0.46, 0.44),
+		Vector2(0.74, 0.66), Vector2(1.06, 0.88), Vector2(1.14, 0.94), Vector2(1.0, 0.84), Vector2(0.7, 0.64)]
+	Loft.tube(b, _sc(pts, s), _sc(rad, s), CLAY, 24, 4, true, true, _belly)
+	# burun: köşeleri yuvarlak kutu kesitli, geniş ve küt; öne doğru aşağı eğilir
+	var sn = [Vector3(0, 0.1, 3.15), Vector3(0, 0.02, 3.45), Vector3(0, -0.1, 3.75), Vector3(0, -0.22, 4.0), Vector3(0, -0.3, 4.12)]
+	var sh = [Vector2(0.55, 0.38), Vector2(0.52, 0.34), Vector2(0.47, 0.3), Vector2(0.41, 0.26), Vector2(0.3, 0.18)]
+	_sbox_loft(b, _sc(sn, s), _sc(sh, s), 2.6, 28)
+	# burnun ucundan aşağı sarkan sivri gaga
+	Loft.tube(b, _sc([Vector3(0, -0.34, 4.1), Vector3(0, -0.5, 4.2), Vector3(0, -0.72, 4.24)], s), _sc([Vector2(0.17, 0.13), Vector2(0.11, 0.09), Vector2(0.03, 0.03)], s), CLAY, 12, 3, true, true, _belly)
 	for sx in [-1.0, 1.0]:
-		# iri kara göz deliği (kafatasının yanında, açık renk kenarlı)
-		b.add("sphere", Vector3(sx * 0.53, 0.42, 1.95) * s, Vector3(0.1, 0.3, 0.3) * s, CLAY_SHADE, Vector3.ZERO, 16)
-		b.add("sphere", Vector3(sx * 0.57, 0.42, 1.95) * s, Vector3(0.08, 0.24, 0.24) * s, EYE, Vector3.ZERO, 16)
+		# yuvarlak kara göz deliği (açık renk çukur kenarıyla), kafatası ile burnun birleştiği yerde yanda
+		b.add("sphere", Vector3(sx * 0.52, 0.2, 3.3) * s, Vector3(0.1, 0.26, 0.26) * s, CLAY_SHADE, Vector3.ZERO, 16)
+		b.add("sphere", Vector3(sx * 0.55, 0.2, 3.3) * s, Vector3(0.08, 0.17, 0.17) * s, EYE, Vector3.ZERO, 16)
 		# burun delikleri (uçta, üst yüzde)
-		b.add("sphere", Vector3(sx * 0.09, 0.15, 3.48) * s, Vector3(0.07, 0.05, 0.07) * s, EYE, Vector3.ZERO, 10)
-		# ağız çizgisi: burnun yanında kale burcu gibi kare kare zikzak (animedeki kare dişler)
+		b.add("sphere", Vector3(sx * 0.13, -0.03, 4.02) * s, Vector3(0.09, 0.05, 0.09) * s, EYE, Vector3.ZERO, 10)
+		# üst dudaktan sarkan kare dişler: burnun yanında kale burcu gibi ince koyu çizgi
 		var ml = []
 		var mr = []
-		var z = 3.45
+		var z = 4.02
 		var up = false
-		while z > 2.25:
-			var t0 = (3.5 - z) / 1.25
-			var hw = lerpf(0.275, 0.43, t0) + 0.006
-			var y = lerpf(0.0, 0.1, t0) + (0.07 if up else 0.0)
+		while z > 3.2:
+			var t0 = clampf((4.05 - z) / 0.9, 0.0, 1.0)
+			var hw = lerpf(0.41, 0.55, t0) + 0.012
+			var y = lerpf(-0.3, 0.01, t0) + (0.085 if up else 0.0)
 			ml.append(Vector3(sx * hw, y, z) * s)
-			z -= 0.09
-			ml.append(Vector3(sx * hw, y, z) * s)
+			z -= 0.1
+			ml.append(Vector3(sx * (hw + 0.012), y + 0.034, z) * s)
 			up = not up
 		for q in ml.size():
-			mr.append(Vector2(0.02, 0.02) * s)
+			mr.append(Vector2(0.013, 0.013) * s)
 		Loft.tube(b, ml, mr, EYE, 6, 1, true, true)
-		# kafatası üstünde kıvrım yumruları
-		b.add("sphere", Vector3(sx * 0.27, 0.78, 2.0) * s, Vector3(0.28, 0.2, 0.3) * s, CLAY, Vector3.ZERO, 14)
-		# çok kalın, uçları yuvarlak, yukarı kalkıp arkaya kıvrılan ana boynuz
-		var h0 = Vector3(sx * 0.24, 0.72, 1.82)
-		Loft.tube(b, _sc([h0, h0 + Vector3(sx * 0.05, 0.42, -0.02), h0 + Vector3(sx * 0.09, 0.72, -0.3), h0 + Vector3(sx * 0.12, 0.82, -0.75)], s), _sc([Vector2(0.22, 0.22), Vector2(0.2, 0.2), Vector2(0.19, 0.19), Vector2(0.18, 0.18)], s), CLAY, 16, 4, true, true, _belly)
-	# ortada daha kısa üçüncü boynuz
-	Loft.tube(b, _sc([Vector3(0, 0.74, 1.62), Vector3(0, 1.0, 1.55), Vector3(0, 1.12, 1.3)], s), _sc([Vector2(0.15, 0.15), Vector2(0.14, 0.14), Vector2(0.13, 0.13)], s), CLAY, 14, 4, true, true, _belly)
-	# sırt: iki sıra iri yuvarlak yumru (animedeki boğum boğum sırt)
-	for q in 7:
-		var zz = 1.05 - q * 0.33
-		var sx2 = 0.22 if q % 2 == 0 else -0.22
-		b.add("sphere", Vector3(sx2, 0.6 - absf(zz - 0.2) * 0.08, zz) * s, Vector3(0.42, 0.3, 0.4) * s * (1.0 - q * 0.06), CLAY, Vector3.ZERO, 14)
+		# ucu kesik kalın boynuz kütükleri: kafada bir çift (iri), boyun boyunca iki çift (küçülerek)
+		for hk in [[Vector3(0.24, 0.56, 3.02), 0.5, 0.135], [Vector3(0.22, 0.72, 2.45), 0.34, 0.11], [Vector3(0.26, 0.74, 1.8), 0.3, 0.1]]:
+			var h0: Vector3 = hk[0] * Vector3(sx, 1, 1)
+			var h1 = h0 + Vector3(sx * 0.55, 0.8, -0.3).normalized() * float(hk[1])
+			var hr = float(hk[2])
+			Loft.tube(b, _sc([h0 - (h1 - h0) * 0.3, h0, h1], s), _sc([Vector2(hr * 1.15, hr * 1.15), Vector2(hr * 1.05, hr * 1.05), Vector2(hr, hr)], s), CLAY, 14, 2, false, false, _belly)
+			b.add("sphere", h1 * s, Vector3(hr * 2.0, hr * 0.5, hr * 2.0) * s, CLAY_SHADE.lerp(CLAY, 0.4), Vector3(-20, 0, -sx * 18), 12)   # kesik uç
 	root.add_child(_mi(b))
-	# boğumlu kuyruk: ayrı ayrı boncuk halkalar, geriye uzanıp yana kıvrılır; kökten yavaşça salınır
+	# boğumlu kuyruk: gövde kalınlığında üst üste binen halkalar; geriye uzanır, aşağı sarkıp yana doğru kıvrılır
 	var tail = Node3D.new()
-	tail.position = Vector3(0, 0.08, -1.0) * s
+	tail.position = Vector3(0, 0.04, -1.5) * s
 	var tb = MB.new()
 	var p = Vector3.ZERO
-	var r = 0.42
+	var r = 0.62
 	var ang = 0.0
-	for k in 18:
-		var step = r * 1.25
-		ang += 0.06 + k * 0.012
-		p += Vector3(sin(ang), 0.02, -cos(ang)) * step
-		tb.add("sphere", p * s, Vector3(r * 2.1, r * 1.9, r * 1.6) * s, CLAY if k % 2 == 0 else CLAY_SHADE.lerp(CLAY, 0.5), Vector3(0, -rad_to_deg(ang), 0), 14)
-		r *= 0.92
+	for k in 32:
+		ang += 0.03 + k * 0.0085
+		var pitch = -0.42 * sin(minf(k / 12.0, 1.0) * PI)   # önce aşağı sarkar, sonra düzleşir
+		p += Vector3(sin(ang), pitch, -cos(ang)) * r * 0.82
+		tb.add("sphere", p * s, Vector3(r * 2.15, r * 2.0, r * 1.35) * s, CLAY if k % 2 == 0 else CLAY_SHADE.lerp(CLAY, 0.55), Vector3(0, -rad_to_deg(ang), 0), 16)
+		r *= 0.972
 	tail.add_child(_mi(tb))
 	root.add_child(tail)
 	var tw = tail.create_tween().set_loops()
 	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tail.rotation.y = -0.22
-	tw.tween_property(tail, "rotation:y", 0.22, 1.4)
-	tw.tween_property(tail, "rotation:y", -0.22, 1.4)
-	# insan eli gibi parmaklı dört bacak: uçarken gövdenin altına geriye toplanır, hepsi birlikte yavaşça salınır
+	tail.rotation.y = -0.16
+	tw.tween_property(tail, "rotation:y", 0.16, 1.6)
+	tw.tween_property(tail, "rotation:y", -0.16, 1.6)
+	# insan eli gibi parmaklı dört kalın bacak: gövdenin altından aşağı sarkar, hafifçe geriye toplanıp yavaşça salınır
 	var i = 0
 	for sx in [-1.0, 1.0]:
-		for fz in [0.75, -0.55]:
+		for fz in [0.8, -1.0]:
 			var leg = _c2_leg(s, sx)
-			leg.position = Vector3(sx * 0.55, -0.1, fz) * s
+			leg.position = Vector3(sx * 0.74, -0.38, fz) * s
 			root.add_child(leg)
-			var tuck = 0.55 if fz > 0.0 else 0.85
-			leg.rotation = Vector3(tuck, 0, sx * -0.12)
+			var tuck = 0.2 if fz > 0.0 else 0.42
+			leg.rotation = Vector3(tuck, 0, sx * -0.1)
 			var tl = leg.create_tween().set_loops()
 			tl.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 			tl.tween_interval(0.12 * i)
@@ -196,12 +198,14 @@ static func c2_dragon(s := 1.0) -> Node3D:
 	bob.parallel().tween_property(root, "rotation:x", -0.04, 0.9)
 	bob.tween_property(root, "position:y", -0.08 * s, 1.1)
 	bob.parallel().tween_property(root, "rotation:x", 0.03, 1.1)
-	for sx in [-1.0, 1.0]:
-		var piv = Node3D.new()
-		piv.position = Vector3(sx * 0.45, 0.55, 0.5) * s
-		piv.add_child(_c2_wing(s, sx))
-		root.add_child(piv)
-		_glide(piv, sx)
+	# kanatlar: omuzda büyük çift, kalçaya doğru küçük ikinci çift
+	for wk in [[Vector3(0.6, 0.62, 0.7), 1.0], [Vector3(0.6, 0.6, -0.75), 0.5]]:
+		for sx in [-1.0, 1.0]:
+			var piv = Node3D.new()
+			piv.position = (wk[0] as Vector3) * Vector3(sx, 1, 1) * s
+			piv.add_child(_c2_wing(s * float(wk[1]), sx))
+			root.add_child(piv)
+			_glide(piv, sx)
 	return _fwd(root)
 
 
@@ -275,46 +279,54 @@ static func _sbox_loft(b: MB, pts: Array, half: Array, n := 4.0, seg := 24) -> v
 			b.idx.append_array([ci, k0, k1])
 
 
-## C2 bacağı (sağ: +X): üst kol dışa-aşağı, dirsek, ön kol, dört uzun parmaklı el (parmaklar öne ve yana açık)
+## C2 bacağı (sağ: +X): kalın üst kol dışa-aşağı, dirsek, ön kol, geniş avuç ve dört uzun yuvarlak uçlu parmak (aşağı-öne açık)
 static func _c2_leg(s: float, sx: float) -> Node3D:
 	var b = MB.new()
 	var m = Vector3(sx, 1, 1)
 	var sh = Vector3.ZERO
-	var el = Vector3(0.42, -0.42, -0.08) * m
-	var wr = Vector3(0.5, -1.0, 0.18) * m
-	Loft.tube(b, _sc([sh, el, wr], s), _sc([Vector2(0.3, 0.3), Vector2(0.21, 0.21), Vector2(0.16, 0.14)], s), CLAY, 14, 4, true, true, _belly)
-	b.add("sphere", wr * s + Vector3(0, -0.04, 0.08) * s, Vector3(0.36, 0.16, 0.36) * s, CLAY, Vector3.ZERO, 14)
+	var el = Vector3(0.3, -0.5, -0.1) * m
+	var wr = Vector3(0.34, -1.05, 0.14) * m
+	Loft.tube(b, _sc([sh, el, wr], s), _sc([Vector2(0.36, 0.36), Vector2(0.27, 0.27), Vector2(0.22, 0.2)], s), CLAY, 14, 4, true, true, _belly)
+	b.add("sphere", wr * s + Vector3(0, -0.1, 0.06) * s, Vector3(0.5, 0.3, 0.46) * s, CLAY, Vector3.ZERO, 14)   # avuç
 	for q in 4:
-		var a = (q - 1.5) * 0.42
-		var k0 = wr + Vector3(sin(a) * 0.14, -0.05, 0.12 + cos(a) * 0.1)
-		var k1 = k0 + Vector3(sin(a) * 0.14, 0.04, cos(a) * 0.2)
-		var k2 = k1 + Vector3(sin(a) * 0.06, -0.12, cos(a) * 0.12)
-		Loft.tube(b, _sc([k0, k1, k2], s), _sc([Vector2(0.085, 0.08), Vector2(0.075, 0.07), Vector2(0.07, 0.065)], s), CLAY, 10, 3, true, true, _belly)
+		var a = (q - 1.5) * 0.4
+		var k0 = wr + Vector3(sin(a) * 0.17, -0.14, 0.1 + cos(a) * 0.12)
+		var k1 = k0 + Vector3(sin(a) * 0.12, -0.2, cos(a) * 0.2)
+		var k2 = k1 + Vector3(sin(a) * 0.05, -0.24, cos(a) * 0.1)
+		Loft.tube(b, _sc([k0, k1, k2], s), _sc([Vector2(0.1, 0.095), Vector2(0.09, 0.085), Vector2(0.08, 0.075)], s), CLAY, 10, 3, true, true, _belly)
 	var piv = Node3D.new()
 	piv.add_child(_mi(b))
 	return piv
 
 
-## C2 kanadı (sağ: +X): dışa ve geriye süpürülen ince uzun kemik, üstünde yumrular, arka kenardan parmak gibi uzanan uzun yassı tüyler
+## C2 kanadı (sağ: +X): geniş, yassı, geriye süpürülüp sivrilen kılıç kanat; ön kenarda kalın kol + köke yakın yumrular,
+## arka kenarın iç yarısında birbirine binen yuvarlak uçlu kalın tüy lobları (anime: parmak gibi sarkan tüyler)
 static func _c2_wing(s: float, sx: float) -> MeshInstance3D:
 	var b = MB.new()
 	var m = Vector3(sx, 1, 1)
-	var spar = [Vector3(0, 0, 0), Vector3(0.7, 0.18, -0.1), Vector3(1.5, 0.3, -0.35), Vector3(2.3, 0.28, -0.75), Vector3(2.9, 0.18, -1.15)]
+	var spar = [Vector3(0, 0, 0), Vector3(1.0, 0.22, -0.05), Vector3(2.1, 0.32, -0.4), Vector3(3.3, 0.26, -1.0), Vector3(4.3, 0.1, -1.8)]
+	var chord = [1.35, 1.5, 1.25, 0.75, 0.05]
 	var S = []
-	for v in spar:
-		S.append(v * m * s)
-	Loft.tube(b, S, _sc([Vector2(0.18, 0.15), Vector2(0.15, 0.12), Vector2(0.12, 0.1), Vector2(0.08, 0.07), Vector2(0.04, 0.04)], s), CLAY, 12, 4, true, true, _belly)
-	for q in 4:
-		var t = 0.15 + q * 0.2
-		var kp = _along(spar, t) * m + Vector3(0, 0.1, 0)
-		b.add("sphere", kp * s, Vector3(0.17, 0.13, 0.17) * s * (1.0 - q * 0.15), CLAY, Vector3.ZERO, 12)
-	# geniş, birbirine binen tüyler (tarak gibi aralıklı değil): kanat zarı gibi okunur
-	for q in 9:
-		var t = 0.08 + q * 0.105
-		var r0 = _along(spar, t) * m
-		var L = 0.85 + q * 0.11
-		var tip = r0 + Vector3(sx * (0.15 + q * 0.06), -0.06 - q * 0.005, -L)
-		Loft.tube(b, [r0 * s, r0.lerp(tip, 0.5) * s + Vector3(0, 0.02, 0) * s, tip * s], [Vector2(0.17, 0.045) * s, Vector2(0.19, 0.04) * s, Vector2(0.09, 0.03) * s], CLAY if q % 2 == 0 else CLAY_SHADE, 10, 3, true, true, _belly)
+	var B = []
+	var BR = []
+	for q in spar.size():
+		S.append(spar[q] * m * s)
+		B.append((spar[q] + Vector3(0, -0.04, -chord[q] * 0.5)) * m * s)
+		BR.append(Vector2(maxf(chord[q] * 0.5, 0.02), 0.045 if q < 4 else 0.015) * s)
+	Loft.tube(b, B, BR, CLAY, 14, 4, true, true, _belly)   # kanat yüzeyi
+	Loft.tube(b, S, _sc([Vector2(0.2, 0.17), Vector2(0.17, 0.14), Vector2(0.13, 0.11), Vector2(0.08, 0.07), Vector2(0.03, 0.03)], s), CLAY, 12, 4, true, true, _belly)   # ön kenar kolu
+	for q in 4:   # köke yakın yumrular (ön kenarın üstünde)
+		var kp = _along(spar, 0.08 + q * 0.085) * m + Vector3(0, 0.12, 0.02)
+		b.add("sphere", kp * s, Vector3(0.2, 0.15, 0.2) * s * (1.0 - q * 0.1), CLAY, Vector3.ZERO, 12)
+	for q in 8:   # arka kenar tüy lobları
+		var t = 0.04 + q * 0.09
+		var f = t * (spar.size() - 1)
+		var ci = mini(int(f), spar.size() - 2)
+		var ch = lerpf(chord[ci], chord[ci + 1], f - ci)
+		var r0 = (_along(spar, t) + Vector3(0, -0.07, -ch * 0.8)) * m
+		var L = 0.62 + 0.14 * sin(q * 1.9)
+		var tip = r0 + Vector3(sx * (0.06 + q * 0.03), -0.05, -L)
+		Loft.tube(b, [r0 * s, r0.lerp(tip, 0.55) * s, tip * s], [Vector2(0.21, 0.07) * s, Vector2(0.22, 0.07) * s, Vector2(0.16, 0.06) * s], CLAY if q % 2 == 0 else CLAY_SHADE.lerp(CLAY, 0.45), 10, 3, true, true, _belly)
 	return _mi(b)
 
 

@@ -957,15 +957,162 @@ func prop(kind: String, p: Vector3, yaw_deg := 0.0, height := 0.0, collide := 0.
 
 
 func lantern(x: float, n: float, h := 3.2) -> void:
-	# taş fener (tōrō) hazır modeli; h: tepe yüksekliği (zemin dahil)
-	var gy = h - 3.2
-	if prop("stone_lamp", Vector3(x, gy, n), 0.0, 2.6, 0.32):   # katı: içinden geçilmesin, NPC'ler arkasına girmesin
-		box(Vector3(x, gy + 1.88, n), Vector3(0.62, 0.46, 0.62), Color(1.0, 0.85, 0.5), 0, false)   # ateş odası: gece yanar (toon night_glow)
-		Lights.add(w(Vector3(x, gy + 1.9, n)))
-		return
-	box(Vector3(x, h * 0.5, n), Vector3(0.2, h, 0.2), Color(0.3, 0.22, 0.15), 0, false)
-	box(Vector3(x, h + 0.35, n), Vector3(0.6, 0.7, 0.6), Color(1.0, 0.85, 0.55), 0, false)
-	Lights.add(w(Vector3(x, h + 0.35, n)))
+	# bölgenin feneri (lantern_region): h = eski taş fenerin tepe yüksekliği (zemin + 3.2)
+	var wp = w(Vector3(x, 0, n))
+	var rg = Builder.lantern_region(wp.x, wp.z)
+	lantern_design(x, n, int(rg[0]), h - 3.2, rg[1], bool(rg[2]))
+
+
+## Bölgeye göre fener: [tasarım, taş rengi (a=0: varsayılan gri), yosunlu mu]. Ülkenin doğasına göre —
+## orman (Ateş, Şelale, Dalga): ahşap direkli kâğıt andon; çöl (Rüzgâr): kumtaşı Kasuga; kayalık (Toprak, Taş, Nehir, Kuzey): gri Kasuga;
+## yağmur (Ame) ve dağ (Yıldırım): çift fenerli uzun sokak direği; çayır / pirinç (Çim, Kaplıca, Girdap, Ses): asılı kırmızı chōchin;
+## kar (Kırağı, Demir): alçak yukimi (kar seyir feneri); bataklık (Su / Kiri): koyu yosunlu Kasuga
+const LANTERN_BY_BIOME := {"forest": [2, Color(0, 0, 0, 0), true], "desert": [1, Color(0.8, 0.68, 0.5), false], "rock": [1, Color(0, 0, 0, 0), false],
+	"rain": [5, Color(0, 0, 0, 0), false], "mountain": [5, Color(0, 0, 0, 0), false], "grass": [3, Color(0, 0, 0, 0), false], "rice": [3, Color(0, 0, 0, 0), false],
+	"snow": [4, Color(0.72, 0.74, 0.78), false], "swamp": [1, Color(0.46, 0.5, 0.47), true]}
+static var _lantern_cache := {}
+static func lantern_region(wx: float, wz: float) -> Array:
+	var ck = Vector2i(floori(wx / 256.0), floori(wz / 256.0))
+	if _lantern_cache.has(ck):
+		return _lantern_cache[ck]
+	var m = Vector2(wx, -wz)
+	var best = ""
+	var bd = 1e18
+	var bio := {}
+	for c in Game.world_info.get("countries", []):
+		bio[String(c["id"])] = String(c.get("biome", "forest"))
+		var d = m.distance_squared_to(Vector2(float(c["x"]), float(c["y"])))
+		if d < bd:
+			bd = d
+			best = String(c.get("biome", "forest"))
+	for v in Game.world_info.get("villages", []):   # köy, ülke merkezinden uzak olabilir (Iwa): köyün kendi ülkesi sayılır
+		var d2 = m.distance_squared_to(Vector2(float(v["x"]), float(v["y"])))
+		if d2 < bd:
+			bd = d2
+			best = String(bio.get(String(v.get("country", "")), best))
+	var r: Array = LANTERN_BY_BIOME.get(best, LANTERN_BY_BIOME["forest"])
+	_lantern_cache[ck] = r
+	return r
+
+
+## Fener tasarımları: 1 Kasuga taş fener, 2 ahşap direkli kâğıt andon, 3 direğe asılı kırmızı chōchin,
+## 4 alçak üç ayaklı yukimi taş fener, 5 çift fenerli uzun sokak direği. gy: zemin yüksekliği. Işıklı parçalar GLOW renginde (gece yanar).
+## tint (a>0): taş rengi (kumtaşı, karlı gri...); mossy=false: yosun lekesi yok (çöl, kar, kayalık)
+const LANTERN_GLOW := Color(1.0, 0.85, 0.5)
+const LANTERN_RED := Color(0.9, 0.2, 0.15)   # toon gölgelendirici bu rengi gece kırmızı kâğıt fener olarak yakar
+func lantern_design(x: float, n: float, style: int, gy := 0.0, tint := Color(0, 0, 0, 0), mossy := true) -> void:
+	var stone = Color(0.6, 0.6, 0.58)
+	var stone_d = Color(0.47, 0.48, 0.46)
+	if tint.a > 0.0:
+		stone = Color(tint.r, tint.g, tint.b)
+		stone_d = stone.darkened(0.2)
+	var moss = Color(0.36, 0.5, 0.3) if mossy else stone.lightened(0.06)
+	var wood = Color(0.3, 0.2, 0.13)
+	var wood_l = Color(0.45, 0.31, 0.19)
+	var tile = Color(0.2, 0.22, 0.26)
+	var light_y = gy + 1.9
+	match style:
+		1:
+			# Kasuga tōrō: altıgen kaide, boğumlu gövde, tabla, pencereli ateş odası, kıvrık saçaklı şapka, tepe mücevheri
+			cyl(Vector3(x, gy + 0.08, n), 0.95, 0.16, stone_d, false, 6)
+			cyl(Vector3(x, gy + 0.22, n), 0.72, 0.14, stone, false, 6)
+			cyl(Vector3(x, gy + 0.85, n), 0.3, 1.14, stone, true, 10)
+			cyl(Vector3(x, gy + 0.85, n), 0.4, 0.09, stone_d, false, 10)
+			cyl(Vector3(x, gy + 1.38, n), 0.46, 0.1, stone_d, false, 6)
+			cyl(Vector3(x, gy + 1.5, n), 0.86, 0.14, stone, false, 6)
+			box(Vector3(x, gy + 1.84, n), Vector3(0.4, 0.5, 0.4), LANTERN_GLOW, 0, false)
+			for cx in [-1.0, 1.0]:
+				for cz in [-1.0, 1.0]:
+					box(Vector3(x + cx * 0.23, gy + 1.84, n + cz * 0.23), Vector3(0.1, 0.54, 0.1), stone, 0, false)
+			for cy in [1.6, 2.08]:
+				box(Vector3(x, gy + cy, n), Vector3(0.58, 0.07, 0.58), stone_d, 0, false)
+			for q in 4:   # pencere çıtaları
+				var a = q * 90.0
+				var o = Builder.rot(0.0, 0.215, a)
+				box(Vector3(x + o.x, gy + 1.84, n + o.y), Vector3(0.36, 0.04, 0.03), stone_d, a, false)
+			cyl(Vector3(x, gy + 2.15, n), 1.25, 0.07, stone_d, false, 6)
+			cone(Vector3(x, gy + 2.38, n), 1.12, 0.42, stone, 6)
+			sphere(Vector3(x, gy + 2.66, n), Vector3(0.22, 0.26, 0.22), stone_d, 8)
+			sphere(Vector3(x + 0.2, gy + 2.3, n - 0.15), Vector3(0.5, 0.16, 0.42), moss, 6)
+			sphere(Vector3(x - 0.25, gy + 0.2, n + 0.2), Vector3(0.4, 0.14, 0.36), moss, 6)
+			light_y = gy + 1.84
+		2:
+			# ahşap direkli andon: taş ayak, koyu ahşap direk, çıtalı kâğıt fener kutusu, küçük kiremit şapka
+			box(Vector3(x, gy + 0.12, n), Vector3(0.5, 0.24, 0.5), stone, 0, false)
+			box(Vector3(x, gy + 0.85, n), Vector3(0.16, 1.3, 0.16), wood, 0, true)
+			box(Vector3(x, gy + 1.52, n), Vector3(0.62, 0.07, 0.62), wood, 0, false)
+			box(Vector3(x, gy + 1.9, n), Vector3(0.46, 0.68, 0.46), LANTERN_GLOW, 0, false)
+			for cx in [-1.0, 1.0]:
+				for cz in [-1.0, 1.0]:
+					box(Vector3(x + cx * 0.24, gy + 1.9, n + cz * 0.24), Vector3(0.055, 0.72, 0.055), wood, 0, false)
+			for q in 4:
+				var a = q * 90.0
+				var o = Builder.rot(0.0, 0.245, a)
+				for cy in [1.72, 1.9, 2.08]:
+					box(Vector3(x + o.x, gy + cy, n + o.y), Vector3(0.46, 0.03, 0.025), wood, a, false)
+				box(Vector3(x + o.x, gy + 1.9, n + o.y), Vector3(0.03, 0.66, 0.025), wood, a, false)
+			box(Vector3(x, gy + 2.27, n), Vector3(0.62, 0.06, 0.62), wood, 0, false)
+			cone(Vector3(x, gy + 2.47, n), 1.0, 0.36, tile, 4)
+			sphere(Vector3(x, gy + 2.68, n), Vector3(0.12, 0.14, 0.12), wood, 6)
+		3:
+			# direğe asılı chōchin: uzun ahşap direk, yatay kol, ipte sallanan kırmızı kâğıt fener (koyu kapaklar + çemberler)
+			box(Vector3(x, gy + 0.1, n), Vector3(0.44, 0.2, 0.44), stone, 0, false)
+			box(Vector3(x, gy + 1.5, n), Vector3(0.14, 2.8, 0.14), wood, 0, true)
+			box(Vector3(x + 0.38, gy + 2.72, n), Vector3(0.95, 0.1, 0.1), wood, 0, false)
+			box(Vector3(x + 0.2, gy + 2.5, n), Vector3(0.07, 0.42, 0.07), wood_l, 0, false, Vector3(0, 0, 45))
+			box(Vector3(x, gy + 2.95, n), Vector3(0.3, 0.07, 0.3), tile, 0, false)
+			box(Vector3(x + 0.72, gy + 2.55, n), Vector3(0.02, 0.26, 0.02), Color(0.15, 0.12, 0.1), 0, false)
+			cyl(Vector3(x + 0.72, gy + 2.4, n), 0.24, 0.07, Color(0.12, 0.1, 0.1), false, 10)
+			sphere(Vector3(x + 0.72, gy + 2.06, n), Vector3(0.52, 0.66, 0.52), LANTERN_RED, 12)
+			for cy in [1.9, 2.06, 2.22]:
+				cyl(Vector3(x + 0.72, gy + cy, n), 0.53 if cy == 2.06 else 0.49, 0.018, Color(0.55, 0.1, 0.08), false, 12)
+			cyl(Vector3(x + 0.72, gy + 1.72, n), 0.24, 0.07, Color(0.12, 0.1, 0.1), false, 10)
+			box(Vector3(x + 0.72, gy + 1.58, n), Vector3(0.03, 0.22, 0.03), Color(0.75, 0.15, 0.1), 0, false)
+			light_y = gy + 2.06
+		4:
+			# yukimi: üç kıvrık ayak, altıgen tabla, altıgen ateş odası, geniş basık şapka, yosun
+			for q in 3:
+				var a = q * 120.0 + 30.0
+				var o = Builder.rot(0.0, 0.34, a)
+				box(Vector3(x + o.x, gy + 0.3, n + o.y), Vector3(0.16, 0.62, 0.2), stone, a, false)
+				box(Vector3(x + o.x * 1.25, gy + 0.06, n + o.y * 1.25), Vector3(0.2, 0.12, 0.3), stone_d, a, false)
+			cyl(Vector3(x, gy + 0.66, n), 0.95, 0.12, stone_d, true, 6)
+			cyl(Vector3(x, gy + 0.98, n), 0.5, 0.5, LANTERN_GLOW, false, 6)
+			for q in 6:
+				var a = q * 60.0
+				var o = Builder.rot(0.0, 0.27, a + 30.0)
+				box(Vector3(x + o.x, gy + 0.98, n + o.y), Vector3(0.09, 0.52, 0.09), stone, a + 30.0, false)
+			cyl(Vector3(x, gy + 1.26, n), 0.7, 0.07, stone_d, false, 6)
+			cyl(Vector3(x, gy + 1.33, n), 1.75, 0.07, stone_d, false, 6)
+			cone(Vector3(x, gy + 1.52, n), 1.6, 0.34, stone, 6)
+			sphere(Vector3(x, gy + 1.74, n), Vector3(0.24, 0.2, 0.24), stone_d, 8)
+			sphere(Vector3(x + 0.3, gy + 1.5, n + 0.1), Vector3(0.7, 0.16, 0.6), moss, 6)
+			sphere(Vector3(x - 0.4, gy + 1.44, n - 0.25), Vector3(0.45, 0.12, 0.4), moss.darkened(0.1), 6)
+			light_y = gy + 0.98
+		_:
+			# sokak direği: uzun ahşap direk, kiremit şapka, çapraz kol, iki yanda asılı kâğıt fener kutuları
+			box(Vector3(x, gy + 0.14, n), Vector3(0.5, 0.28, 0.5), stone, 0, false)
+			box(Vector3(x, gy + 1.75, n), Vector3(0.18, 3.3, 0.18), wood, 0, true)
+			box(Vector3(x, gy + 3.05, n), Vector3(1.5, 0.1, 0.12), wood, 0, false)
+			box(Vector3(x, gy + 2.86, n), Vector3(0.9, 0.07, 0.09), wood_l, 0, false)
+			cone(Vector3(x, gy + 3.58, n), 0.8, 0.3, tile, 4)
+			box(Vector3(x, gy + 3.42, n), Vector3(0.46, 0.05, 0.46), wood, 0, false)
+			for sx in [-1.0, 1.0]:
+				var lx = x + sx * 0.62
+				box(Vector3(lx, gy + 2.9, n), Vector3(0.02, 0.24, 0.02), Color(0.15, 0.12, 0.1), 0, false)
+				box(Vector3(lx, gy + 2.76, n), Vector3(0.36, 0.05, 0.36), wood, 0, false)
+				box(Vector3(lx, gy + 2.5, n), Vector3(0.3, 0.48, 0.3), LANTERN_GLOW, 0, false)
+				for cx in [-1.0, 1.0]:
+					for cz in [-1.0, 1.0]:
+						box(Vector3(lx + cx * 0.155, gy + 2.5, n + cz * 0.155), Vector3(0.04, 0.5, 0.04), wood, 0, false)
+				for q in 4:
+					var a = q * 90.0
+					var o = Builder.rot(0.0, 0.158, a)
+					box(Vector3(lx + o.x, gy + 2.5, n + o.y), Vector3(0.3, 0.025, 0.02), wood, a, false)
+				box(Vector3(lx, gy + 2.24, n), Vector3(0.36, 0.05, 0.36), wood, 0, false)
+				box(Vector3(lx, gy + 2.12, n), Vector3(0.03, 0.2, 0.03), Color(0.75, 0.15, 0.1), 0, false)
+			light_y = gy + 2.5
+	Lights.add(w(Vector3(x, light_y, n)))
 
 
 ## Merkezi (cx, cn) olan dairesel duvar
