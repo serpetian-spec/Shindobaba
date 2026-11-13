@@ -16,7 +16,7 @@ python build.py test                    # test exe
 python build.py main                    # ana exe (yalnız "güncelle" denince)
 
 # test koşusu (godot/ içinden; pencere ekran dışında, Konoha önbellekten)
-BAKE_ANY=1 timeout 200 ../tools/Godot_v4.7.2-stable_win64_console.exe --log-file "D:/Naruto 3D Game/_tmp/test_godot.log" --path . --resolution 960x540 \
+BAKE_ANY=1 timeout 200 ../tools/Godot_v4.7.2-stable_win64_console.exe --log-file "D:/Naruto 3D Game/_tmp/test_godot.log" --path . --resolution 2560x1380 \
   --position 9000,0 -- --test=res://tests/TEST.gd > ../_tmp/cikti.txt 2>&1
 
 # takılma ölçümü
@@ -28,6 +28,7 @@ TAG=X PROFV=1 bash _tmp/run_ht.sh       # 16 / 70 / 300 m/sn; 10 dakikayı aşar
 - Oyun / dünya testlerinde `--headless` YASAK (köy önbelleğini bozar). Yalnız `gdcheck` headless çalışır.
 - İlk koşunun çıktısında önce `Parse Error` / `SCRIPT ERROR` ara; hatalı betikle uzun ölçüm boşa gider.
 - Aynı anda tek Godot. Takılan testi 2 dakikada kes.
+- FPS / performans ölçümü oyuncunun çözünürlüğünde (2560x1380) ve oyuncunun oyunu KAPALIYKEN yapılır; 1280'de ya da iki oyun açıkken çıkan sayı yanıltır.
 - Her Godot koşusunda `--log-file` ver (yukarıdaki gibi): vermezsen oyunun kayıt klasörüne yazar ve 30 dosya sınırı yüzünden
   kullanıcının oynadığı oturumun FPS kaydını siler.
 

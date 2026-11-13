@@ -44,7 +44,9 @@ void fragment() {
 	float tt = TIME * flow_speed;
 	// benek: yavaş akan açık bulutlar (animedeki alacalı chakra dokusu)
 	float m = vnoise(op.xy * 5.0 + vec2(op.z * 3.0, -tt * 0.5)) * 0.6 + vnoise(op.zy * 11.0 + vec2(tt * 0.3, -tt * 0.9)) * 0.4;
-	vec3 light = mix(rim_col.rgb, vec3(1.0), 0.5);
+	// iki renk aynıysa çizgiler beyaza açılır; farklıysa ikinci renk kendi tonuyla çizgi, kemik, plaka kenarı ve parlamayı boyar
+	float same = 1.0 - clamp(distance(rim_col.rgb, col.rgb) * 2.0, 0.0, 1.0);
+	vec3 light = mix(rim_col.rgb * 1.15, vec3(1.0), mix(0.1, 0.5, same));
 	vec3 base = col.rgb * (0.7 + 0.42 * m) * tone;
 	float a = 0.9;
 	float ln = 0.0;
@@ -55,7 +57,7 @@ void fragment() {
 		base = light * (0.9 + 0.2 * m);
 		a = 0.95;
 	} else if (kind < 0.7) {     // kemik
-		base = mix(col.rgb, vec3(1.0), 0.38) * (0.85 + 0.25 * m) * tone;
+		base = mix(mix(col.rgb, rim_col.rgb, 0.75), vec3(1.0), mix(0.2, 0.38, same)) * (0.85 + 0.25 * m) * tone;
 		a = 0.94;
 	} else if (kind < 0.9) {     // zırh plakası: tuğla örgülü ızgara çizgileri
 		vec3 an = abs(normalize(on));
@@ -69,7 +71,7 @@ void fragment() {
 		float wv = max(0.0045, fwidth(v) * 1.1), wu = max(0.0045, fwidth(u) * 1.1);
 		ln = max(1.0 - smoothstep(0.0, wv, dv), 1.0 - smoothstep(0.0, wu, du));
 		ln *= 0.7 * clamp(0.012 / max(fwidth(u), 0.0001), 0.0, 1.0);   // uzakta ızgara kırpışmasın
-		base *= 0.92;
+		base = mix(base, rim_col.rgb * (0.6 + 0.3 * m) * tone, 0.22 * (1.0 - same)) * 0.92;
 		a = 0.94;
 	} else {                     // chakra eti: akan eş-yükselti çizgileri (hafif)
 		float n2 = vnoise(op.xy * 7.0 + vec2(op.z * 5.0, -tt * 0.6)) * 0.6 + vnoise(op.zy * 14.0 + vec2(tt * 0.3, -tt * 1.1)) * 0.4;

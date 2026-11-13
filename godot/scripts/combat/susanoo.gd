@@ -10,10 +10,23 @@ const TIER_NAMES := ["", "Kaburga", "İskelet", "İnsansı", "Zırhlı Savaşç�
 const TIER_HEIGHT := [0.0, 2.05, 9.5, 16.0, 36.0, 78.0]   # 1: oyuncuyu saran kaburga .. 5: kuyruklu canavar boyunda Mükemmel Susanoo
 ## Kullanıcının Susanoo içindeki yeri (Susanoo boyuna oran): 3-4 göğüs, 5 alındaki mücevher (animedeki gibi)
 const USER_SEAT := [0.0, 0.0, 0.0, 0.2, 0.64, 0.86]   # 3: kalça yere gömülü olduğundan göğüs alçakta
-const ARMORS := ["Samuray", "Keşiş Cübbesi", "İblis Dikenleri"]
-const FACES := ["Tengu", "Oni Boynuzlu", "Vizörlü Savaşçı"]
-const WEAPONS := {"kilic": "Kılıç", "yay": "Yay ve Ok", "kalkan": "Kalkan", "mizrak": "Mızrak", "yok": "Silahsız"}
-const COLORS := [[0.55, 0.35, 1.0], [0.25, 0.55, 1.0], [1.0, 0.35, 0.2], [0.3, 0.9, 0.5], [1.0, 0.8, 0.25], [0.95, 0.3, 0.6], [0.25, 0.95, 0.95], [0.85, 0.85, 0.95]]
+const ARMORS := ["Samuray", "Keşiş Cübbesi", "İblis Dikenleri", "Yamabushi", "Ō-yoroi", "Rōnin", "Togari", "Hagoromo", "Shimenawa", "Ryūrin", "Gashadokuro", "Raijin", "Kataginu"]
+const FACES := ["Tengu", "Oni Boynuzlu", "Vizörlü Savaşçı", "Hannya", "Karasu Tengu", "Kitsune", "Dokuro", "Ryōmen", "Kabuto", "Ichigan", "Sanmoku", "Shishi", "Ryū"]
+const WEAPONS := {"kilic": "Kılıç", "yay": "Yay ve Ok", "kalkan": "Kalkan", "mizrak": "Mızrak", "yok": "Silahsız",
+	"cift_kilic": "Sōtō (çift kılıç)", "gunbai": "Gunbai", "tirpan": "Ōgama (tırpan)", "cekic": "Ōzuchi (çekiç)", "kanabo": "Kanabō (sopa)",
+	"asa": "Shakujō (asa)", "fuma": "Fūma Shuriken", "kubikiri": "Kubikiribōchō", "pence": "Tekkō-kagi (çift pençe)", "kusanagi": "Kusanagi"}
+# Susanoo silahı -> oyundaki gerçek silah modeli [sağ el, sol el]
+const W_MODEL := {"kilic": ["nodachi", ""], "mizrak": ["mizrak", ""], "cift_kilic": ["katana", "katana"], "gunbai": ["gunbai", ""], "tirpan": ["uc_tirpan", ""],
+	"cekic": ["savas_cekici", ""], "kanabo": ["yagura_sopa", ""], "asa": ["kongo_asa", ""], "fuma": ["fuma_shuriken", ""], "kubikiri": ["kubikiribocho", ""],
+	"pence": ["pence", "pence"], "kusanagi": ["kusanagi", ""]}
+const A_NECK := [0, 1, 2, 2, 0, 2, 2, 2, 2, 2, 2, 1, 2]    # 0 magatama kolye, 1 iri tespih, 2 yok
+const A_BONE := [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0]    # kemik dikenler
+const A_SKIRT := [0, 1, 0, 1, 0, 2, 0, 3, 1, 0, 0, 4, 1]   # 0 kusazuri, 1 cübbe, 2 yırtık şerit, 3 tüy, 4 peştamal
+const A_KOTE := [1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0]    # plaka kol koruyucu
+const SKULL_OF := [0, 1, 2, 0, 2, 1, 1, 0, 2, 1, 2, 0, 1]  # iskelet kademesinde yüze karşılık gelen kafatası süsü
+const COLORS := [[0.55, 0.35, 1.0], [0.25, 0.55, 1.0], [1.0, 0.35, 0.2], [0.3, 0.9, 0.5], [1.0, 0.8, 0.25], [0.95, 0.3, 0.6], [0.25, 0.95, 0.95], [0.85, 0.85, 0.95],
+	[0.8, 0.06, 0.12], [1.0, 0.5, 0.08], [0.65, 1.0, 0.15], [0.08, 0.55, 0.28], [0.08, 0.62, 0.6], [0.12, 0.2, 0.8], [0.32, 0.16, 0.8], [0.8, 0.15, 0.9],
+	[1.0, 0.6, 0.75], [0.75, 0.55, 0.2], [0.5, 0.3, 0.16], [1.0, 1.0, 1.0], [0.4, 0.42, 0.5], [0.1, 0.08, 0.16]]
 const MASTERY_STEPS := [0.0, 0.0, 480.0, 1500.0, 3000.0, 6000.0]   # kademe için gereken ustalık (Susanoo açıkken DÖVÜŞTE geçen sn): 8 dk, 25 dk, 50 dk, 100 dk
 const BONES := [["Hips", "Spine"], ["Spine", "Chest"], ["Chest", "UpperChest"], ["UpperChest", "Neck"], ["Neck", "Head"]]
 const ARM_BONES := [["Shoulder", "UpperArm"], ["UpperArm", "LowerArm"], ["LowerArm", "Hand"]]
@@ -128,8 +141,11 @@ func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = nu
 		_eye_mat.emission = Color(1.0, 0.85, 0.3) * 2.5
 	var armor = int(cfg.get("armor", 0))
 	var look = {"gender": "m", "age": "adult", "top_style": "uzun", "pants_style": "ninja", "hair_style": "kısa", "band": null, "sleeves": true}
-	if tier >= 3 and cfg.get("weapon", "kilic") in ["kilic", "mizrak"]:
-		look["weapon_r"] = "nodachi" if cfg.get("weapon", "kilic") == "kilic" else "mizrak"
+	var wm: Array = W_MODEL.get(String(cfg.get("weapon", "kilic")), ["", ""])
+	if tier >= 3 and wm[0] != "":
+		look["weapon_r"] = wm[0]
+		if wm[1] != "":
+			look["weapon_l"] = wm[1]
 	body = CharacterModel.new()
 	add_child(body)
 	body.setup(look)
@@ -155,6 +171,9 @@ func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = nu
 	# dev oranlar: omuzlar dışa açılır, kollar uzar, eller büyür (gerçek kemikler)
 	if tier >= 2 and body.overlay:
 		body.overlay.grow = {"LeftShoulder": 1.32, "RightShoulder": 1.32, "LeftHand": 1.3, "RightHand": 1.3, "Head": 0.95}
+		if tier == 3:   # İnsansı kademenin bacağı / ayağı yok: bacak kemikleri sıfıra iner (giysi ağları dahil hiçbir şey kalmaz)
+			body.overlay.grow["LeftUpperLeg"] = 0.001
+			body.overlay.grow["RightUpperLeg"] = 0.001
 	var key = "%d|%d|%d|%s|%s" % [tier, armor, int(cfg.get("face", 0)), String(cfg.get("weapon", "kilic")), str(cfg.get("wings", true))]
 	if not _parts_cache.has(key):
 		_rec = []
@@ -326,9 +345,9 @@ func _tier_skeleton(face: int) -> void:
 		_spike(b, la, Vector3(-sx * 0.3, 0, -1), 0.1, 0.03, K_BONE)   # dirsek çıkıntısı
 		_on(sd + "LowerArm", b)
 		var h = MB.new()
-		h.add("sphere", lh + Vector3(0.035 * sx, 0, 0), Vector3(0.085, 0.035, 0.085), K_BONE, Vector3.ZERO, 8)
+		h.add("sphere", lh + Vector3(0.04 * sx, 0, 0), Vector3(0.11, 0.055, 0.105), K_BONE, Vector3.ZERO, 8)
 		_on(sd + "Hand", h)
-		_finger_bones(sd, sx, K_BONE, 0.0105)
+		_finger_bones(sd, sx, K_BONE, 0.0165)
 		# hayalet et: kolları saran soluk beden
 		var g1 = MB.new()
 		Loft.limb(g1, ua, la, 0.1, 0.085, K_FLESH)
@@ -337,7 +356,7 @@ func _tier_skeleton(face: int) -> void:
 		Loft.limb(g2, la, lh + Vector3(0.1 * sx, 0, 0), 0.09, 0.075, K_FLESH)
 		_on(sd + "LowerArm", g2, 1)
 	var sk = MB.new()
-	_skull(sk, face)
+	_skull(sk, SKULL_OF[clampi(face, 0, SKULL_OF.size() - 1)])
 	_on("Head", sk)
 	var g = MB.new()
 	_vtube(g, [Vector3(0, 0.9, 0), Vector3(0, 1.15, 0), Vector3(0, 1.38, 0), Vector3(0, 1.5, 0)], [Vector2(0.24, 0.2), Vector2(0.27, 0.23), Vector2(0.33, 0.22), Vector2(0.16, 0.14)], K_FLESH, 16, 3)
@@ -431,58 +450,79 @@ static var _eye_mat: StandardMaterial3D
 func _glow_eyes() -> void:
 	if tier == 1:
 		return
+	var face = int(cfg.get("face", 0))
 	var m = MB.new()
-	for sx in [-1.0, 1.0]:
-		if tier == 2:
-			m.add("sphere", _hp(0.05 * sx, 1.665, 0.004), Vector3(0.05, 0.034, 0.012), Color.WHITE, Vector3(0, 0, -8 * sx), 10)
-		else:
-			m.add("sphere", _hp(0.052 * sx, 1.667, 0.005), Vector3(0.046, 0.015, 0.01), Color.WHITE, Vector3(0, 0, -17 * sx), 8)
+	if tier >= 3 and face == 9:   # Ichigan: tek göz
+		m.add("sphere", _hp(0, 1.675, 0.004), Vector3(0.06, 0.036, 0.012), Color.WHITE, Vector3.ZERO, 10)
+	else:
+		for sx in [-1.0, 1.0]:
+			if tier == 2 or face == 6:
+				m.add("sphere", _hp(0.05 * sx, 1.665, 0.004), Vector3(0.05, 0.034, 0.012), Color.WHITE, Vector3(0, 0, -8 * sx), 10)
+			else:
+				m.add("sphere", _hp(0.052 * sx, 1.667, 0.005), Vector3(0.046, 0.015, 0.01), Color.WHITE, Vector3(0, 0, -17 * sx), 8)
+				if face == 7 and tier != 4:   # Ryōmen: arka yüzün gözleri
+					var q = _hp(0.052 * sx, 1.667, 0.005)
+					m.add("sphere", Vector3(q.x, q.y, 0.02 - q.z), Vector3(0.046, 0.015, 0.01), Color.WHITE, Vector3(0, 0, 17 * sx), 8)
+	if tier >= 3 and face == 10:   # Sanmoku: alında dik üçüncü göz
+		m.add("sphere", _hp(0, 1.765, 0.004), Vector3(0.016, 0.042, 0.01), Color.WHITE, Vector3.ZERO, 8)
 	_on("Head", m, 2)
 
 
+const F_NO_HAIR := [2, 4, 5, 6, 8, 11, 12, 13]
+const F_NO_MOUTH := [4, 5, 6, 12]
+const F_NO_EYES := [6, 9]
+
+
 ## Yüzlü baş (kademe 3-5): insan oranında kafa. hooded: yüz başlığın gölgesinde (koyu), gagalı dar kukuleta.
-## yüz 0 = Tengu (uzun burun, alında altıgen mücevher), 1 = Oni (kısa boynuzlar, azı dişleri), 2 = sivri külahlı savaşçı (Madara)
+## yüz 0 Tengu, 1 Oni, 2 sivri külahlı savaşçı (Madara), 3 Hannya, 4 Karasu Tengu, 5 Kitsune, 6 Dokuro, 7 Ryōmen (çift yüz), 8 Kabuto,
+## 9 Ichigan (tek göz), 10 Sanmoku (üç göz), 11 Shishi, 12 Ryū; 13 = iç kullanım (Ryōmen'in arka yüzü: saçsız Oni)
 func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
-	var skin = K_DARK if hooded else K_FLESH
+	var skin = K_DARK if hooded else (K_BONE if face == 6 else K_FLESH)
 	_head_shell(m, skin)
 	if not hooded:
 		for sx in [-1.0, 1.0]:
-			Loft.tube(m, [_hp(0.012 * sx, 1.676, 0.006), _hp(0.055 * sx, 1.697, 0.008), _hp(0.106 * sx, 1.728, 0.003)],
-				[Vector2(0.01, 0.009), Vector2(0.013, 0.011), Vector2(0.005, 0.005)], _t(K_FLESH, 0.8), 6, 3)   # çatık kaş
-			m.add("sphere", _hp(0.052 * sx, 1.667, -0.009), Vector3(0.064, 0.027, 0.03), K_DARK, Vector3(0, 0, -17 * sx), 8)   # göz yarığı
-			# burun kenarından ağzın yanına inen çizgi (Kakashi / Madara'nın Susanoo'sundaki yüz çizgileri)
-			Loft.tube(m, [_hp(0.022 * sx, 1.628, 0.003), _hp(0.052 * sx, 1.59, 0.003), _hp(0.05 * sx, 1.538, 0.003)], [0.0035, 0.0035, 0.0035], K_LINE, 4, 3)
+			if not face in F_NO_EYES:
+				Loft.tube(m, [_hp(0.012 * sx, 1.676, 0.006), _hp(0.055 * sx, 1.697, 0.008), _hp(0.106 * sx, 1.728, 0.003)],
+					[Vector2(0.01, 0.009), Vector2(0.013, 0.011), Vector2(0.005, 0.005)], _t(K_FLESH, 0.8), 6, 3)   # çatık kaş
+				m.add("sphere", _hp(0.052 * sx, 1.667, -0.009), Vector3(0.064, 0.027, 0.03), K_DARK, Vector3(0, 0, -17 * sx), 8)   # göz yarığı
 	# ağız: dar koyu yarık + sivri dişler, köşelerde azı dişi
-	var mp = func(u: float) -> Vector3:
-		var q = 2.0 * u - 1.0
-		return _hp(0.062 * q, 1.556 + 0.018 * q * q, 0.003)
-	var mpts: Array = []
-	var mr: Array = []
-	for k in 7:
-		mpts.append(mp.call(k / 6.0))
-		mr.append(Vector2(0.006, 0.006 + 0.01 * sin(PI * k / 6.0)))
-	Loft.tube(m, mpts, mr, K_DARK, 6, 2)
-	for k in 7:
-		var p: Vector3 = mp.call((k + 0.5) / 7.0)
-		var fang = 1.5 if k in [0, 6] else 1.0
-		m.add("cone", p + Vector3(0, 0.004, 0.006), Vector3(0.011, 0.016 * fang, 0.008), K_BONE, Vector3(180, 0, 0), 4)
-		if k < 6:
-			var p2: Vector3 = mp.call((k + 1.0) / 7.0)
-			m.add("cone", p2 + Vector3(0, -0.01, 0.005), Vector3(0.01, 0.014, 0.008), K_BONE, Vector3.ZERO, 4)
+	var ml = 0.012 if face == 8 else 0.003
+	var mw = 0.075 if face in [3, 9, 11] else 0.062
+	var mp = func(q0: float) -> Vector3:
+		var q = 2.0 * q0 - 1.0
+		return _hp(mw * q, 1.556 + (0.034 if face == 3 else 0.018) * q * q, ml)
+	if face == 8:   # menpō: alt yüzü örten zırh maske (ağız bunun üstünde)
+		_patch(m, func(q0, v): return _hp(lerpf(-1.0, 1.0, q0) * lerpf(0.04, 0.1, v), lerpf(1.505, 1.635, v), 0.009), 8, 3, _t(K_PLATE, 0.85))
+	if not face in F_NO_MOUTH:
+		var mpts: Array = []
+		var mr: Array = []
+		for k in 7:
+			mpts.append(mp.call(k / 6.0))
+			mr.append(Vector2(0.006, 0.006 + 0.01 * sin(PI * k / 6.0)))
+		Loft.tube(m, mpts, mr, K_DARK, 6, 2)
+		for k in 7:
+			var p: Vector3 = mp.call((k + 0.5) / 7.0)
+			var fang = 1.5 if k in [0, 6] else 1.0
+			m.add("cone", p + Vector3(0, 0.004, 0.006), Vector3(0.011, 0.016 * fang, 0.008), K_BONE, Vector3(180, 0, 0), 4)
+			if k < 6:
+				var p2: Vector3 = mp.call((k + 1.0) / 7.0)
+				m.add("cone", p2 + Vector3(0, -0.01, 0.005), Vector3(0.01, 0.014, 0.008), K_BONE, Vector3.ZERO, 4)
+	var short_nose = func() -> void:
+		if not hooded:
+			var nb2 = _hp(0, 1.65, -0.005)
+			Loft.tube(m, [nb2, nb2 + Vector3(0, -0.025, 0.022), nb2 + Vector3(0, -0.045, 0.012)], [0.011, 0.018, 0.013], K_FLESH, 6, 2)
 	match face:
 		0:
 			if not hooded:
 				var nb = _hp(0, 1.65, -0.01)
 				Loft.tube(m, [nb, nb + Vector3(0, -0.006, 0.1), nb + Vector3(0, -0.035, 0.2)], [0.022, 0.019, 0.008], K_FLESH, 8, 3)   # tengu burnu
 				m.add("cyl", _hp(0, 1.765, 0.004), Vector3(0.05, 0.012, 0.05), K_LINE, Vector3(82, 0, 0), 6)                    # altıgen mücevher
-		1:
+		1, 13:
 			for sx in [-1.0, 1.0]:
 				if not hooded:
 					_spike(m, _hp(0.05 * sx, 1.8, -0.01), Vector3(0.35 * sx, 1, 0.2), 0.16, 0.022, K_BONE, Vector3(0.1 * sx, 0.3, -0.2))
 				_spike(m, _hp(0.058 * sx, 1.553, 0.002), Vector3(0.1 * sx, 1, 0.15), 0.04, 0.009, K_BONE)
-			if not hooded:
-				var nb2 = _hp(0, 1.65, -0.005)
-				Loft.tube(m, [nb2, nb2 + Vector3(0, -0.025, 0.022), nb2 + Vector3(0, -0.045, 0.012)], [0.011, 0.018, 0.013], K_FLESH, 6, 2)
+			short_nose.call()
 		2:
 			if not hooded:
 				# sivri külah: alından yukarı uzayan dilimli taç (Madara'nın insansı Susanoo'su)
@@ -493,38 +533,192 @@ func _head(m: MB, face: int, hooded: bool, crest: bool) -> void:
 				var nb3 = _hp(0, 1.65, -0.005)
 				Loft.tube(m, [nb3, nb3 + Vector3(0, -0.03, 0.02), nb3 + Vector3(0, -0.045, 0.01)], [0.009, 0.014, 0.01], K_FLESH, 6, 2)
 			_spike(m, Vector3(0, 1.5, 0.08), Vector3(0, -1, 0.2), 0.07, 0.022, skin)
+		3:   # Hannya: içe kıvrılan uzun boynuzlar, kulaklara uzanan sırıtış, uzun azı dişleri, sivri çene
+			for sx in [-1.0, 1.0]:
+				_spike(m, _hp(0.06 * sx, 1.79, -0.012), Vector3(0.7 * sx, 1, 0.1), 0.3, 0.027, K_BONE, Vector3(-0.4 * sx, 0.5, 0.1))
+				Loft.tube(m, [_hp(0.01 * sx, 1.69, 0.012), _hp(0.06 * sx, 1.715, 0.016), _hp(0.105 * sx, 1.74, 0.008)], [0.012, 0.017, 0.008], _t(skin, 0.7), 6, 3)
+				Loft.tube(m, [mp.call(0.5 + 0.5 * sx), _hp(0.092 * sx, 1.605, 0.003), _hp(0.1 * sx, 1.635, 0.002)], [0.007, 0.006, 0.003], K_DARK, 5, 3)
+				_spike(m, _hp(0.066 * sx, 1.575, 0.004), Vector3(0.05 * sx, 1, 0.15), 0.05, 0.01, K_BONE)
+				_spike(m, _hp(0.05 * sx, 1.556, 0.004), Vector3(0.05 * sx, -1, 0.15), 0.045, 0.009, K_BONE)
+				m.add("sphere", _hp(0.085 * sx, 1.635, -0.006), Vector3(0.05, 0.04, 0.03), skin, Vector3.ZERO, 6)
+			_spike(m, Vector3(0, 1.505, 0.075), Vector3(0, -1, 0.25), 0.06, 0.02, skin)
+			short_nose.call()
+		4:   # Karasu Tengu: karga gagası, alında tokin, geriye taranmış tüy tepelik
+			var bk = _hp(0, 1.635, -0.03)
+			Loft.tube(m, [bk, bk + Vector3(0, -0.015, 0.1), bk + Vector3(0, -0.075, 0.21)], [Vector2(0.052, 0.04), Vector2(0.036, 0.028), Vector2(0.004, 0.004)], K_BONE, 8, 3)
+			var bk2 = _hp(0, 1.565, -0.03)
+			Loft.tube(m, [bk2, bk2 + Vector3(0, -0.01, 0.08), bk2 + Vector3(0, -0.03, 0.15)], [Vector2(0.04, 0.02), Vector2(0.028, 0.014), Vector2(0.004, 0.004)], _t(K_BONE, 0.8), 8, 3)
+			for sx in [-1.0, 1.0]:
+				Loft.tube(m, [_hp(0.05 * sx, 1.6, 0.003), bk + Vector3(0.03 * sx, -0.045, 0.1), bk + Vector3(0, -0.08, 0.2)], [0.004, 0.004, 0.003], K_DARK, 4, 3)
+			if not hooded:
+				m.add("cyl", _hp(0, 1.775, 0.012), Vector3(0.055, 0.035, 0.055), K_LINE, Vector3(75, 0, 0), 8)
+				for k in 9:
+					var a = lerpf(-1.3, 1.3, k / 8.0)
+					var bs = Vector3(sin(a) * 0.09, 1.8, -0.02 - 0.03 * cos(a))
+					_blade(m, bs, bs + Vector3(sin(a) * 0.12, 0.16, -0.26 - 0.05 * cos(a)), 0.035, Vector3(sin(a) * 0.3, 1, 0.5).normalized(), _t(K_FLESH, 1.0 if k % 2 == 0 else 0.8), 0.8, 0.0)
+				for sx in [-1.0, 1.0]:
+					for k in 3:
+						var bs2 = Vector3(0.118 * sx, 1.7 - k * 0.035, -0.02)
+						_blade(m, bs2, bs2 + Vector3(0.07 * sx, 0.03 - k * 0.03, -0.2), 0.03, Vector3(sx, 0.2, 0.3).normalized(), _t(K_FLESH, 0.85), 0.8, 0.0)
+		5:   # Kitsune: tilki burnu, dik kulaklar, yanak çizgileri, ense tüyleri
+			var mz = _hp(0, 1.615, -0.035)
+			Loft.tube(m, [mz, mz + Vector3(0, -0.012, 0.085), mz + Vector3(0, -0.02, 0.16)], [Vector2(0.062, 0.05), Vector2(0.042, 0.034), Vector2(0.02, 0.017)], skin, 10, 3)
+			m.add("sphere", mz + Vector3(0, -0.012, 0.165), Vector3(0.03, 0.024, 0.024), K_DARK if not hooded else K_BONE, Vector3.ZERO, 6)
+			for sx in [-1.0, 1.0]:
+				Loft.tube(m, [mz + Vector3(0.05 * sx, -0.03, 0.02), mz + Vector3(0.035 * sx, -0.036, 0.09), mz + Vector3(0, -0.036, 0.158)], [0.004, 0.004, 0.003], K_DARK if not hooded else K_LINE, 4, 3)
+				_spike(m, mz + Vector3(0.03 * sx, -0.038, 0.1), Vector3(0, -1, 0.1), 0.03, 0.007, K_BONE)
+				if not hooded:
+					_spike(m, Vector3(0.08 * sx, 1.8, 0.0), Vector3(0.28 * sx, 1, 0), 0.2, 0.055, skin, Vector3.ZERO, 0.45)
+					_spike(m, Vector3(0.082 * sx, 1.81, 0.016), Vector3(0.28 * sx, 1, 0), 0.14, 0.03, K_DARK, Vector3.ZERO, 0.45)
+					for k in 3:
+						_blade(m, _hp(0.07 * sx, 1.62 - k * 0.022, 0.002), _hp(0.108 * sx, 1.625 - k * 0.028, 0.002), 0.004, Vector3(0.6 * sx, 0, 0.8), K_LINE, 1.0, 0.0)
+			if not hooded:
+				m.add("cone", _hp(0, 1.765, 0.006), Vector3(0.03, 0.06, 0.012), K_LINE, Vector3.ZERO, 4)
+				for k in 9:
+					var a = lerpf(-1.4, 1.4, k / 8.0)
+					_spike(m, Vector3(sin(a) * 0.1, 1.62, -0.1 * cos(a) - 0.02), Vector3(sin(a) * 0.5, -0.6, -cos(a)), 0.13 + 0.04 * (k % 2), 0.035, _t(K_FLESH, 0.85), Vector3(0, -0.2, 0), 0.5)
+		6:   # Dokuro: kafatası yüz, iri göz çukurları, çatlak alın, tek boynuzu kırık
+			for sx in [-1.0, 1.0]:
+				m.add("sphere", _hp(0.05 * sx, 1.665, -0.014), Vector3(0.078, 0.062, 0.04), K_DARK, Vector3(0, 0, -8 * sx), 10)
+				Loft.tube(m, [_hp(0.07 * sx, 1.62, 0.004), _hp(0.105 * sx, 1.63, 0.006), Vector3(0.122 * sx, 1.65, 0.03)], [0.011, 0.012, 0.008], K_BONE, 6, 2)
+			m.add("cone", _hp(0, 1.613, -0.004), Vector3(0.03, 0.042, 0.02), K_DARK, Vector3.ZERO, 3)
+			_patch(m, func(q0, v): return _hp(lerpf(-0.064, 0.064, q0), lerpf(1.528, 1.582, v), 0.004), 8, 1, K_DARK)
+			for k in 8:
+				var x = (k - 3.5) * 0.0155
+				m.add("box", _hp(x, 1.5685, 0.007), Vector3(0.0125, 0.021, 0.008), K_BONE)
+				m.add("box", _hp(x, 1.5425, 0.007), Vector3(0.0125, 0.021, 0.008), K_BONE)
+			if not hooded:
+				Loft.tube(m, [_hp(0.02, 1.83, 0.003), _hp(0.035, 1.79, 0.003), _hp(0.015, 1.765, 0.003), _hp(0.04, 1.735, 0.003)], [0.003, 0.004, 0.004, 0.002], K_DARK, 4, 2)
+				_spike(m, _hp(0.07, 1.795, -0.012), Vector3(0.5, 1, 0.1), 0.24, 0.028, K_BONE, Vector3(-0.2, 0.4, 0))
+				m.add("cyl", _hp(-0.07, 1.8, -0.005) + Vector3(-0.012, 0.022, 0), Vector3(0.05, 0.05, 0.05), K_BONE, Vector3(0, 0, 25), 6)
+		7:   # Ryōmen: Madara'nın çift yüzlü Susanoo'su (arka yüz _head sonunda eklenir)
+			short_nose.call()
+		8:   # Kabuto: miğfer, siperlik, ense lamelleri, kuwagata boynuzlar; menpō bıyığı
+			for sx in [-1.0, 1.0]:
+				_spike(m, _hp(0.012 * sx, 1.612, 0.014), Vector3(sx, -0.25, 0.1), 0.09, 0.008, K_LINE, Vector3(0, -0.3, 0))
+			var nb4 = _hp(0, 1.655, 0.0)
+			Loft.tube(m, [nb4, nb4 + Vector3(0, -0.03, 0.03), nb4 + Vector3(0, -0.045, 0.02)], [0.012, 0.02, 0.014], _t(K_PLATE, 0.85), 6, 2)
+			if not hooded:
+				_vtube(m, [Vector3(0, 1.712, 0.005), Vector3(0, 1.8, 0.0), Vector3(0, 1.865, -0.005), Vector3(0, 1.892, -0.005)],
+					[Vector2(0.136, 0.152), Vector2(0.126, 0.142), Vector2(0.082, 0.096), Vector2(0.02, 0.02)], K_PLATE, 16, 3)
+				m.add("sphere", Vector3(0, 1.9, -0.005), Vector3.ONE * 0.04, K_LINE, Vector3.ZERO, 6)
+				var vis = func(q0: float, v: float) -> Vector3:
+					var ang = lerpf(-1.15, 1.15, q0)
+					return Vector3(sin(ang) * (0.136 + 0.055 * v), 1.722 - 0.014 * v, 0.005 + cos(ang) * (0.152 + 0.06 * v))
+				_patch(m, vis, 10, 1, _t(K_PLATE, 0.85))
+				for r in 3:
+					var rr = float(r)
+					var shk = func(q0: float, v: float) -> Vector3:
+						var ang = lerpf(1.25, TAU - 1.25, q0)
+						var rad = 0.14 + 0.03 * rr + 0.035 * v
+						return Vector3(sin(ang) * rad, 1.715 - rr * 0.05 - v * 0.06, 0.005 + cos(ang) * rad * 1.1)
+					_patch(m, shk, 12, 1, _t(K_PLATE, 1.0 if r % 2 == 0 else 0.82))
+					var ep: Array = []
+					var er: Array = []
+					for k in 9:
+						ep.append(shk.call(k / 8.0, 1.0))
+						er.append(0.006)
+					Loft.tube(m, ep, er, K_LINE, 4, 2)
+				for sx in [-1.0, 1.0]:
+					_spike(m, Vector3(0.02 * sx, 1.77, 0.16), Vector3(0.75 * sx, 1, 0), 0.3, 0.032, K_LINE, Vector3(-0.3 * sx, 0.6, 0), 0.3)
+				m.add("cyl", Vector3(0, 1.775, 0.162), Vector3(0.06, 0.012, 0.06), K_LINE, Vector3(90, 0, 0), 8)
+		9:   # Ichigan: tek iri göz, tek kaş kemeri, alında tek boynuz
+			if not hooded:
+				m.add("sphere", _hp(0, 1.675, -0.012), Vector3(0.105, 0.07, 0.035), K_DARK, Vector3.ZERO, 10)
+				Loft.tube(m, [_hp(-0.085, 1.69, 0.006), _hp(-0.04, 1.722, 0.012), _hp(0, 1.73, 0.014), _hp(0.04, 1.722, 0.012), _hp(0.085, 1.69, 0.006)],
+					[0.007, 0.014, 0.016, 0.014, 0.007], _t(K_FLESH, 0.75), 6, 3)
+				for sx in [-1.0, 1.0]:
+					m.add("sphere", _hp(0.012 * sx, 1.61, 0.0), Vector3(0.012, 0.02, 0.01), K_DARK, Vector3.ZERO, 5)
+			_spike(m, _hp(0, 1.79, -0.01), Vector3(0, 1, 0.3), 0.22, 0.032, K_BONE, Vector3(0, 0.2, -0.2))
+		10:   # Sanmoku: alında dik üçüncü göz + ışın çizgileri, uzun kulak memeleri ve halka küpeler
+			short_nose.call()
+			if not hooded:
+				m.add("sphere", _hp(0, 1.765, -0.008), Vector3(0.032, 0.062, 0.03), K_DARK, Vector3.ZERO, 8)
+				for k in 5:
+					var a = lerpf(-1.1, 1.1, k / 4.0)
+					_blade(m, _hp(sin(a) * 0.028, 1.765 + cos(a) * 0.04, 0.003), _hp(sin(a) * 0.06, 1.765 + cos(a) * 0.075, 0.003), 0.004, Vector3(0, 0, 1), K_LINE, 1.0, 0.0)
+				for k in 5:
+					var x1 = (k - 2) * 0.05
+					_spike(m, Vector3(x1, 1.82, -0.03), Vector3(x1 * 2.5, 1.0, -0.2), 0.3 - absf(x1) * 1.2, 0.045, _t(K_FLESH, 0.8), Vector3(0, 0.3, -0.25), 0.5)
+			for sx in [-1.0, 1.0]:
+				Loft.tube(m, [Vector3(0.122 * sx, 1.66, 0.01), Vector3(0.13 * sx, 1.59, 0.012), Vector3(0.126 * sx, 1.53, 0.012)], [0.012, 0.016, 0.012], skin, 6, 3)
+				m.add_xf("torus", Transform3D(Basis(Vector3.FORWARD, PI * 0.5) * Basis.from_scale(Vector3(0.07, 0.016, 0.07)), Vector3(0.127 * sx, 1.495, 0.012)), K_LINE, 10)
+		11:   # Shishi: basık geniş burun, alt çeneden çıkan azılar, kıvırcık yele, topak kaşlar
+			if not hooded:
+				m.add("sphere", _hp(0, 1.632, 0.0), Vector3(0.09, 0.05, 0.05), K_FLESH, Vector3.ZERO, 8)
+			for sx in [-1.0, 1.0]:
+				_spike(m, _hp(0.052 * sx, 1.55, 0.006), Vector3(0.12 * sx, 1, 0.2), 0.075, 0.014, K_BONE)
+				if not hooded:
+					m.add("sphere", _hp(0.022 * sx, 1.625, 0.016), Vector3(0.02, 0.014, 0.012), K_DARK, Vector3.ZERO, 5)
+					for k in 3:
+						m.add("sphere", _hp((0.03 + k * 0.03) * sx, 1.704 + k * 0.012, 0.004), Vector3.ONE * 0.034, _t(K_FLESH, 0.7), Vector3.ZERO, 8)
+			if not hooded:
+				for r in 2:
+					for k in 17:
+						var a = lerpf(-2.6, 2.6, (k + 0.5 * r) / 16.5)
+						var rad = 0.135 + r * 0.035
+						m.add("sphere", Vector3(sin(a) * rad, 1.69 + cos(a) * (0.15 + r * 0.03), 0.02 - r * 0.07), Vector3.ONE * (0.085 + 0.02 * ((k + r) % 2)), _t(K_FLESH, 0.92 if (k + r) % 2 == 0 else 0.74), Vector3.ZERO, 7)
+		12:   # Ryū: ejder burnu ve alt çene, dişler, uzun bıyıklar, dallı boynuzlar, ense yelesi
+			var sn = _hp(0, 1.625, -0.04)
+			Loft.tube(m, [sn, sn + Vector3(0, 0.0, 0.1), sn + Vector3(0, 0.006, 0.2)], [Vector2(0.076, 0.052), Vector2(0.06, 0.044), Vector2(0.046, 0.034)], skin, 10, 3)
+			var jw = _hp(0, 1.545, -0.04)
+			Loft.tube(m, [jw, jw + Vector3(0, -0.006, 0.1), jw + Vector3(0, 0.002, 0.18)], [Vector2(0.06, 0.028), Vector2(0.048, 0.022), Vector2(0.03, 0.015)], _t(skin, 0.85), 10, 3)
+			Loft.tube(m, [_hp(0, 1.585, -0.03), sn + Vector3(0, -0.042, 0.1), sn + Vector3(0, -0.036, 0.19)], [Vector2(0.06, 0.012), Vector2(0.05, 0.01), Vector2(0.034, 0.008)], K_DARK if not hooded else K_BONE, 8, 3)
+			for sx in [-1.0, 1.0]:
+				m.add("sphere", sn + Vector3(0.024 * sx, 0.03, 0.2), Vector3(0.03, 0.026, 0.03), skin, Vector3.ZERO, 6)
+				for k in 5:
+					var t = k / 4.0
+					m.add("cone", sn + Vector3(lerpf(0.055, 0.036, t) * sx, -0.045, 0.03 + t * 0.165), Vector3(0.012, 0.024, 0.01), K_BONE, Vector3(180, 0, 0), 4)
+				var wb = sn + Vector3(0.04 * sx, 0.0, 0.19)
+				Loft.tube(m, [wb, wb + Vector3(0.12 * sx, 0.04, 0.02), wb + Vector3(0.21 * sx, -0.03, -0.1), wb + Vector3(0.25 * sx, -0.15, -0.22)], [0.007, 0.006, 0.004, 0.002], K_LINE, 5, 4)
+				if not hooded:
+					var hb = _hp(0.06 * sx, 1.8, -0.04)
+					var hd = Vector3(0.4 * sx, 1, -0.5).normalized()
+					_spike(m, hb, hd, 0.3, 0.022, K_BONE, Vector3(0, 0.25, 0))
+					_spike(m, hb + hd * 0.11, Vector3(0.9 * sx, 0.6, 0.1), 0.12, 0.013, K_BONE)
+					_spike(m, hb + hd * 0.19, Vector3(-0.1 * sx, 0.5, -1), 0.1, 0.012, K_BONE)
+			if not hooded:
+				for k in 11:
+					var a = lerpf(-1.7, 1.7, k / 10.0)
+					_spike(m, Vector3(sin(a) * 0.1, 1.74 - 0.1 * absf(sin(a)), -0.11 * cos(a)), Vector3(sin(a) * 0.5, 0.35, -cos(a)), 0.17 + 0.05 * (k % 2), 0.04, _t(K_FLESH, 0.85), Vector3(0, 0.3, 0), 0.5)
 	if hooded:
 		# dar kukuleta: yüzü açıkta bırakır, tepesi alnın önüne sarkan gaga (Sasuke / Itachi'nin zırhlı Susanoo'su)
-		var hood = func(u: float, v: float) -> Vector3:
-			var ang = lerpf(-2.2, 2.2, u)
+		var hood = func(q0: float, v: float) -> Vector3:
+			var ang = lerpf(-2.2, 2.2, q0)
 			var top = smoothstep(0.6, 1.0, v)
 			var r = (0.152 + 0.022 * sin(PI * v)) * (1.0 - 0.9 * top * top)
 			return Vector3(sin(ang) * r, lerpf(1.46, 1.91, v), 0.008 - cos(ang) * r * 1.08 + top * 0.04)
 		_patch(m, hood, 18, 9, _t(K_FLESH, 0.92))
-		for u in [0.0, 1.0]:
-			var ep: Array = []
-			var er: Array = []
+		for q1 in [0.0, 1.0]:
+			var ep2: Array = []
+			var er2: Array = []
 			for k in 7:
-				ep.append(hood.call(u, k / 7.0))
-				er.append(0.007)
-			Loft.tube(m, ep, er, K_LINE, 5, 2)
+				ep2.append(hood.call(q1, k / 7.0))
+				er2.append(0.007)
+			Loft.tube(m, ep2, er2, K_LINE, 5, 2)
 		Loft.tube(m, [Vector3(0, 1.86, -0.03), Vector3(0, 1.885, 0.09), Vector3(0, 1.84, 0.2), Vector3(0, 1.755, 0.27)],
 			[Vector2(0.11, 0.05), Vector2(0.085, 0.04), Vector2(0.045, 0.026), Vector2(0.005, 0.005)], K_FLESH, 10, 4)   # gaga
 		m.add("cyl", Vector3(0, 1.918, 0.1), Vector3(0.05, 0.012, 0.05), K_LINE, Vector3(20, 0, 0), 6)   # tepedeki altıgen mücevher
-	elif face != 2:
+	elif not face in F_NO_HAIR:
 		# yukarı ve geriye taranmış dikenli alev saçı (Kakashi / Shisui'nin Susanoo'su)
 		for k in 13:
 			var a = lerpf(-2.4, 2.4, k / 12.0)
-			_spike(m, Vector3(sin(a) * 0.095, 1.79, -cos(a) * 0.1), Vector3(sin(a) * 0.45, 1.0, -cos(a) * 0.45 - 0.25), 0.13 + 0.07 * (k % 2), 0.04,
-				_t(K_FLESH, 0.85), Vector3(0, 0.3, -0.2), 0.5)
+			if face == 7 and absf(a) < 0.9:
+				continue   # Ryōmen: arka yüzün önü açık
+			_spike(m, Vector3(sin(a) * 0.095, 1.79, -cos(a) * 0.1), Vector3(sin(a) * 0.45, 1.0, -cos(a) * 0.45 - (0.0 if face == 7 else 0.25)), 0.13 + 0.07 * (k % 2), 0.04,
+				_t(K_FLESH, 0.85), Vector3(0, 0.3, 0.0 if face == 7 else -0.2), 0.5)
 		for k in 5:
 			var x1 = (k - 2) * 0.04
-			_spike(m, _hp(x1, 1.795, -0.02), Vector3(x1 * 2.0, 1.0, 0.12), 0.2 - absf(x1) * 1.4, 0.035, _t(K_FLESH, 0.85), Vector3(0, 0.2, -0.25), 0.5)
-	if crest:   # Mükemmel Susanoo: alın plakası + iki ince tepelik
-		_patch(m, func(u, v): return _hp(lerpf(-0.09, 0.09, u), lerpf(1.722, 1.782, v), 0.006), 6, 1, K_PLATE)
+			_spike(m, _hp(x1, 1.795, -0.02), Vector3(x1 * 2.0, 1.0, 0.12), 0.2 - absf(x1) * 1.4, 0.035, _t(K_FLESH, 0.85), Vector3(0, 0.2, -0.25 if face != 7 else 0.0), 0.5)
+	if face == 7 and not hooded:   # arka yüz: aynı kafanın ensesinde ikinci (boynuzlu) yüz
+		var bf = MB.new()
+		_head(bf, 13, false, false)
+		m.add_mesh(bf, Transform3D(Basis(Vector3.UP, PI), Vector3(0, 0, 0.02)))
+	if crest and not face in [8, 13]:   # Mükemmel Susanoo: alın plakası + iki ince tepelik
+		_patch(m, func(q0, v): return _hp(lerpf(-0.09, 0.09, q0), lerpf(1.722, 1.782, v), 0.006), 6, 1, K_PLATE)
 		for sx in [-1.0, 1.0]:
 			_spike(m, _hp(0.03 * sx, 1.78, 0.004), Vector3(0.7 * sx, 0.75, 0.05), 0.2, 0.013, K_LINE, Vector3(-0.15 * sx, 0.6, 0), 0.5)
-		if face != 0:
+		if not face in [0, 10]:
 			m.add("cyl", _hp(0, 1.752, 0.01), Vector3(0.04, 0.012, 0.04), K_LINE, Vector3(82, 0, 0), 6)
 
 
@@ -564,20 +758,20 @@ func _tier_body(armor: int, face: int) -> void:
 		_vtube(t, [Vector3(0, 1.0, 0.172), Vector3(0, 1.15, 0.187), Vector3(0, 1.27, 0.19)], [Vector2(0.007, 0.006), Vector2(0.007, 0.006), Vector2(0.007, 0.006)], K_LINE, 4, 2)
 	# boyun
 	_vtube(t, [Vector3(0, 1.42, 0.0), Vector3(0, 1.56, 0.01)], [Vector2(0.085, 0.085), Vector2(0.07, 0.07)], _t(K_FLESH, 0.85), 10, 2)
-	if armor != 2:   # magatama kolyesi (keşişte iri tespih)
-		var big = 1.5 if armor == 1 else 1.0
+	if A_NECK[armor] != 2:   # magatama kolyesi (keşişte iri tespih)
+		var big = 1.5 if A_NECK[armor] == 1 else 1.0
 		for k in 9:
 			var a = lerpf(-1.25, 1.25, k / 8.0)
 			var q = Vector3(sin(a) * 0.19, 1.4 - cos(a) * 0.06, 0.06 + cos(a) * 0.125)
 			t.add("sphere", q, Vector3(0.04, 0.04, 0.03) * big, K_LINE, Vector3.ZERO, 6)
-			if armor == 0:
+			if A_NECK[armor] == 0:
 				t.add("cone", q + Vector3(0.012 * sin(a), -0.03, 0.0), Vector3(0.02, 0.045, 0.016), K_LINE, Vector3(0, 0, 180 + 30 * sin(a)), 4)
 	_on("Chest", t)
 	# ---- sırt: omurga dikenleri (kanat yoksa)
 	var uc = MB.new()
 	if not (tier >= 5 and cfg.get("wings", true)):
 		for k in 5:
-			_spike(uc, Vector3(0, 1.1 + k * 0.085, -0.17), Vector3(0, 0.45, -1), 0.13 + 0.03 * sin(k * 1.3), 0.03, K_BONE if armor == 2 else _t(K_FLESH, 0.8), Vector3(0, 0.4, 0), 0.5)
+			_spike(uc, Vector3(0, 1.1 + k * 0.085, -0.17), Vector3(0, 0.45, -1), 0.13 + 0.03 * sin(k * 1.3), 0.03, K_BONE if A_BONE[armor] == 1 else _t(K_FLESH, 0.8), Vector3(0, 0.4, 0), 0.5)
 	# ---- kollar
 	for sd in ["Left", "Right"]:
 		var sx = 1.0 if sd == "Left" else -1.0
@@ -588,7 +782,7 @@ func _tier_body(armor: int, face: int) -> void:
 		var dc = ua + Vector3(0.04 * sx, 0.04, 0.0)
 		a.add("sphere", dc, Vector3(0.34, 0.25, 0.37), _t(K_FLESH, 0.92), Vector3.ZERO, 14)
 		_spiral(a, dc, 0.125, 0.125, 1.6, sx)
-		var lames = 0 if tier == 3 and armor != 0 else (2 if armor == 1 or tier == 3 else 3)
+		var lames = _lames(armor, sd)
 		for k in lames:   # ōsode: dışa ve aşağı açılan katmanlı plakalar
 			var kk = float(k)
 			var lam = func(u: float, v: float) -> Vector3:
@@ -602,17 +796,17 @@ func _tier_body(armor: int, face: int) -> void:
 				ep.append(lam.call(q / 6.0, 1.0))
 				er.append(0.007)
 			Loft.tube(a, ep, er, K_LINE, 4, 2)
-		if armor == 2:   # iblis: omuzdan fışkıran kemik dikenler
+		if A_BONE[armor] == 1 and armor != 10:   # iblis: omuzdan fışkıran kemik dikenler
 			for k in 4:
 				_spike(a, dc + Vector3((0.0 + k * 0.03) * sx, 0.07, -0.08 + k * 0.05), Vector3(0.45 * sx, 1, (k - 1.5) * 0.25), 0.2 + 0.05 * (k % 2), 0.035, K_BONE, Vector3(0.3 * sx, 0, 0))
 		_on(sd + "UpperArm", a)
 		# önkol: kol koruyucu + dirsek dikeni
 		var b = MB.new()
-		var gcol = K_PLATE if (plated or armor == 0) else K_FLESH
+		var gcol = K_PLATE if (plated or A_KOTE[armor] == 1) else K_FLESH
 		Loft.tube(b, [la.lerp(lh, 0.04), la.lerp(lh, 0.45), la.lerp(lh, 0.97)], [0.082, 0.1, 0.07], gcol, 12, 3)
 		b.add_xf("torus", Transform3D(Basis(Vector3.FORWARD, PI * 0.5) * Basis.from_scale(Vector3(0.21, 0.045, 0.21)), la.lerp(lh, 0.95)), K_LINE, 12)
-		_spike(b, la + Vector3(0, 0, -0.03), Vector3(-sx * 0.5, 0.1, -1), 0.15, 0.04, K_BONE if armor == 2 else gcol, Vector3.ZERO, 0.6)
-		if armor == 2:
+		_spike(b, la + Vector3(0, 0, -0.03), Vector3(-sx * 0.5, 0.1, -1), 0.15, 0.04, K_BONE if A_BONE[armor] == 1 else gcol, Vector3.ZERO, 0.6)
+		if A_BONE[armor] == 1:
 			for k in 3:
 				_spike(b, la.lerp(lh, 0.25 + k * 0.25) + Vector3(0, 0.04, -0.04), Vector3(-sx * 0.4, 0.6, -0.8), 0.11, 0.025, K_BONE)
 		_on(sd + "LowerArm", b)
@@ -647,7 +841,7 @@ func _tier_body(armor: int, face: int) -> void:
 		for k in 2:
 			_blade(kz, Vector3(0.07, 1.0, 0.19), Vector3(0.05 + k * 0.07, 0.72 - k * 0.05, 0.2), 0.03, Vector3(0, 0.1, 1).normalized(), _t(K_FLESH, 0.62), 0.5, 0.6)
 		var long = 0.52 if tier >= 5 else 0.42
-		if armor == 1:   # keşiş: önü yırtmaçlı uzun cübbe eteği
+		if A_SKIRT[armor] == 1:   # keşiş: önü yırtmaçlı uzun cübbe eteği
 			var robe = func(u: float, v: float) -> Vector3:
 				var ang = lerpf(-2.95, 2.95, u)
 				return Vector3(sin(ang) * lerpf(0.2, 0.3, v), 1.0 - v * (long + 0.08) - 0.02 * v * absf(sin(ang * 6.0)), -cos(ang) * lerpf(0.155, 0.25, v))
@@ -658,7 +852,7 @@ func _tier_body(armor: int, face: int) -> void:
 				hem2.append(robe.call(k / 26.0, 1.0))
 				hr2.append(0.008)
 			Loft.tube(kz, hem2, hr2, K_LINE, 4, 1)
-		else:            # kusazuri: belden sarkan plaka perdeleri
+		elif A_SKIRT[armor] == 0:            # kusazuri: belden sarkan plaka perdeleri
 			for k in 8:
 				var a = TAU * (k + 0.5) / 8.0
 				var out = Vector3(sin(a), 0, cos(a))
@@ -670,7 +864,7 @@ func _tier_body(armor: int, face: int) -> void:
 						var d = (rr + v) / 3.0
 						return top + out * (0.1 * d + 0.012 * rr) + Vector3(0, -long * d, 0) + tg * (u - 0.5) * 2.0 * (0.07 + 0.03 * d) + out * 0.015 * sin(PI * u)
 					_patch(kz, pl, 3, 1, _t(K_PLATE, 1.0 if (r + k) % 2 == 0 else 0.82))
-				if armor == 2:
+				if A_BONE[armor] == 1:
 					_spike(kz, top + out * 0.1 + Vector3(0, -long, 0), out + Vector3(0, -1.2, 0), 0.1, 0.025, K_BONE)
 		_on("Hips", kz)
 		for sd in ["Left", "Right"]:
@@ -682,11 +876,12 @@ func _tier_body(armor: int, face: int) -> void:
 			var lg = MB.new()   # suneate: baldır zırhı + diz kapağı
 			_vtube(lg, [ll + Vector3(0, -0.02, 0), ll.lerp(ft, 0.45), ft + Vector3(0, 0.03, 0)], [Vector2(0.088, 0.092), Vector2(0.096, 0.102), Vector2(0.07, 0.075)], K_PLATE, 12, 3)
 			lg.add("sphere", ll + Vector3(0, 0.0, 0.06), Vector3(0.13, 0.12, 0.09), K_PLATE, Vector3.ZERO, 8)
-			_spike(lg, ll + Vector3(0, 0.03, 0.08), Vector3(0, 1, 0.35), 0.11, 0.035, K_BONE if armor == 2 else K_PLATE, Vector3.ZERO, 0.6)
+			_spike(lg, ll + Vector3(0, 0.03, 0.08), Vector3(0, 1, 0.35), 0.11, 0.035, K_BONE if A_BONE[armor] == 1 else K_PLATE, Vector3.ZERO, 0.6)
 			_on(sd + "LowerLeg", lg)
 			var fm = MB.new()
 			Loft.tube(fm, [ft + Vector3(0, -0.01, -0.05), ft + Vector3(0, -0.045, 0.07), toe + Vector3(0, -0.07, 0.07)], [Vector2(0.07, 0.07), Vector2(0.08, 0.058), Vector2(0.062, 0.036)], _t(K_FLESH, 0.8), 10, 3)
 			_on(sd + "Foot", fm)
+	_armor_extra(armor)
 	# ---- sol el silahları
 	var wp = String(cfg.get("weapon", "kilic"))
 	if wp in ["yay", "kalkan"]:
@@ -716,6 +911,317 @@ func _tier_body(armor: int, face: int) -> void:
 		var wm = MB.new()
 		_wings(wm)
 		_on("UpperChest", wm)
+
+
+## Omuzluk plaka sayısı (zırha göre; Rōnin'de yalnız sol omuz)
+func _lames(armor: int, sd: String) -> int:
+	match armor:
+		0:
+			return 2 if tier == 3 else 3
+		1:
+			return 0 if tier == 3 else 2
+		2:
+			return 0 if tier == 3 else 3
+		3, 8:
+			return 1
+		5:
+			return 3 if sd == "Left" else 0
+	return 0
+
+
+## Halat: yol boyunca kalın tüp + etrafında sarmal açık şerit (burgu)
+static func _rope(mb: MB, pts: Array, r: float, col: Color, turns := 8.0) -> void:
+	var rr: Array = []
+	var hp: Array = []
+	var hr: Array = []
+	var n = pts.size()
+	for i in n:
+		rr.append(r)
+		var tg: Vector3 = (pts[mini(n - 1, i + 1)] - pts[maxi(0, i - 1)]).normalized()
+		var s1 = tg.cross(Vector3.UP)
+		if s1.length() < 0.05:
+			s1 = tg.cross(Vector3.RIGHT)
+		s1 = s1.normalized()
+		var s2 = tg.cross(s1)
+		var a = turns * TAU * i / float(n - 1)
+		hp.append(pts[i] + (s1 * cos(a) + s2 * sin(a)) * r * 0.95)
+		hr.append(r * 0.3)
+	Loft.tube(mb, pts, rr, col, 8, 1)
+	Loft.tube(mb, hp, hr, K_LINE, 4, 1)
+
+
+## Matkap: koni + etrafında sarmal oluk
+static func _drill(mb: MB, base: Vector3, dir: Vector3, length: float, r: float, col: Color) -> void:
+	var d = dir.normalized()
+	_spike(mb, base, d, length, r, col)
+	var s1 = d.cross(Vector3.BACK)
+	if s1.length() < 0.05:
+		s1 = d.cross(Vector3.RIGHT)
+	s1 = s1.normalized()
+	var s2 = d.cross(s1)
+	var hp: Array = []
+	var hr: Array = []
+	for i in 29:
+		var t = i / 28.0
+		var a = t * TAU * 3.5
+		var rad = r * (1.0 - 0.76 * t) if t < 0.5 else r * 1.24 * (1.0 - t)
+		hp.append(base + d * length * t + (s1 * cos(a) + s2 * sin(a)) * (rad + 0.004))
+		hr.append(0.007)
+	Loft.tube(mb, hp, hr, K_LINE, 4, 1)
+
+
+## Shide: halattan sarkan zikzak kâğıt şerit
+static func _shide(mb: MB, top: Vector3, out: Vector3, s: float) -> void:
+	var tg = Vector3(out.z, 0, -out.x)
+	var p = top
+	for k in 4:
+		var q = p + Vector3(0, -s, 0) + tg * s * 0.55 * (1.0 if k % 2 == 0 else -1.0) + out * 0.004
+		_blade(mb, p, q, s * 0.5, out, K_LINE, 1.0, 1.0)
+		p = q
+
+
+## Bel çevresinde nokta (etek / halat kökü)
+static func _waist(a: float, y := 0.99, k := 1.0) -> Vector3:
+	return Vector3(sin(a) * 0.22 * k, y, cos(a) * 0.17 * k)
+
+
+## Yeni zırhların kendine özgü parçaları (3 Yamabushi .. 12 Kataginu). Ortak gövde / kol / bacak _tier_body'de kurulur.
+func _armor_extra(armor: int) -> void:
+	if armor < 3:
+		return
+	var full = tier >= 4
+	var long = 0.52 if tier >= 5 else 0.42
+	var c = MB.new()    # göğüs
+	var u = MB.new()    # üst göğüs / sırt
+	var kz = MB.new()   # kalça
+	for sd in ["Left", "Right"]:
+		var sx = 1.0 if sd == "Left" else -1.0
+		var ua = _bp(sd + "UpperArm"); var la = _bp(sd + "LowerArm"); var lh = _bp(sd + "Hand")
+		var dc = ua + Vector3(0.04 * sx, 0.04, 0.0)
+		var a = MB.new()
+		var b = MB.new()
+		var ring = func(t: float, r: float, th: float, col: Color) -> void:
+			b.add_xf("torus", Transform3D(Basis(Vector3.FORWARD, PI * 0.5) * Basis.from_scale(Vector3(r, th, r)), la.lerp(lh, t)), col, 12)
+		match armor:
+			3:   # Yamabushi: göğüste çapraz kuşak + ponponlar (yuigesa), kolda sargı
+				Loft.tube(c, [Vector3(0.21 * sx, 1.44, 0.04), Vector3(0.12 * sx, 1.33, 0.2), Vector3(0.0, 1.1, 0.2)], [0.022, 0.022, 0.022], _t(K_FLESH, 0.62), 6, 3)
+				Loft.tube(c, [Vector3(0.21 * sx, 1.44, 0.0), Vector3(0.13 * sx, 1.32, -0.2), Vector3(0.0, 1.12, -0.19)], [0.022, 0.022, 0.022], _t(K_FLESH, 0.62), 6, 3)
+				c.add("sphere", Vector3(0.135 * sx, 1.345, 0.225), Vector3.ONE * 0.085, K_LINE, Vector3.ZERO, 8)
+				c.add("sphere", Vector3(0.065 * sx, 1.215, 0.225), Vector3.ONE * 0.085, K_LINE, Vector3.ZERO, 8)
+				c.add("sphere", Vector3(0.1 * sx, 1.3, -0.225), Vector3.ONE * 0.085, K_LINE, Vector3.ZERO, 8)
+				for k in 4:
+					ring.call(0.2 + k * 0.2, 0.2, 0.05, _t(K_FLESH, 0.7))
+			4:   # Ō-yoroi: omuzdan sarkan düz tahta omuzluk (5 sıra), kalın el üstü
+				for r in 5:
+					var rr = float(r)
+					var bd = func(q: float, v: float) -> Vector3:
+						return Vector3(ua.x + sx * ((rr + v) * 0.085 - 0.07), ua.y + 0.17 + 0.014 * rr + 0.03 * v, lerpf(-0.21, 0.21, q))
+					_patch(a, bd, 4, 1, _t(K_PLATE, 1.0 if r % 2 == 0 else 0.8))
+					_shaft(a, bd.call(0.0, 1.0), bd.call(1.0, 1.0), 0.006, K_LINE)
+				_shaft(a, Vector3(ua.x - sx * 0.075, ua.y + 0.17, -0.22), Vector3(ua.x - sx * 0.075, ua.y + 0.17, 0.22), 0.014, K_LINE)
+				ring.call(0.3, 0.24, 0.05, K_LINE)
+				ring.call(0.62, 0.23, 0.05, K_LINE)
+			5:   # Rōnin: sağ kol sargılı (zırhsız), sol omuzda plaka
+				if sd == "Right":
+					for k in 6:
+						ring.call(0.1 + k * 0.15, 0.19, 0.045, _t(K_FLESH, 0.68))
+			6:   # Togari: omuzda ve dirsekte burgulu matkaplar (Shisui'nin Susanoo'su)
+				_drill(a, dc + Vector3(-0.03 * sx, 0.05, 0), Vector3(-0.85 * sx, 0.55, 0), 0.44, 0.1, _t(K_FLESH, 0.9))
+				_drill(a, dc + Vector3(0.0, 0.07, -0.1), Vector3(-0.45 * sx, 0.7, -0.6), 0.26, 0.06, _t(K_FLESH, 0.8))
+				_drill(b, la, Vector3(-sx, 0.15, -0.5), 0.3, 0.07, _t(K_FLESH, 0.9))
+				ring.call(0.5, 0.22, 0.06, K_LINE)
+			7:   # Hagoromo: omuzda üç sıra tüy, önkolda tüy yelesi
+				for r in 3:
+					for i in 7:
+						var ang = lerpf(-1.25, 1.25, i / 6.0)
+						var od = Vector3(0.0, cos(ang), sin(ang))
+						var bs = dc + od * (0.14 + r * 0.02) + Vector3(sx * (r * 0.08 - 0.06), 0, 0)
+						_blade(a, bs, bs + (Vector3(sx * 0.85, 0, 0) + od * 0.5).normalized() * (0.2 + 0.035 * r), 0.05, (od - Vector3(sx * 0.5, 0, 0)).normalized(),
+							_t(K_FLESH, 1.0 if (i + r) % 2 == 0 else 0.8), 0.8, 0.0)
+				for k in 5:
+					var q = la.lerp(lh, 0.1 + k * 0.18) + Vector3(0, 0, -0.07)
+					_blade(b, q, q + Vector3(-sx * 0.12, 0.02, -0.16), 0.04, Vector3(0, 1, 0), _t(K_FLESH, 0.85), 0.7, 0.0)
+			8:   # Shimenawa: bilekte halat bileziği
+				var wr: Array = []
+				for k in 25:
+					var a0 = TAU * k / 24.0
+					wr.append(la.lerp(lh, 0.8) + Vector3(0, cos(a0) * 0.095, sin(a0) * 0.095))
+				_rope(b, wr, 0.028, _t(K_FLESH, 0.7), 6.0)
+			9:   # Ryūrin: omuzda üst üste binen pullar, önkolda sırt yüzgeci
+				for r in 4:
+					for i in 7:
+						var ang = lerpf(-1.3, 1.3, (i + 0.5 * (r % 2)) / 6.5)
+						var od = Vector3(0.0, cos(ang), sin(ang))
+						var bs = dc + od * (0.15 + r * 0.012) + Vector3(sx * (r * 0.065 - 0.07), 0, 0)
+						_blade(a, bs, bs + (Vector3(sx * 0.9, 0, 0) + od * 0.4).normalized() * 0.11, 0.055, (od - Vector3(sx * 0.6, 0, 0)).normalized(),
+							_t(K_PLATE, 1.0 if r % 2 == 0 else 0.8), 1.0, 0.0)
+				for k in 5:
+					var q = la.lerp(lh, 0.08 + k * 0.17) + Vector3(0, 0.05, -0.05)
+					_blade(b, q, q + Vector3(-sx * 0.05, 0.09, -0.11) * (1.3 - k * 0.14), 0.05, Vector3(0, 0.78, 0.63), K_LINE, 1.0, 0.0)
+			10:   # Gashadokuro: omuzda kafatası, önkolda çift kemik
+				var sc = dc + Vector3(0.0, 0.05, 0)
+				a.add("sphere", sc, Vector3(0.34, 0.34, 0.36), K_BONE, Vector3.ZERO, 12)
+				for ez in [-0.07, 0.07]:
+					a.add("sphere", sc + Vector3(-0.01 * sx, 0.15, ez), Vector3(0.1, 0.09, 0.1), K_DARK, Vector3.ZERO, 8)
+				a.add("cone", sc + Vector3(0.055 * sx, 0.165, 0.0), Vector3(0.04, 0.04, 0.045), K_DARK, Vector3(0, 0, -90 * sx), 3)
+				for k in 6:
+					a.add("box", sc + Vector3(0.13 * sx, 0.135, (k - 2.5) * 0.034), Vector3(0.045, 0.03, 0.026), K_BONE)
+				_shaft(b, la + Vector3(0, 0.07, 0.05), lh + Vector3(0, 0.05, 0.04), 0.022)
+				_shaft(b, la + Vector3(0, 0.07, -0.05), lh + Vector3(0, 0.05, -0.04), 0.022)
+			11:   # Raijin: bilekte ve pazıda çift bilezik
+				ring.call(0.78, 0.2, 0.05, K_LINE)
+				ring.call(0.9, 0.19, 0.05, K_LINE)
+				a.add_xf("torus", Transform3D(Basis(Vector3.FORWARD, PI * 0.5) * Basis.from_scale(Vector3(0.23, 0.05, 0.23)), ua.lerp(la, 0.55)), K_LINE, 12)
+			12:   # Kataginu: omuzdan dışa uzanan sert kanat omuzluk + göğse inen bant
+				for sz in [1.0, -1.0]:
+					var vend = 1.0 if sz > 0.0 else 0.6
+					var kg = func(q: float, v0: float) -> Vector3:
+						var v = v0 * vend
+						return Vector3(sx * lerpf(lerpf(0.06, 0.54, q), lerpf(0.03, 0.12, q), v), lerpf(1.48 + 0.1 * q, 1.03, v),
+							sz * (0.19 + 0.04 * sin(PI * v) - 0.24 * q * (1.0 - v)))
+					_patch(u, kg, 4, 5, _t(K_FLESH, 0.72))
+					for qq in [0.0, 1.0]:
+						var ep: Array = []
+						var er: Array = []
+						for k in 6:
+							ep.append(kg.call(qq, k / 5.0))
+							er.append(0.008)
+						Loft.tube(u, ep, er, K_LINE, 4, 2)
+				Loft.tube(u, [Vector3(sx * 0.54, 1.58, 0.0), Vector3(sx * 0.3, 1.535, 0.1), Vector3(sx * 0.06, 1.48, 0.19)], [0.008, 0.008, 0.008], K_LINE, 4, 2)
+				c.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.075, 0.02, 0.075)), Vector3(0.115 * sx, 1.33, 0.222)), K_LINE, 12)
+				u.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.08, 0.02, 0.08)), Vector3(0.14 * sx, 1.34, 0.232)), K_LINE, 12)
+		_on(sd + "UpperArm", a)
+		_on(sd + "LowerArm", b)
+	# ---- gövde / sırt / bel
+	match armor:
+		3:
+			u.add("box", Vector3(0, 1.3, -0.24), Vector3(0.2, 0.26, 0.1), _t(K_FLESH, 0.7))   # sırt sandığı (oi)
+			_shaft(u, Vector3(-0.1, 1.44, -0.24), Vector3(0.1, 1.44, -0.24), 0.02, K_LINE)
+			if full:
+				for sx in [-1.0, 1.0]:   # belde püsküllü ip
+					Loft.tube(kz, [Vector3(0.05 * sx, 1.0, 0.19), Vector3(0.09 * sx, 0.85, 0.24), Vector3(0.08 * sx, 0.7, 0.26)], [0.012, 0.012, 0.012], K_LINE, 5, 3)
+					kz.add("sphere", Vector3(0.08 * sx, 0.67, 0.26), Vector3.ONE * 0.07, K_LINE, Vector3.ZERO, 8)
+		4:
+			for sx in [-1.0, 1.0]:   # göğüste çapraz kordon, sırtta agemaki fiyongu
+				Loft.tube(c, [Vector3(0.21 * sx, 1.41, 0.15), Vector3(0, 1.25, 0.218), Vector3(-0.2 * sx, 1.09, 0.17)], [0.01, 0.01, 0.01], K_LINE, 5, 4)
+				u.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.16, 0.035, 0.11)), Vector3(0.08 * sx, 1.3, -0.215)), K_LINE, 12)
+				Loft.tube(u, [Vector3(0.02 * sx, 1.28, -0.22), Vector3(0.05 * sx, 1.12, -0.24), Vector3(0.045 * sx, 0.98, -0.25)], [0.012, 0.012, 0.012], K_LINE, 5, 3)
+				u.add("cone", Vector3(0.045 * sx, 0.93, -0.25), Vector3(0.05, 0.1, 0.05), K_LINE, Vector3.ZERO, 6)
+			c.add("sphere", Vector3(0, 1.25, 0.222), Vector3(0.05, 0.05, 0.025), K_LINE, Vector3.ZERO, 8)
+			u.add("sphere", Vector3(0, 1.3, -0.225), Vector3(0.06, 0.06, 0.04), K_LINE, Vector3.ZERO, 8)
+		5:
+			# çapraz kuşak (sağ omuzdan sol kalçaya), dik yaka, sırtta yırtık pelerin şeritleri
+			for o in [0.0, 0.035]:
+				Loft.tube(c, [Vector3(-0.22, 1.44 - o, 0.06), Vector3(-0.08, 1.33 - o, 0.205), Vector3(0.1, 1.17 - o, 0.2), Vector3(0.23, 1.05 - o, 0.08)], [0.02, 0.02, 0.02, 0.02], _t(K_FLESH, 0.62), 6, 3)
+			var col_fn = func(q: float, v: float) -> Vector3:
+				var ang = lerpf(0.5, TAU - 0.5, q)
+				return Vector3(sin(ang) * (0.115 + 0.03 * v), 1.47 + 0.11 * v, 0.0 + cos(ang) * (0.105 + 0.03 * v))
+			_patch(u, col_fn, 14, 2, _t(K_FLESH, 0.7))
+			for k in 8:
+				var x = lerpf(-0.3, 0.3, k / 7.0)
+				var ln = 0.5 + 0.35 * fposmod(sin(k * 12.9898) * 43758.5453, 1.0)
+				var tp = Vector3(x, 1.43 - absf(x) * 0.15, -0.17 - 0.03 * cos(x * 4.0))
+				_blade(u, tp, tp + Vector3(x * 0.25, -ln, -0.14), 0.05, Vector3(0, 0.15, -1).normalized(), _t(K_FLESH, 0.78 if k % 2 == 0 else 0.62), 0.9, 0.25)
+		6:
+			# göğüste girdap, sırtta yelpaze gibi açılan üç matkap
+			var sp: Array = []
+			var sr: Array = []
+			for k in 25:
+				var t = k / 24.0
+				var ang = t * TAU * 2.2
+				var q = 0.115 * (1.0 - t * 0.9)
+				sp.append(Vector3(cos(ang) * q, 1.27 + sin(ang) * q, 0.2 + 0.02 * sqrt(1.0 - pow(q / 0.12, 2.0))))
+				sr.append(0.008)
+			Loft.tube(c, sp, sr, K_LINE, 5, 1)
+			for k in 3:
+				_drill(u, Vector3((k - 1) * 0.13, 1.36, -0.18), Vector3((k - 1) * 0.55, 0.75, -0.7), 0.36 if k == 1 else 0.28, 0.07, _t(K_FLESH, 0.85))
+		7:
+			for k in 16:   # yakada tüy halkası
+				var ang = TAU * k / 16.0
+				var od = Vector3(sin(ang), 0, cos(ang))
+				var bs = Vector3(sin(ang) * 0.12, 1.49, cos(ang) * 0.11)
+				_blade(u, bs, bs + (od * 0.75 + Vector3(0, -0.65, 0)).normalized() * 0.2, 0.04, (od + Vector3(0, 0.7, 0)).normalized(), _t(K_FLESH, 1.0 if k % 2 == 0 else 0.8), 0.8, 0.0)
+			if full:
+				for r in 4:
+					for k in 14:
+						var ang = TAU * (k + 0.5 * (r % 2)) / 14.0
+						var od = Vector3(sin(ang), 0, cos(ang))
+						var bs = _waist(ang, 0.99 - r * long * 0.2, 1.0 + r * 0.1)
+						_blade(kz, bs, bs + (od * 0.3 + Vector3(0, -1, 0)).normalized() * long * 0.42, 0.055, od, _t(K_FLESH, 1.0 if (k + r) % 2 == 0 else 0.8), 0.8, 0.0)
+		8:
+			# göğüste çapraz kalın halat + shide, sırtta düğüm; belde kalın halat
+			var cp: Array = []
+			for k in 41:
+				var ang = TAU * k / 40.0
+				cp.append(Vector3(sin(ang) * 0.325, 1.26 + 0.15 * sin(ang), cos(ang) * 0.225))
+			_rope(c, cp, 0.038, _t(K_FLESH, 0.7), 14.0)
+			for k in 4:
+				var ang = lerpf(-0.9, 0.9, k / 3.0)
+				_shide(c, Vector3(sin(ang) * 0.325, 1.22 + 0.15 * sin(ang), cos(ang) * 0.235), Vector3(0, 0, 1), 0.05)
+			u.add("sphere", Vector3(0, 1.27, -0.255), Vector3(0.13, 0.11, 0.09), _t(K_FLESH, 0.7), Vector3.ZERO, 8)
+			for sx in [-1.0, 1.0]:
+				_rope(u, [Vector3(0.02 * sx, 1.25, -0.26), Vector3(0.06 * sx, 1.15, -0.28), Vector3(0.08 * sx, 1.04, -0.29), Vector3(0.085 * sx, 0.94, -0.29)], 0.022, _t(K_FLESH, 0.7), 3.0)
+				u.add("cone", Vector3(0.085 * sx, 0.9, -0.29), Vector3(0.07, 0.1, 0.07), K_LINE, Vector3.ZERO, 6)
+			if full:
+				var wp2: Array = []
+				for k in 41:
+					wp2.append(_waist(TAU * k / 40.0, 1.02, 1.12))
+				_rope(kz, wp2, 0.05, _t(K_FLESH, 0.7), 14.0)
+				for k in 5:
+					var ang = lerpf(-1.1, 1.1, k / 4.0)
+					_shide(kz, _waist(ang, 0.98, 1.2), Vector3(sin(ang), 0, cos(ang)), 0.06)
+		9:
+			for k in 5:   # karın plakaları + sırt yüzgeci
+				var y = 1.03 + k * 0.05
+				Loft.tube(c, [Vector3(-0.13, y + 0.01, 0.15), Vector3(0, y, 0.195 + k * 0.004), Vector3(0.13, y + 0.01, 0.15)], [Vector2(0.012, 0.022), Vector2(0.014, 0.024), Vector2(0.012, 0.022)], K_LINE, 6, 3)
+			for k in 7:
+				var y = 1.02 + k * 0.07
+				_blade(u, Vector3(0, y, -0.17), Vector3(0, y + 0.1, -0.17 - 0.16 - 0.05 * sin(k * 0.6)), 0.05, Vector3(1, 0, 0), K_LINE, 1.0, 0.0)
+		10:
+			_ribs(c, Vector3(0, 0, 0.0), 0.31, 0.215, 1.06, 1.36, 5, 0.06, 0.034, 0.05, true)   # dıştan kaburga plakaları
+			_vtube(c, [Vector3(0, 1.04, 0.19), Vector3(0, 1.2, 0.212), Vector3(0, 1.38, 0.19)], [Vector2(0.032, 0.016), Vector2(0.04, 0.018), Vector2(0.032, 0.016)], K_BONE, 8, 2)
+			_spine(u, 0.0, -0.2, 0.98, 1.46, 9, 0.045)
+		11:
+			# sırtta davul halkası (raijin): ince çember + 8 davul, her birinde üç tomoe; omuzlardan dolanan şal
+			var rc = Vector3(0, 1.52, -0.3)
+			u.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(1.24, 0.07, 1.24)), rc), K_LINE, 28)
+			for k in 8:
+				var ang = TAU * (k + 0.5) / 8.0
+				var dp = rc + Vector3(sin(ang) * 0.62, cos(ang) * 0.62, 0)
+				u.add("cyl", dp, Vector3(0.2, 0.07, 0.2), _t(K_FLESH, 0.8), Vector3(90, 0, 0), 12)
+				u.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.2, 0.03, 0.2)), dp + Vector3(0, 0, 0.035)), K_LINE, 12)
+				for q in 3:
+					var a2 = TAU * q / 3.0 + ang
+					u.add("sphere", dp + Vector3(sin(a2) * 0.04, cos(a2) * 0.04, 0.04), Vector3(0.04, 0.04, 0.015), K_LINE, Vector3.ZERO, 6)
+			var sh: Array = []
+			var shr: Array = []
+			for k in 13:
+				var t = k / 12.0
+				var ang = lerpf(-2.0, 2.0, t)
+				sh.append(Vector3(sin(ang) * 0.5, 1.55 + cos(ang) * 0.5, -0.16 - 0.06 * cos(ang)))
+				shr.append(Vector2(0.012, 0.05))
+			Loft.tube(u, sh, shr, _t(K_FLESH, 0.7), 6, 2)
+			if full:   # peştamal: önde ve arkada uzun kumaş
+				for sz in [-1.0, 1.0]:
+					var lc = func(q: float, v: float) -> Vector3:
+						return Vector3(lerpf(-0.11, 0.11, q) * (1.0 + 0.2 * v), 1.0 - v * long, sz * (0.185 + 0.06 * v) + 0.01 * sin(PI * q))
+					_patch(kz, lc, 3, 4, _t(K_FLESH, 0.72))
+					Loft.tube(kz, [lc.call(0.0, 1.0), lc.call(0.5, 1.0), lc.call(1.0, 1.0)], [0.008, 0.008, 0.008], K_LINE, 4, 2)
+		12:
+			var cl = func(q: float, v: float) -> Vector3:   # dik yaka
+				var ang = lerpf(0.6, TAU - 0.6, q)
+				return Vector3(sin(ang) * (0.11 + 0.025 * v), 1.47 + 0.09 * v, cos(ang) * (0.1 + 0.025 * v))
+			_patch(u, cl, 12, 2, _t(K_FLESH, 0.72))
+	if full and A_SKIRT[armor] == 2:   # Rōnin: yırtık etek şeritleri
+		for k in 13:
+			var ang = TAU * k / 13.0
+			var od = Vector3(sin(ang), 0, cos(ang))
+			var ln = long * (0.55 + 0.6 * fposmod(sin(k * 78.233) * 43758.5453, 1.0))
+			var bs = _waist(ang)
+			_blade(kz, bs, bs + (od * 0.25 + Vector3(0, -1, 0)).normalized() * ln, 0.075, od, _t(K_FLESH, 0.78 if k % 2 == 0 else 0.62), 0.9, 0.3)
+	_on("Chest", c)
+	_on("UpperChest", u)
+	_on("Hips", kz)
 
 
 ## Tüylü kanatlar (Kakashi / Sasuke'nin Mükemmel Susanoo'su): omuzdan yukarı-dışa uzanan kanat kemiği, üç sıra üst üste binen tüy
@@ -835,6 +1341,7 @@ func special(owner_f: Node3D, dir: Vector3) -> void:
 		return
 	swing_t = 0.0
 	var base = owner_f.global_position + Vector3.UP * TIER_HEIGHT[tier] * 0.35
+	var H: float = TIER_HEIGHT[tier]
 	match wp:
 		"kilic":
 			body.play("slash_c", 0.05, 1.2, true)
@@ -853,6 +1360,59 @@ func special(owner_f: Node3D, dir: Vector3) -> void:
 			body.play("jab", 0.05, 1.0, true)
 			_fly_bolt(owner_f, base, dir, 6.0 + TIER_HEIGHT[tier] * 0.6, TIER_HEIGHT[tier] * 0.35, 0.12, {}, 0.0)
 			Combat.hit_zone(owner_f, owner_f.global_position, dir, 6.0 + TIER_HEIGHT[tier] * 0.8, 14.0, TIER_HEIGHT[tier] * 1.1, {"dmg": 40.0 * tier, "knock": 22.0, "launch": 6.0, "kind": "heavy", "dir": dir})
+		"cift_kilic":   # Sōtō: iki kılıçla çapraz çift kesik (Madara)
+			body.play("slash_a", 0.05, 1.4, true)
+			for k in 2:
+				var d2 = dir.rotated(Vector3.UP, deg_to_rad(-14.0 + k * 28.0))
+				get_tree().create_timer(0.16 * k).timeout.connect(func():
+					if is_instance_valid(owner_f):
+						Combat.hit_zone(owner_f, owner_f.global_position, d2, 20.0 + H * 1.1, 26.0, H * 1.1, {"dmg": 18.0 * tier, "knock": 12.0, "kind": "heavy", "dir": d2})
+						FX.ring(base + d2 * 6.0, color(), 5.0 + tier, 0.35, false, d2))
+		"kubikiri":   # dev satır: kısa menzilli ağır yarma, havaya kaldırır
+			body.play("slash_c", 0.05, 1.0, true)
+			Combat.hit_zone(owner_f, owner_f.global_position, dir, 10.0 + H * 0.9, 34.0, H * 1.1, {"dmg": 42.0 * tier, "knock": 20.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.1, "dir": dir})
+			FX.ring(base + dir * 4.0, color(), 7.0 + tier, 0.45, false, dir)
+		"kusanagi":   # uzayan kılıç: çok uzun, dar saplama
+			body.play("jab", 0.05, 1.1, true)
+			_fly_bolt(owner_f, base, dir, 46.0 + H * 2.0, H * 0.4, 0.14, {}, 0.0)
+			Combat.hit_zone(owner_f, owner_f.global_position, dir, 46.0 + H * 2.0, 7.0, H * 1.1, {"dmg": 30.0 * tier, "knock": 8.0, "kind": "heavy", "dir": dir})
+		"tirpan":   # Ōgama: çevreyi biçen geniş yay, hedefi içeri çeker
+			body.play("slash_b", 0.05, 1.1, true)
+			Combat.hit_zone(owner_f, owner_f.global_position, dir, 14.0 + H * 1.0, 110.0, H * 1.1, {"dmg": 24.0 * tier, "knock": -10.0, "kind": "heavy", "dir": dir})
+			FX.ring(owner_f.global_position + Vector3.UP * 0.5, color(), 14.0 + H * 0.8, 0.4)
+		"pence":   # çift pençe: art arda üç kısa tırmalama
+			body.play("slash_a", 0.05, 1.7, true)
+			for k in 3:
+				get_tree().create_timer(0.12 * k).timeout.connect(func():
+					if is_instance_valid(owner_f):
+						Combat.hit_zone(owner_f, owner_f.global_position, dir, 7.0 + H * 0.8, 55.0, H * 1.1, {"dmg": 13.0 * tier, "knock": 5.0, "kind": "heavy", "dir": dir}))
+			FX.speed_lines(base, dir)
+		"cekic", "kanabo":   # yere inen darbe: önde dairesel şok, sarsıntı
+			body.play("slash_c", 0.05, 0.9, true)
+			var heavy = 1.0 if wp == "cekic" else 0.8
+			var hp0 = owner_f.global_position + dir * (5.0 + H * 0.5)
+			get_tree().create_timer(0.3).timeout.connect(func():
+				if is_instance_valid(owner_f):
+					Combat.hit_zone(owner_f, hp0 - dir * 0.5, dir, (6.0 + H * 0.6) * heavy, 180.0, H * 1.1, {"dmg": 44.0 * tier * heavy, "knock": 14.0, "launch": 10.0 * heavy, "kind": "heavy", "hitstop": 0.12, "dir": dir})
+					var gq = Vector3(hp0.x, Game.jutsu_floor(hp0.x, hp0.z) + 0.4, hp0.z)
+					FX.ring(gq, color(), (6.0 + H * 0.6) * heavy, 0.5)
+					FX.impact(gq, color(), 1.5 + tier * 0.4)
+					if Game.world:
+						Game.world.env.add_shake(0.35 + tier * 0.12))
+		"asa":   # Shakujō: önü süpüren uzun savuruş
+			body.play("slash_b", 0.05, 1.2, true)
+			Combat.hit_zone(owner_f, owner_f.global_position, dir, 12.0 + H * 1.1, 70.0, H * 1.1, {"dmg": 26.0 * tier, "knock": 24.0, "kind": "heavy", "dir": dir})
+			FX.ring(base + dir * 5.0, color(), 8.0 + tier, 0.4, false, dir)
+		"fuma":   # dev shuriken fırlatma: yolu boyunca biçer
+			body.play("throw", 0.05, 1.0, true)
+			_fly_bolt(owner_f, base, dir, 34.0 + H * 1.8, H * 0.45, 0.5, {}, 0.0)
+			Combat.hit_zone(owner_f, owner_f.global_position, dir, 34.0 + H * 1.8, 14.0, H * 1.1, {"dmg": 36.0 * tier, "knock": 12.0, "kind": "heavy", "dir": dir})
+		"gunbai":   # Uchiha Gaeshi: gunbai ile karşıla, önündekileri rüzgârla savur
+			body.play("block", 0.05, 1.0, true)
+			Buffs.add("susanoo_shield", 2.2, {"armor": 0.1})
+			Combat.hit_zone(owner_f, owner_f.global_position, dir, 16.0 + H * 1.0, 50.0, H * 1.1, {"dmg": 14.0 * tier, "knock": 34.0, "launch": 5.0, "kind": "heavy", "dir": dir})
+			FX.ring(base + dir * 3.0, color(), 7.0 + tier, 0.5, false, dir)
+			FX.speed_lines(base, dir)
 	Sfx.play("boom", base, 0.8, 0.6)
 
 

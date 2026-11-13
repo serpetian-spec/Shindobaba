@@ -211,7 +211,7 @@ static func random_susanoo(n: Node) -> Dictionary:
 			col[i] = lerpf(col[i], c2[i], k)
 	var rim = Color(col[0], col[1], col[2]).lightened(rng.randf_range(0.2, 0.5))
 	var pr = {"susanoo": {"color": col, "rim_color": [rim.r, rim.g, rim.b], "armor": rng.randi() % Susanoo.ARMORS.size(), "face": rng.randi() % Susanoo.FACES.size(),
-		"weapon": ["kilic", "kilic", "mizrak", "kalkan", "yay", "yok"][rng.randi() % 6], "wings": false, "mastery": 999.0, "tier_pref": 3,
+		"weapon": Susanoo.WEAPONS.keys()[rng.randi() % Susanoo.WEAPONS.size()], "wings": false, "mastery": 999.0, "tier_pref": 3,
 		"density": rng.randf_range(0.7, 1.4), "glow": rng.randf_range(0.7, 1.5), "flow": rng.randf_range(0.5, 1.8)}}
 	n.set_meta("sus_pr", pr)
 	return pr
@@ -224,4 +224,4 @@ static func _susanoo_after(e: Enemy, sn: Susanoo, col: Array) -> void:
 	sn.scale = fs * 0.1
 	sn.create_tween().tween_property(sn, "scale", fs, 0.6).set_trans(Tween.TRANS_BACK)
 	Hud.banner(e.display_name, "SUSANOO!", Color(col[0], col[1], col[2]).lightened(0.3))
-	Sfx.play("roar", e.global_position, 1.4, 0.6)
+	Sfx.play("susanoo_open", e.global_position, 1.0, 0.9)

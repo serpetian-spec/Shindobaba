@@ -1981,8 +1981,8 @@ static func _susanoo_panel(main: Node, v: VBoxContainer, _h) -> void:
 			redraw.call()))
 	var tp = int(cfg.get("tier_pref", 5))
 	opt_row.call("Kademe", ["1 Kaburga", "2 İskelet", "3 İnsansı", "4 Zırhlı", "5 Mükemmel"], tp, "tier_pref", [1, 2, 3, 4, 5], mt)
-	opt_row.call("Zırh", Susanoo.ARMORS, int(cfg.get("armor", 0)), "armor", [0, 1, 2])
-	opt_row.call("Yüz", Susanoo.FACES, int(cfg.get("face", 0)), "face", [0, 1, 2])
+	opt_row.call("Zırh", Susanoo.ARMORS, int(cfg.get("armor", 0)), "armor", range(Susanoo.ARMORS.size()))
+	opt_row.call("Yüz", Susanoo.FACES, int(cfg.get("face", 0)), "face", range(Susanoo.FACES.size()))
 	opt_row.call("Silah", Susanoo.WEAPONS.values(), cfg.get("weapon", "kilic"), "weapon", Susanoo.WEAPONS.keys())
 	v.add_child(UI.label("Renk", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	var cr = HFlowContainer.new()
@@ -1996,7 +1996,7 @@ static func _susanoo_panel(main: Node, v: VBoxContainer, _h) -> void:
 	v.add_child(UI.label("Kenar rengi", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	var rr = HFlowContainer.new()
 	rr.add_theme_constant_override("h_separation", 8)
-	for c in Susanoo.COLORS + [[1.0, 1.0, 1.0], [0.05, 0.05, 0.1]]:
+	for c in Susanoo.COLORS:
 		var rc: Array = cfg.get("rim_color", cfg.get("color", Susanoo.COLORS[0]))
 		rr.add_child(_swatch(Color(c[0], c[1], c[2]), Color(rc[0], rc[1], rc[2]).is_equal_approx(Color(c[0], c[1], c[2])), func():
 			cfg["rim_color"] = c

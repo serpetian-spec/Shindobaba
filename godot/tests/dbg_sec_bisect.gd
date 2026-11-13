@@ -11,18 +11,19 @@ func _ready() -> void:
 	Hud.close_dialog()
 	RenderingServer.frame_post_draw.connect(func(): t_post = Time.get_ticks_usec())
 	await get_tree().create_timer(0.5).timeout
-	var t0 = Time.get_ticks_usec()
-	var n = 0
-	var f = 0
-	var worst = 0
-	var last = t0
-	while Time.get_ticks_usec() - t0 < 12000000:
-		await get_tree().process_frame
-		var now = Time.get_ticks_usec()
-		f += 1
-		worst = maxi(worst, now - last)
-		last = now
-		if now - t_post > 6000:
-			n += 1
-	print("BIS 12 sn: ort FPS %d, en kotu an %d FPS, uzun kare %d, portre var=%s" % [f / 12, 1000000 / maxi(1, worst), n, Hud.portrait_tex != null])
+	print("BIS pencere %s" % DisplayServer.window_get_size())
+	if main.perf_panel == null:
+		main._make_perf_panel()
+	var pp = main.perf_panel
+	for rnd in 2:
+		for i in pp.TESTS.size():
+			pp._apply_test(i)
+			await get_tree().create_timer(1.0).timeout
+			var t0 = Time.get_ticks_usec()
+			var f = 0
+			while Time.get_ticks_usec() - t0 < 4000000:
+				await get_tree().process_frame
+				f += 1
+			print("BIS tur %d  %s: %d FPS" % [rnd + 1, pp.TESTS[i], f / 4])
+	pp._apply_test(0)
 	get_tree().quit()

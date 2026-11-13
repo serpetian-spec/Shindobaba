@@ -751,7 +751,7 @@ func _start_susanoo() -> void:
 	sn.scale = final_scale * 0.1
 	sn.create_tween().tween_property(sn, "scale", final_scale, 0.6).set_trans(Tween.TRANS_BACK)
 	Hud.banner("SUSANOO", "Kademe %d — %s   (sol tık: dev savuruş, sağ tık: silah)" % [sn.tier, Susanoo.TIER_NAMES[sn.tier]], Color(sn.mat.get_shader_parameter("col")))
-	Sfx.play("roar", p.global_position, 1.6, 0.6)
+	Sfx.play("susanoo_open", p.global_position, 1.0, 1.0)
 	var h = Susanoo.TIER_HEIGHT[sn.tier]
 	if sn.tier >= 2:
 		# kamera Susanoo boyuna göre; kullanıcı Susanoo'nun içinde (göğüs / alın) süzülür

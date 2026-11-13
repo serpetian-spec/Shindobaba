@@ -3,6 +3,7 @@ shader_type spatial;
 render_mode unshaded, cull_front, blend_mix, depth_draw_never, fog_disabled;
 
 uniform vec4 col : source_color = vec4(0.55, 0.35, 1.0, 1.0);
+uniform vec4 rim_col : source_color = vec4(0.55, 0.35, 1.0, 1.0);
 uniform float glow = 1.0;
 uniform float flow_speed = 1.0;
 uniform float shell = 0.06;      // kabuk kalınlığı (model birimi)
@@ -39,6 +40,6 @@ void fragment() {
 	float f = vnoise(op.xy * 10.0 + vec2(op.z * 6.0, -tt * 2.8));
 	float a = smoothstep(0.38, 0.85, f * 0.55 + nv * 0.65);
 	a *= smoothstep(0.05, 0.6, abs(dot(normalize(NORMAL), VIEW)));   // kabuğun dış kenarı köşeli görünmesin: sıyıran açıda söner
-	ALBEDO = mix(col.rgb, vec3(1.0), 0.18) * (0.95 + 0.25 * glow);
+	ALBEDO = mix(mix(col.rgb, rim_col.rgb, 0.65), vec3(1.0), 0.15) * (0.95 + 0.25 * glow);
 	ALPHA = clamp(a * 0.6 * strength, 0.0, 0.75);
 }
