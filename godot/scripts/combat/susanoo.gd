@@ -7,7 +7,7 @@ extends Node3D
 ## Özelleştirme (profile["susanoo"]): renk, zırh stili, yüz, silah, kanat, tercih edilen kademe.
 
 const TIER_NAMES := ["", "Kaburga", "İskelet", "İnsansı", "Zırhlı Savaşçı", "Mükemmel Susanoo"]
-const TIER_HEIGHT := [0.0, 2.05, 9.5, 16.0, 36.0, 78.0]   # 1: oyuncuyu saran kaburga .. 5: kuyruklu canavar boyunda Mükemmel Susanoo
+const TIER_HEIGHT := [0.0, 2.05, 8.0, 14.0, 28.0, 46.0]   # 1: oyuncuyu saran kaburga .. 5: kuyruklu canavar boyunda Mükemmel Susanoo
 ## Kullanıcının Susanoo içindeki yeri (Susanoo boyuna oran): 3-4 göğüs, 5 alındaki mücevher (animedeki gibi)
 const USER_SEAT := [0.0, 0.0, 0.0, 0.2, 0.64, 0.86]   # 3: kalça yere gömülü olduğundan göğüs alçakta
 const ARMORS := ["Samuray", "Keşiş Cübbesi", "İblis Dikenleri", "Yamabushi", "Ō-yoroi", "Rōnin", "Togari", "Hagoromo", "Shimenawa", "Ryūrin", "Gashadokuro", "Raijin", "Kataginu"]
@@ -87,6 +87,7 @@ var bmat: ShaderMaterial     # gövde ağı (köşe rengi tür taşımaz)
 var gmat: ShaderMaterial     # hayalet et (iskelet kademelerinde kemikleri saran soluk beden)
 var amat: ShaderMaterial     # alev silueti (şişirilmiş arka yüz kabuğu)
 var _rec: Array = []
+var parts_key := ""          # bu Susanoo'nun parça ağlarının önbellek anahtarı (BeastSus aynı ağları canavara giydirir)
 static var _parts_cache := {}   # kademe|zırh|yüz|silah|kanat -> [[kemik, ağ, malzeme türü]]: ikinci açılışta ağlar yeniden kurulmaz
 
 
@@ -127,11 +128,7 @@ func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = nu
 	amat = ShaderMaterial.new()
 	amat.shader = load("res://shaders/susanoo_aura.gdshader")
 	amat.set_shader_parameter("shell", 0.05 if tier >= 3 else 0.07)
-	if tier >= 3:   # etli / zırhlı kademeler: alev silueti gövdenin ve zırhın kenarından
-		mat.next_pass = amat
-		bmat.next_pass = amat
-	else:           # iskelet kademeleri: alev silueti kemikleri saran hayalet etten
-		gmat.next_pass = amat
+	# alev kabuğu (gidip gelen duman) kaldırıldı: enerji görünüşü gövdenin kendi boyamasından gelir
 	apply_look()
 	if _eye_mat == null:
 		_eye_mat = StandardMaterial3D.new()
@@ -175,6 +172,7 @@ func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = nu
 			body.overlay.grow["LeftUpperLeg"] = 0.001
 			body.overlay.grow["RightUpperLeg"] = 0.001
 	var key = "%d|%d|%d|%s|%s" % [tier, armor, int(cfg.get("face", 0)), String(cfg.get("weapon", "kilic")), str(cfg.get("wings", true))]
+	parts_key = key
 	if not _parts_cache.has(key):
 		_rec = []
 		_parts(armor)

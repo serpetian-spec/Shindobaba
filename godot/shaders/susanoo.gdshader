@@ -12,6 +12,9 @@ uniform float glow = 1.0;        // kontur parlaklığı
 uniform float flow_speed = 1.0;  // içindeki chakra akış hızı
 uniform float ground_y = -100000.0;   // yere gömülü kademeler: zemin altı çizilmez
 uniform float cut_y = 0.0;       // >0: dinlenme pozunda bu yüksekliğin altı çizilmez (üst gövde kademesi)
+uniform float force_kind = 0.0;  // >0: bütün yüzey bu türden boyanır (canavar kuyrukları Susanoo plakasına bürünür)
+uniform float flesh_a = 1.0;     // chakra etinin dolgunluk çarpanı (canavarın giydiği zırhta et silikleşir, plaka kalır)
+uniform float all_a = 1.0;       // tüm yüzeyin dolgunluk çarpanı (canavar bedenindeki ince enerji katmanı)
 uniform float vcol = 1.0;        // 0: gövde ağı (köşe rengi tür taşımaz, hepsi chakra eti)
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -32,7 +35,7 @@ void vertex() {
 	rest = CUSTOM0.xyz;
 	op = dot(rest, rest) > 0.000001 ? rest : VERTEX;
 	on = NORMAL;
-	kind = mix(1.0, COLOR.r, vcol);
+	kind = force_kind > 0.0 ? force_kind : mix(1.0, COLOR.r, vcol);
 	tone = mix(1.0, COLOR.g, vcol);
 }
 
@@ -40,46 +43,50 @@ void fragment() {
 	if (cut_y > 0.0 && rest.y > 0.0001 && rest.y < cut_y) discard;
 	if (wp.y < ground_y) discard;
 	float ndv = clamp(abs(dot(normalize(NORMAL), VIEW)), 0.0, 1.0);
-	float rim = pow(1.0 - ndv, 2.6);
+	float rim = pow(1.0 - ndv, 2.2);
 	float tt = TIME * flow_speed;
-	// benek: yavaş akan açık bulutlar (animedeki alacalı chakra dokusu)
-	float m = vnoise(op.xy * 5.0 + vec2(op.z * 3.0, -tt * 0.5)) * 0.6 + vnoise(op.zy * 11.0 + vec2(tt * 0.3, -tt * 0.9)) * 0.4;
-	// iki renk aynıysa çizgiler beyaza açılır; farklıysa ikinci renk kendi tonuyla çizgi, kemik, plaka kenarı ve parlamayı boyar
-	float same = 1.0 - clamp(distance(rim_col.rgb, col.rgb) * 2.0, 0.0, 1.0);
-	vec3 light = mix(rim_col.rgb * 1.15, vec3(1.0), mix(0.1, 0.5, same));
-	vec3 base = col.rgb * (0.7 + 0.42 * m) * tone;
-	float a = 0.9;
-	float ln = 0.0;
+	// enerji akışı ve akan eş-yükselti çizgileri (önceki sürümün boyaması: dünya uzayında, yukarı akar)
+	float flow = vnoise(wp.xz * 0.6 + vec2(0.0, -tt * 1.4) + wp.y * 0.4) * 0.6 + vnoise(wp.xy * 1.7 - vec2(tt * 0.8, tt * 2.0)) * 0.4;
+	float n2 = vnoise(wp.xy * 0.9 + vec2(wp.z * 0.7, -tt * 0.6)) * 0.6 + vnoise(wp.zy * 1.9 + vec2(tt * 0.3, -tt * 1.1)) * 0.4;
+	float lines = clamp(1.0 - smoothstep(0.02, 0.09, abs(fract(n2 * 6.0) - 0.5)), 0.0, 1.0);
+	float flick = 0.85 + 0.15 * sin(tt * 9.0 + wp.y * 2.0);
+	float fill = 0.5;       // iç dolgu: enerji gibi yarı saydam
+	float bright = 0.0;
+	float k2 = 0.0;         // ikinci renge kayma
 	if (kind < 0.3) {            // koyu oyuk (göz çukuru, ağız içi, başlık gölgesi)
-		base = col.rgb * 0.13;
-		a = 0.93;
-	} else if (kind < 0.5) {     // açık çizgi (sarmal, kenar şeridi)
-		base = light * (0.9 + 0.2 * m);
-		a = 0.95;
-	} else if (kind < 0.7) {     // kemik
-		base = mix(mix(col.rgb, rim_col.rgb, 0.75), vec3(1.0), mix(0.2, 0.38, same)) * (0.85 + 0.25 * m) * tone;
-		a = 0.94;
-	} else if (kind < 0.9) {     // zırh plakası: tuğla örgülü ızgara çizgileri
-		vec3 an = abs(normalize(on));
-		float u = an.y > 0.8 ? op.x : (an.z > an.x ? op.x : op.z);
-		float v = an.y > 0.8 ? op.z : op.y;
-		float ch = 0.17, cw = 0.044;
-		float row = floor(v / ch);
-		float fv = fract(v / ch);
-		float fu = fract(u / cw);
-		float dv = min(fv, 1.0 - fv) * ch, du = min(fu, 1.0 - fu) * cw;
-		float wv = max(0.0045, fwidth(v) * 1.1), wu = max(0.0045, fwidth(u) * 1.1);
-		ln = max(1.0 - smoothstep(0.0, wv, dv), 1.0 - smoothstep(0.0, wu, du));
-		ln *= 0.7 * clamp(0.012 / max(fwidth(u), 0.0001), 0.0, 1.0);   // uzakta ızgara kırpışmasın
-		base = mix(base, rim_col.rgb * (0.6 + 0.3 * m) * tone, 0.22 * (1.0 - same)) * 0.92;
-		a = 0.94;
-	} else {                     // chakra eti: akan eş-yükselti çizgileri (hafif)
-		float n2 = vnoise(op.xy * 7.0 + vec2(op.z * 5.0, -tt * 0.6)) * 0.6 + vnoise(op.zy * 14.0 + vec2(tt * 0.3, -tt * 1.1)) * 0.4;
-		ln = clamp(1.0 - smoothstep(0.02, 0.09, abs(fract(n2 * 5.0) - 0.5)), 0.0, 1.0) * 0.22;
+		vec3 bgd = texture(scr, SCREEN_UV).rgb;
+		ALBEDO = mix(bgd, col.rgb * 0.1, 0.92);
+	} else {
+		if (kind < 0.5) {        // açık çizgi (sarmal, kenar şeridi, mücevher): ikinci renk, parlak
+			k2 = 1.0;
+			bright = 0.75;
+			fill = 0.92;
+			lines = 0.0;
+		} else if (kind < 0.7) { // kemik: ikinci renge yakın, dolgun
+			k2 = 0.7;
+			bright = 0.45;
+			fill = 0.88;
+			lines *= 0.4;
+		} else if (kind < 0.9) { // zırh plakası: lamel çizgileri akan çizgilere eklenir
+			vec3 an = abs(normalize(on));
+			float u = an.y > 0.8 ? op.x : (an.z > an.x ? op.x : op.z);
+			float v = an.y > 0.8 ? op.z : op.y;
+			float ch = 0.17, cw = 0.044;
+			float fv = fract(v / ch);
+			float fu = fract(u / cw);
+			float dv = min(fv, 1.0 - fv) * ch, du = min(fu, 1.0 - fu) * cw;
+			float wv = max(0.0045, fwidth(v) * 1.1), wu = max(0.0045, fwidth(u) * 1.1);
+			float grid = max(1.0 - smoothstep(0.0, wv, dv), 1.0 - smoothstep(0.0, wu, du));
+			grid *= clamp(0.012 / max(fwidth(u), 0.0001), 0.0, 1.0);   // uzakta ızgara kırpışmasın
+			lines = max(lines * 0.5, grid);
+			fill = 0.62;
+		}
+		// renk geçişi: gövde ana renk, kenara ve çizgilere doğru ikinci renge akar
+		float mixk = clamp(max(k2, rim * 1.3 + lines * 0.5), 0.0, 1.0);
+		vec3 c = mix(col.rgb, rim_col.rgb, mixk) * (0.75 + rim * 0.9 * glow + flow * 0.25 + lines * 0.55 + bright) * flick * mix(1.0, tone, 0.6);
+		float a = (fill + flow * 0.16) * mix(0.5, 1.0, clamp(density, 0.0, 1.0)) + (density - 1.0) * 0.15 + rim * 0.42 * glow + lines * 0.22 * glow;
+		vec3 bg = texture(scr, SCREEN_UV).rgb;
+		a *= all_a * (kind >= 0.9 ? flesh_a : 1.0);
+		ALBEDO = mix(bg, c, clamp(a, 0.04, 0.96));
 	}
-	float flick = 0.93 + 0.07 * sin(tt * 7.0 + op.y * 9.0);
-	vec3 c = (base + light * (rim * 0.7 * glow + ln * 0.5 * glow)) * flick;
-	a = clamp(a * mix(0.55, 1.0, clamp(density, 0.0, 1.0)) + (density - 1.0) * 0.12 + rim * 0.25, 0.12, 0.97);
-	vec3 bg = texture(scr, SCREEN_UV).rgb;
-	ALBEDO = mix(bg, c, a);
 }

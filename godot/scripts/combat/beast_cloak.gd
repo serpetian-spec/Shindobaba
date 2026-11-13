@@ -287,6 +287,7 @@ func _full_transform() -> void:
 	p.cam.far = maxf(p.cam.far, 6000.0)
 	Buffs.add("beast", 9999.0, {"melee": 1.5, "speed": 1.5, "armor": 0.6, "jutsu": 1.2})
 	FX.smoke_puff(p.global_position + Vector3.UP * h * 0.4, h * 0.25, 30)
+	BeastSus.sync(p)   # Susanoo açıksa canavar onu zırh olarak giyer
 	Hud.banner("KUYRUKLU CANAVAR", "%s ile tam dönüşüm!  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu" % BeastModels.INFO[id]["name"].split(" — ")[0], chakra_col())
 
 
@@ -295,6 +296,7 @@ func _end_transform() -> void:
 		FX.smoke_puff(p.global_position + Vector3.UP * 3.0, 4.0, 30)
 		rig.queue_free()
 	rig = null
+	BeastSus.sync(p)
 	p.model.visible = true
 	p.cam_dist = saved_cam
 	p.cam_lift = 0.0

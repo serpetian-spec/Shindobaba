@@ -765,10 +765,12 @@ func _start_susanoo() -> void:
 	if sn.tier >= 5 and Susanoo.config(Game.profile).get("wings", true) and p.has_method("start_flight"):
 		p.set_meta("wing_flight", {"speed": 24.0, "lift": 13.0, "drain": 1.2, "name": "Susanoo kanatları", "land_stop": true})
 		Hud.msg("Kanatlar: havadayken Space ile uç", Color(0.8, 0.9, 1.0))
+	BeastSus.sync(p)   # tam dönüşümdeki canavar Susanoo'yu zırh olarak giyer
 
 
 func _end_susanoo() -> void:
 	susanoo = false
+	BeastSus.sync(p)
 	p.model_lift = 0.0
 	if p.has_meta("susanoo_cam"):
 		var sc: Array = p.get_meta("susanoo_cam")
