@@ -65,7 +65,14 @@ func _ready() -> void:
 		if jd is Dictionary and (String(k).begins_with(pre) or String(jd.get("learn", "")) == "kg:" + pre) and float(jd.get("level", 1)) * 0.55 <= avg:
 			ids.append(String(k))
 	if not save_slots.is_empty():
-		ids = save_slots
+		if OS.get_environment("PRE") != "":   # kayıttaki ustalıklarla başka element: o elementin atabildiği en güçlü 9 tekniği (9 yuva)
+			ids.sort_custom(func(x, y): return float(Data.jutsu[x].get("level", 1)) > float(Data.jutsu[y].get("level", 1)))
+			ids = ids.slice(0, 9)
+		else:
+			ids = save_slots
+	for k in ids:
+		if not k in Game.profile.get("learned", []):
+			Game.profile["learned"] = Game.profile.get("learned", []) + [k]
 	var real = OS.get_environment("GERCEK") == "1" or not save_slots.is_empty()
 	var hit_t := -9.0
 	var cd = {}
@@ -76,6 +83,7 @@ func _ready() -> void:
 	var hp0 = e.hp
 	var pend := ""
 	var php: float = pl.hp
+	var ehp: float = e.hp
 	print("MASH kullanilabilir jutsu: %d  %s" % [ids.size(), str(ids)])
 	while t < 60.0 and is_instance_valid(e) and not e.dead and not pl.is_dead():
 		await get_tree().create_timer(0.1).timeout
@@ -84,39 +92,29 @@ func _ready() -> void:
 		dir.y = 0
 		pl.facing = atan2(-dir.x, -dir.z)
 		if mode == "jutsu":
-			busy -= 0.1
-			if busy <= 0.0 and pend != "":
-				var before = e.hp
-				pl.set_meta("jid", pend)
-				pl.set_meta("jid_t", Time.get_ticks_msec() / 1000.0)
-				Jutsu.execute(pl, pend, e)
-				print("MASH   t=%.1f at: %s | dusman takim=%s hedef=%s can=%.0f durumlar=%s" % [t, pend, str(e.team), (str(e.target.name) if e.target != null and is_instance_valid(e.target) else "yok"), e.hp, str(e.statuses)])
-				casts += 1
-				dealt[pend] = before
-				pend = ""
-			if busy <= 0.0 and pend == "":
-				for k in dealt.keys():
-					if dealt[k] is float and float(dealt[k]) > 0.0:
-						pass
-				var rdy = ids.filter(func(k): return float(cd.get(k, 0.0)) <= t and (not real or pl.chakra >= PlayerCombat.jutsu_cost(Data.jutsu[k])))
-				if not rdy.is_empty():
-					var jid: String = rdy.pick_random()
-					var jd2: Dictionary = Data.jutsu[jid]
-					cd[jid] = t + float(jd2.get("cd", 8.0))
-					busy = 0.2 + (jd2.get("seals", []) as Array).size() * 0.27 * Mastery.seal_speed(Game.profile) / 1.0
-					var chk = Mastery.cast_check(Game.profile, jd2)
-					if chk.begins_with("fail:") and randf() < float(chk.substr(5)):
+			# oyunun gerçek atış yolu: mühür / hazırlık / toparlanma süresi, bekleme süresi, chakra bedeli, ustalık şartı hepsi oyundaki gibi
+			var pc = pl.combat
+			if String(pc.action) == "":
+				var rdy = ids.filter(func(k): return float(pc.cooldowns.get(k, 0.0)) <= 0.0)
+				var can = rdy.filter(func(k): return Stats.is_taijutsu(Data.jutsu[k]) or pl.chakra >= PlayerCombat.cast_cost(Data.jutsu[k]))
+				if not can.is_empty():
+					var jid: String = can.pick_random()
+					pc.begin_cast(jid)
+					if String(pc.action) == "cast":
+						casts += 1
+						print("MASH   t=%.1f at: %s | dusman takim=%s hedef=%s can=%.0f durumlar=%s" % [t, jid, str(e.team), (str(e.target.name) if e.target != null and is_instance_valid(e.target) else "yok"), e.hp, str(e.statuses)])
+					else:
 						fails += 1
-					elif chk == "" or chk.begins_with("fail:"):
-						pend = jid
-						if real:
-							pl.chakra -= PlayerCombat.jutsu_cost(jd2)
-				elif real and t - hit_t > 0.6:   # atacak chakra yok: C ile toplar (darbe yiyince 0.6 sn kesilir)
+						pc.cooldowns[jid] = 3.0   # atılamadı (şart / ustalık): bir süre deneme
+				elif not rdy.is_empty() and t - hit_t > 0.6:   # chakra yok: C ile toplar (darbe yiyince 0.6 sn kesilir)
 					pl.chakra = minf(pl.max_chakra, pl.chakra + Stats.charge_rate(Game.profile) * 0.1)
 		else:
 			if dir.length() > 2.2:
 				pl.global_position += dir.normalized() * minf(dir.length() - 1.8, 0.9)
 			pl.combat.attack()
+		if is_instance_valid(e) and e.hp < ehp - 0.5:
+			print("MASH     dusman -%.0f (son teknik=%s) durumlar=%s" % [ehp - e.hp, str(pl.get_meta("jid", "")), str(e.statuses.keys())])
+		ehp = e.hp if is_instance_valid(e) else 0.0
 		if pl.hp < php - 0.5:
 			hit_t = t
 			print("MASH     oyuncu -%.0f (dusman durum=%s teknik=%s uzaklik=%.0f) oyuncu durum=%s" % [php - pl.hp, e.state, str(e.get_meta("cast_id", "")), dir.length(), str(pl.statuses.keys())])

@@ -203,7 +203,8 @@ func take_hit(info: Dictionary) -> void:
 	if now < stun_armor_ms:
 		return   # kilit kırıldı: kısa süre sersemlemez (hasar yine alınır)
 	# oyuncunun kendi kombosu (5 vuruş + bitiriş) tam oynansın; klon/çoklu saldırı yağmuru kilidi kırar
-	var w = 0.55 if info.get("attacker") is Player else 1.0
+	# yarı ağırlık yalnız oyuncunun yakın dövüş kombosu için; jutsu yağmuru tam sayılır (eskiden saniyede bir jutsu yiyen düşman hiç kurtulamıyordu)
+	var w = 0.55 if info.get("attacker") is Player and info.get("melee", false) else 1.0
 	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 0.7) + (2.0 if heavy else 1.0) * w
 	stun_last_ms = now
 	if stun_meter >= 3.5 and size < 2.5:

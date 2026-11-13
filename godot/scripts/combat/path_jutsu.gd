@@ -13688,6 +13688,7 @@ func p_suiton_suidanha(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 22.0)
 	var d = fwd(c, tt)
 	var ang := {"a": -0.5}
+	var cut: Array = []   # jet savrulurken her hedefi bir kez keser (eskiden dibindeki hedefe her geçişte tam hasar: 5 vuruş)
 	# Suidanha: ağızdan yüksek basınçlı ince su kesici — beyaz-mavi çekirdek, etrafında püsküren su sisi; yay çizerek
 	# önündeki her şeyi keser, değdiği yerde su sıçrar ve yer yarılır
 	every(0.8, 1.0 / 30.0, func(i, k):
@@ -13706,7 +13707,7 @@ func p_suiton_suidanha(c: Node3D, t: Node3D) -> void:
 		if i % 4 == 0:
 			VFX.splash(gp(end), 0.9)
 			VFX.cracks(gp(from + dd * randf_range(5.0, 18.0)), 1.2, Color(0.2, 0.25, 0.35, 0.7), 5.0)
-			Combat.hit_zone(c, c.global_position, dd, 20.0, 5.0, 3.0, inf(c, "suiton_suidanha", 0.4, {"knock": 3.0, "kind": "heavy", "element": "suiton", "bleed": 3.0})), Callable())
+			cut.append_array(Combat.hit_zone(c, c.global_position, dd, 20.0, 5.0, 3.0, inf(c, "suiton_suidanha", 0.68, {"knock": 3.0, "kind": "heavy", "element": "suiton", "bleed": 3.0}), cut)), Callable())
 	Sfx.play("water", c.global_position, 1.2)
 
 

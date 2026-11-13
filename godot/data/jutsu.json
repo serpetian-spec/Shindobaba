@@ -20867,7 +20867,7 @@
   "seals": [],
   "canon_rank": "A",
   "tier": 4,
-  "dmg_k": 1.09,
+  "dmg_k": 0.28,
   "category": "ninjutsu",
   "shape": "aoe",
   "meaning": "Telli Silah Fırtınası"
@@ -22939,7 +22939,7 @@
   ],
   "canon_rank": "A",
   "tier": 4,
-  "dmg_k": 1.09,
+  "dmg_k": 0.6,
   "category": "ninjutsu",
   "shape": "aoe",
   "meaning": "Hava Akımı Dansı"
@@ -24423,7 +24423,7 @@
   ],
   "canon_rank": "A",
   "tier": 4,
-  "dmg_k": 1.5,
+  "dmg_k": 0.3,
   "category": "ninjutsu",
   "shape": "summon",
   "meaning": "Su Ordusu"

@@ -36,6 +36,9 @@ func _ready() -> void:
 	var only = OS.get_environment("JDMG_ONLY")
 	if only != "":
 		ids = ids.filter(func(k): return k in only.split(","))
+	ids.sort()
+	if OS.get_environment("JSTART") != "":
+		ids = ids.slice(int(OS.get_environment("JSTART")), int(OS.get_environment("JEND")))
 	var res = {}
 	Engine.time_scale = 3.0
 	var B = 8
@@ -62,7 +65,7 @@ func _ready() -> void:
 			d.src = c
 			get_tree().current_scene.add_child(d)
 			var sh = String(Data.jutsu[batch[k]].get("shape", ""))
-			d.global_position = p + Vector3(0, 0, -(3.0 if sh in ["melee", "rush", "lotus", "kick", "fist", "palm", "lightning_hand", "sphere", "gates"] else 9.0))
+			d.global_position = p + Vector3(0, 0, -(3.0 if sh in ["melee", "rush", "lotus", "kick", "fist", "palm", "lightning_hand", "sphere", "gates"] else (float(OS.get_environment("JDIST")) if OS.get_environment("JDIST") != "" else 9.0)))
 			c.look_at(d.global_position, Vector3.UP, true)
 			c.facing = atan2(0.0, 1.0)
 			pairs.append([batch[k], c, d])
@@ -72,13 +75,14 @@ func _ready() -> void:
 		await get_tree().create_timer(7.0).timeout
 		for pr in pairs:
 			var jd: Dictionary = Data.jutsu[pr[0]]
+			print("JR %s|%.1f|%d|%s|%s|%s|%s" % [pr[0], pr[2].total, pr[2].hits, String(jd.get("canon_rank", "")), String(jd.get("shape", "")), str(jd.get("dmg_k", 1.0)), String(jd.get("category", "")) + "|" + str(int(jd.get("tier", 2)))])
 			res[pr[0]] = {"dmg": snappedf(pr[2].total, 0.1), "hits": pr[2].hits, "tier": int(jd.get("tier", 2)), "rank": String(jd.get("canon_rank", "")), "shape": String(jd.get("shape", "")), "cost": int(jd.get("cost", 0))}
 			if is_instance_valid(pr[1]):
 				pr[1].queue_free()
 			pr[2].queue_free()
 		# artık efektleri temizle
 		for n in get_tree().get_nodes_in_group("fighters"):
-			if n is Enemy and n != pl:
+			if (n is Enemy or n is Summon or n is ShadowClone) and n != pl:
 				n.queue_free()
 		print("JDMG ", bi, "/", ids.size())
 	Engine.time_scale = 1.0

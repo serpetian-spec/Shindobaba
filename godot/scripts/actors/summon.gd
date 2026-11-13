@@ -243,6 +243,9 @@ func _physics_process(dt: float) -> void:
 	bubble_t -= dt
 	if bubble and bubble_t <= 0.0:
 		bubble.visible = false
+	if not is_instance_valid(owner_f):   # çağıran yok oldu: çağrı çözülür (eskiden her karede hata basıyordu)
+		queue_free()
+		return
 	if owner_f is Player:
 		var up = Contracts.TIER_UPKEEP[tier] * dt * maxf(0.2, 1.0 + Stats.skill(Game.profile, "summon_cost"))
 		owner_f.chakra = maxf(0.0, owner_f.chakra - up)
