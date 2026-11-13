@@ -7,7 +7,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 exe = os.path.join(ROOT, "tools", "Godot_v4.7.2-stable_win64_console.exe")
 t0 = time.time()
 try:
-    r = subprocess.run([exe, "--headless", "--path", os.path.join(ROOT, "godot"), "--", "--test=res://tests/test_gdcheck.gd"] + (["--gdc-tests"] if "tests" in sys.argv else []),
+    r = subprocess.run([exe, "--log-file", os.path.join(ROOT, "_tmp", "test_godot.log"), "--headless", "--path", os.path.join(ROOT, "godot"), "--", "--test=res://tests/test_gdcheck.gd"] + (["--gdc-tests"] if "tests" in sys.argv else []),
                        capture_output=True, timeout=180)
     out = (r.stdout + r.stderr).decode("utf-8", "replace")
 except subprocess.TimeoutExpired as e:

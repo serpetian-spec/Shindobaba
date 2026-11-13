@@ -3,7 +3,7 @@
 V=$1
 cd "/d/Naruto 3D Game/godot" || exit 1
 mkdir -p ../_tmp/c2
-BAKE_ANY=1 VER=$V timeout 300 ../tools/Godot_v4.7.2-stable_win64_console.exe --position 9000,0 --audio-driver Dummy --resolution 1280x720 --path . -- --test=res://tests/test_c2_ref.gd "--shots=D:/Naruto 3D Game/_tmp/c2" 2>&1 | grep -E "SCRIPT ERROR|Parse Error" -A3 | head -20
+BAKE_ANY=1 VER=$V timeout 300 ../tools/Godot_v4.7.2-stable_win64_console.exe --log-file "D:/Naruto 3D Game/_tmp/test_godot.log" --position 9000,0 --audio-driver Dummy --resolution 1280x720 --path . -- --test=res://tests/test_c2_ref.gd "--shots=D:/Naruto 3D Game/_tmp/c2" 2>&1 | grep -E "SCRIPT ERROR|Parse Error" -A3 | head -20
 cd ..
 python -I - "$V" <<'PY'
 import sys

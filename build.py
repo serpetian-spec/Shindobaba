@@ -75,8 +75,8 @@ if os.path.isdir(sf_dir):
     print(f'Sketchfab: {len(used & set(os.listdir(sf_dir)))} model pakette, {len(unused)} dışarıda')
 open(presets, 'w', encoding='utf8', newline='').write(presets_orig.replace('exclude_filter="tests/*"', 'exclude_filter="%s"' % ', '.join(excl), 1))
 try:
-    subprocess.run([GODOT, '--headless', '--path', PROJ, '--import'], capture_output=True)
-    r = subprocess.run([GODOT, '--headless', '--path', PROJ, '--export-release', 'Windows', exe], capture_output=True, text=True)
+    subprocess.run([GODOT, '--log-file', os.path.join(ROOT, '_tmp', 'test_godot.log'), '--headless', '--path', PROJ, '--import'], capture_output=True)
+    r = subprocess.run([GODOT, '--log-file', os.path.join(ROOT, '_tmp', 'test_godot.log'), '--headless', '--path', PROJ, '--export-release', 'Windows', exe], capture_output=True, text=True)
 finally:
     open(presets, 'w', encoding='utf8', newline='').write(presets_orig)
 json.dump({'build': 'dev', 'version': version}, open(build_json, 'w'))

@@ -5,7 +5,7 @@ cd "/d/Naruto 3D Game"
 case "$1" in
   start)
     mkdir -p "$D"; rm -f "$D/ready.txt" "$D/done.txt" "$D/cmd.gd"
-    nohup tools/Godot_v4.7.2-stable_win64_console.exe --path godot --audio-driver Dummy -- --test=res://tests/dev_server.gd "--shots=D:/Naruto 3D Game/_tmp/shots/dev" > "$D/log.txt" 2>&1 &
+    nohup tools/Godot_v4.7.2-stable_win64_console.exe --log-file "D:/Naruto 3D Game/_tmp/test_godot.log" --path godot --audio-driver Dummy -- --test=res://tests/dev_server.gd "--shots=D:/Naruto 3D Game/_tmp/shots/dev" > "$D/log.txt" 2>&1 &
     i=0; while [ ! -f "$D/ready.txt" ] && [ $i -lt 240 ]; do sleep 1; i=$((i+1)); done
     echo "sunucu hazir ($i sn)";;
   stop)

@@ -293,7 +293,11 @@ func _refresh_portrait() -> void:
 	if pl == null or _portrait_busy or not pl.has_method("_look_with_age"):
 		return
 	var look: Dictionary = pl._look_with_age()
-	var key = str(look).md5_text()
+	var kl: Dictionary = look.duplicate()   # yaş sürekli küsuratla artar: portre yalnız görünür değişimde yenilensin
+	for kk in ["years", "fat", "mus"]:
+		if kl.has(kk):
+			kl[kk] = snappedf(float(kl[kk]), 0.5 if kk == "years" else 0.1)
+	var key = str(kl).md5_text()
 	if key == _portrait_key:
 		return
 	_portrait_busy = true
