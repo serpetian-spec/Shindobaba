@@ -706,7 +706,7 @@ func _ground_air_move(dt: float) -> void:
 		ndash_ghost -= dt
 		if ndash_ghost <= 0.0:
 			ndash_ghost = 0.09
-			FX.afterimage(self, 0.45, 0.22)
+			FX.afterimage(self, 0.45, 0.22, 0.5)
 		if ndash_t <= 0.0:
 			velocity.x *= 0.45
 			velocity.z *= 0.45

@@ -452,9 +452,20 @@ func interact(p: Vector3, radius: float, kind: String, label: String, data := {}
 		Interact.add(d)
 
 
+## Köylerdeki ev yoğunluğu (1.0 = eski sıkışık doku). Kullanıcı kararı 2026-11-14: her köyde bina sayısı yarıya iner
+## (çizim yükü evlerde: Konoha ~30 bin parça); yerleştiriciler sıra / halka / ızgara düzenini buna göre seyreltir.
+## EV_YOGUNLUK ortam değişkeni yalnız ölçüm için (önce / sonra ev sayısı).
+const HOUSE_CAP := 3000   # bir köydeki en fazla ev
+static func house_density() -> float:
+	var e = OS.get_environment("EV_YOGUNLUK")
+	return float(e) if e != "" else 0.5
+
+
 func finish() -> void:
 	if not is_instance_valid(root):
 		return
+	if houses.size() >= 12:
+		print("Evler %s: %d" % [key, houses.size()])
 	for eb in extra_bodies:
 		if is_instance_valid(eb) and eb.get_parent() == null:
 			root.add_child(eb)

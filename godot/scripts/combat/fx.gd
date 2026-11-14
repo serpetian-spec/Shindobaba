@@ -709,19 +709,33 @@ func aura(parent: Node3D, col: Color, s := 1.0, offset := Vector3(0, 0.9, 0), du
 
 
 ## Silik görüntü: modelin o anki pozunun yarı saydam kopyası, kısa sürede söner (hızlı atılış / ışınlanma izi)
-func afterimage(c: Node3D, alpha: float, life: float) -> void:
+## reuse > 0: o kadar saniye içindeki çağrılar gövdeyi yeniden hesaplamaz, ilk çağrının pozunu kullanır
+## (atılma: poz sabit; her silik görüntüde bütün gövdeyi yeniden hesaplamak kare hızını düşürüyordu)
+var _ai_cache := {}
+func afterimage(c: Node3D, alpha: float, life: float, reuse := 0.0) -> void:
 	var m = c.get("model")
 	if m == null or not is_instance_valid(m):
 		return
+	var now = Time.get_ticks_msec()
+	for ck in _ai_cache.keys():
+		if now - int(_ai_cache[ck][1]) > 3000:
+			_ai_cache.erase(ck)
 	for mi in m.find_children("*", "MeshInstance3D", true, false):
 		var src = mi as MeshInstance3D
 		if src.mesh == null or not src.is_visible_in_tree():
 			continue
 		var mesh: Mesh = src.mesh
 		if src.skin != null or src.get_node_or_null(src.skeleton) is Skeleton3D:
-			var baked = src.bake_mesh_from_current_skeleton_pose()
-			if baked:
-				mesh = baked
+			var ck = src.get_instance_id()
+			var hit = _ai_cache.get(ck)
+			if reuse > 0.0 and hit != null and now - int(hit[1]) < int(reuse * 1000.0):
+				mesh = hit[0]
+			else:
+				var baked = src.bake_mesh_from_current_skeleton_pose()
+				if baked:
+					mesh = baked
+					if reuse > 0.0:
+						_ai_cache[ck] = [baked, now]
 		var e = MeshInstance3D.new()
 		e.mesh = mesh
 		for si in mesh.get_surface_count():

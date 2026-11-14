@@ -525,17 +525,19 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.view_dist = 1500.0
 	_path_doors.clear()
 	var count = _street_houses(b, v, rng, occupied, decor, cliff_n)
+	var street_n = count
 	count += _fill_blocks(b, rng, occupied, cliff_n)
+	print("Konoha evleri: cadde ", street_n, ", blok içi ", count - street_n)
 	_house_paths(b, c0_paths(v))
 	# dış mahalleler: sokaklardan uzak boşluklara ağaç kümeleri (orman köyü hissi)
 	var trees = 0
-	for k in 4800:   # orman köyü: dış mahallelerde bol, uzun ağaç (eskiden seyrek ve kısaydı)
+	for k in 2400:   # orman köyü: dış mahallelerde uzun ağaç (2026-11-14: sayı yarıya indi, aralarında en az 9 m: düzenli yayılım)
 		var a = rng.randf() * TAU
 		var rr = sqrt(rng.randf()) * (R - 50.0)   # sura yaslanmasın
 		var tx2 = sin(a) * rr; var tn2 = cos(a) * rr
 		if tn2 > cliff_n - 30.0 or rr < 250.0:
 			continue
-		if _on_road(b, tx2, tn2, 26.0) or not _free(tx2, tn2, occupied, 6.0):
+		if _on_road(b, tx2, tn2, 26.0) or not _free(tx2, tn2, occupied, 9.0):
 			continue
 		b.tree(tx2, tn2, rng.randf_range(1.6, 2.9), rng, _gy(b, tx2, tn2))
 		occupied.append([tx2, tn2, 4.0, 4.0])
@@ -574,7 +576,10 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 			if a.length() > R + 50.0 and e.length() > R + 50.0:
 				continue
 			segs.append([a, e])
+	var thin = Builder.house_density() < 0.75
+	var si = 0
 	for sg in segs:
+		si += 1
 		var a: Vector2 = sg[0]
 		var e: Vector2 = sg[1]
 		var L = a.distance_to(e)
@@ -594,6 +599,8 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 				[Color(0.95, 0.3, 0.25), Color(1.0, 0.92, 0.75), Color(0.95, 0.3, 0.25)])
 			Lights.add(_gp(b, lp.x, lp.y) + Vector3.UP * 5.6)
 		var rows = 2 if dc0 > 1100.0 else (3 if dc0 > 650.0 else 4)
+		if thin:   # yarı yoğunluk: cadde boyu ön sıra kalır (sokak dokusu), arka sıralar seyrelir: dışta 1, ortada 1-2, merkezde 2 sıra
+			rows = 2 if dc0 < 650.0 else 1
 		for sd in [-1.0, 1.0]:
 			for row in rows:
 				var t = 9.0 + rng.randf_range(0.0, 4.0) * row
@@ -861,7 +868,8 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 			var prob = 0.8 if d < 700.0 else (0.72 if d < 1100.0 else 0.55)
 			if d > R - 40.0:
 				continue
-			if rng.randf() > prob:
+			var roll = rng.randf()
+			if roll > prob:
 				# boş kalan blok hücresi: avlu ağaç kümesi (bloklar arası yeşillik; ızgara gibi çıplak durmasın)
 				if _free(x, n, occupied, 2.0) and not _on_road(b, x, n, 9.0):
 					var wq0 = b.w(Vector3(x, 0, n))
@@ -875,6 +883,8 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 							var fn = n + rng.randf_range(-6.0, 6.0)
 							b.pack_mesh(CityLandscape._flower(rng.randi() % Props.FLOWER_KINDS), Vector3(fx, _gy(b, fx, fn), fn), rng.randf() * 360.0, rng.randf_range(0.8, 1.2), 0.4)
 				continue
+			if roll > prob * Builder.house_density() * 0.42:
+				continue   # yarı yoğunluk: bu hücre boş avlu kalır (ağaç kümesi sayısı eskisi gibi)
 			if not _free(x, n, occupied, 3.0) or _on_road(b, x, n, 10.0):
 				continue
 			var ti = -1

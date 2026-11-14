@@ -15,6 +15,10 @@ const INSTALL_BUDGET_US := 1500   # karede en fazla bu kadar kurulum (takılma o
 const FAR_A := 1000.0          # bu mesafeden sonra yalnız seyreltilmiş vekil ağaçlar
 const PROXY_T := [0, 1, 5, 9]
 const DMAX := 0.02            # aday yoğunluğu (m² başına)
+## Kullanıcı kararı 2026-11-14: ağaç sayısı yarıya iner ve düzenli yayılır (öbek öbek sıkışık değil).
+## Ağaç türleri yarı olasılıkla kabul edilir + her ızgara hücresine en çok bir ağaç (dev ağaç 14 m, diğerleri 7 m hücre).
+const TREE_T := [0, 1, 2, 3, 5, 6, 7, 9]
+const TREE_KEEP := 0.5
 
 ## biyom -> [yoğunluk / m², tipler]  (0 geniş ağaç, 1 çam, 2 kuru ağaç, 3 kaktüs, 4 kaya, 5 dev ağaç, 6 bambu,
 ## 7 palmiye, 8 çalı, 9 Konoha orman ağacı (dev, dallı), 10 eğrelti, 11 büyük kaya kümesi, 12 çiçek öbeği)
@@ -201,6 +205,7 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 	var bufs := {}
 	var trees := []
 	var cands := int(DMAX * CH * CH)
+	var occ := {}   # ağaç ızgarası: hücre başına tek ağaç (düzenli yayılım)
 	var area_scale := 1.0 / DMAX
 	for i in cands:
 		var x := key.x * CH + rng.randf() * CH
@@ -236,7 +241,7 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var cf := smoothstep(0.3, 0.42, clear)
 		if not t in [0, 1, 2, 5, 9, 6, 7]:
 			cf = 0.4 + 0.6 * cf
-		if u > dens * area_scale * local * cf:
+		if u > dens * area_scale * local * cf * (TREE_KEEP if t in TREE_T else 1.0):
 			continue
 		if not detail and t in SMALL:
 			continue
@@ -297,6 +302,12 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 			if patch < need:
 				continue
 			vi = int(Game._wh_vn(x / 90.0, z / 90.0, 40 + t) * 7.0) % nv
+		if t in TREE_T:
+			var cs := 14.0 if t in [9, 5] else 7.0
+			var ock := Vector3i(floori(x / cs), floori(z / cs), 1 if t in [9, 5] else 0)
+			if occ.has(ock):
+				continue
+			occ[ock] = true
 		var bk := t * 100 + vi
 		if not bufs.has(bk):
 			bufs[bk] = PackedFloat32Array()

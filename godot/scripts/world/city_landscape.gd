@@ -506,7 +506,8 @@ static func _house_infill(c, houses: Array) -> void:
 	# akademi/hastane/dükkân yerleşkesi (büyük köylerde sur içinde) boş kalmalı
 	var site = BuildSites._site_clear(v) if BuildVillageStory.STYLE.has(b.key) else []
 	var g0 = c.ground(0.0, 0.0)
-	var step = 26.0
+	var step = 26.0 / sqrt(Builder.house_density())   # yarı yoğunluk: ızgara aralığı büyür (alan başına ev yarıya iner)
+	var near_r = 24.0 / sqrt(Builder.house_density())
 	var added = 0
 	var x = -lim
 	while x <= lim:
@@ -531,7 +532,7 @@ static func _house_infill(c, houses: Array) -> void:
 			for dx in range(-1, 2):
 				for dz in range(-1, 2):
 					for hp in hg.get(kc + Vector2i(dx, dz), []):
-						if hp.distance_to(Vector2(px, pn)) < 24.0:
+						if hp.distance_to(Vector2(px, pn)) < near_r:
 							near = true
 			if near:
 				continue

@@ -343,6 +343,13 @@ static func _fill(b: Builder, r: float, inner: float, spacing: float, style: Str
 	var ring = inner + 8.0
 	var rows_since = 0
 	max_houses *= 4   # bitişik nizam aynı alana ~4 kat ev sığdırır (sınır eskiden ayrık dizilime göreydi)
+	var thin = Builder.house_density() < 0.75
+	var band := 0.0
+	if thin:
+		# büyük köylerde en çok 3000 ev (kullanıcı kararı); halka aralığı, bu sayı surun dibine kadar eşit yayılacak şekilde seçilir
+		max_houses = mini(int(max_houses * Builder.house_density()), Builder.HOUSE_CAP)
+		var area = PI * (pow(r - 8.0, 2.0) - pow(inner + 8.0, 2.0))
+		band = area * 0.8 / (16.3 * big * float(max_houses))
 	while ring < r - 8.0 and count < max_houses:
 		var hd = rng.randf_range(11, 15) * big
 		var circ = TAU * ring
@@ -379,7 +386,10 @@ static func _fill(b: Builder, r: float, inner: float, spacing: float, style: Str
 				alley_at = rng.randi_range(5, 7)
 		rows_since += 1
 		# iki sıra sırt sırta, sonra bir arka sokak (daha geniş)
-		ring += hd + (2.0 if rows_since % 2 == 1 else 6.0)
+		if thin:
+			ring += maxf(hd * 2.0 + 6.0, band)   # yarı yoğunluk: sırt sırta ikinci sıra yok; her halkanın arkası ev derinliğinde avlu / bahçe + sokak
+		else:
+			ring += hd + (2.0 if rows_since % 2 == 1 else 6.0)
 
 
 ## Ev yerleşimi yolun/caddenin üstüne düşmesin (yerel x, n; pay = evin yarı boyu + kaldırım)
