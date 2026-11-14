@@ -8,7 +8,7 @@ tok = dict(l.split('=', 1) for l in out.splitlines() if '=' in l).get('password'
 if not tok:
     sys.exit('GitHub kimliği yok (önce bir kez git push ile giriş yap)')
 H = {'Authorization': 'token ' + tok, 'Accept': 'application/vnd.github+json'}
-repo = 'serpetian-spec/Shindobaba'
+repo = 'Sokucushindo/Shindobaba'
 tag = 'v' + open('VERSION').read().strip()
 zipn = 'ShinobiYolu_%s.zip' % tag
 notes = sys.argv[1] if len(sys.argv) > 1 else ''

@@ -15,7 +15,7 @@ void fragment() {
 	vec2 c = UV - 0.5;
 	float r = length(c) * 2.0;           // 0 merkez .. 1 kenar
 	if (r > 1.0) discard;
-	float fall = pow(1.0 - r, 2.2) * strength;
+	float fall = pow(max(1.0 - r, 0.0), 2.2) * strength;
 	float a = atan(c.y, c.x);
 	// burkulma: merkeze yakın daha çok döner, zamanla akar
 	float ang = fall * twist + TIME * spin * fall;
