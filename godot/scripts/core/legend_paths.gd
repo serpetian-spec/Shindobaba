@@ -38,6 +38,45 @@ const DRILLS := {
 	# Silah Yolu (kanon: Tenten'in hedef talimi, parşömene geri mühürlenen silahlar, yağan silahları okuyan göz)
 	"buki_kuchiyose": {"type": "throws", "n": 24, "time": 60.0, "min_d": 8.0, "say": "Parşömenden çıkan silah, onu yönlendiren el kadar isabetlidir. Sekiz adım geriden şu dört hedefe bir dakikada yirmi dört atış isabet ettir! Kılıçla vurmak sayılmaz."},
 	"tesso_kusari": {"type": "collect", "n": 8, "time": 90.0, "item": "silah", "look": "weapon", "say": "Dünkü talimin silahları avluya saplı kaldı. Sekizini topla ve parşömene geri mühürle — doksan saniye. Bir ninja silahını yerde bırakmaz."},
+	# Patlayıcı Kil Yolu (kanon: kil avuçtaki ağızda chakrayla yoğrulur; C1 atılan küçük figürler; kuşun sırtında uçuş; gömülü mayınlar)
+	"kibaku_nendo": {"type": "tend", "n": 3, "dwell": 4.0, "spots": "vats", "item": "kil teknesi", "say": "Kil, chakrayla yoğrulmadan çamurdur, hm. Üç teknenin başında dur, her birine dört saniye chakra yedir — elin titrerse baştan."},
+	"shi_wan": {"type": "throws", "n": 20, "time": 60.0, "min_d": 8.0, "say": "C1 uzaktan konuşur! Sekiz adım geriden şu dört hedefe bir dakikada yirmi isabet. Yumrukla vurursan sanat olmaz, hm."},
+	"kil_ucan_kus": {"type": "tend", "n": 1, "dwell": 2.0, "spots": "top", "item": "zirve", "time": 90.0, "say": "Sanata yukarıdan bakılır. Kaya kulesinin tepesindeki kuşun yanına çık — basamak kayalardan zıpla. Doksan saniye."},
+	"bakuha_jirai": {"type": "collect", "n": 8, "time": 90.0, "item": "kil mayını", "color": Color(0.93, 0.9, 0.8), "say": "Dünkü denemeden sekiz mayın alanda gömülü kaldı. Doksan saniyede hepsini topla; nereye gömüldüğünü okuyamayan kendi mayınına basar, hm."},
+	# Toprak Kini Yolu (kanon: kara iplik kırbaç gibi savrulur ve bedeni diker; Domu deriyi taş yapar)
+	"jiongu_ito_kirbac": {"type": "hits", "n": 30, "time": 45.0, "say": "İplik koldan çıkmadan önce kolun onu tanımalı. Şu kuklalara kırk beş saniyede otuz darbe."},
+	"doton_domu": {"type": "survive", "n": 20, "time": 0.0, "rain": true, "say": "Taşlaşan deri kaçmaz. Çemberin içinde yirmi saniye dur; yağan çeliğe bedenini siper et, çemberden çıkma."},
+	"jiongu": {"type": "tend", "n": 3, "dwell": 4.0, "spots": "slabs", "item": "beden", "say": "Morgdaki üç bedenin dikişi yarım. Her sedirin başında dur, ipliği chakranla dört saniye yürüt. Elin titrerse dikiş atar, baştan."},
+	# Uçan Yıldırım Yolu (kanon: işaretli kunai atılır, işarete ışınlanılır; hız her şeydir)
+	"hiraishin_kunai": {"type": "throws", "n": 20, "time": 60.0, "min_d": 8.0, "say": "İşaret, kunainin düştüğü yerdir. Sekiz adım geriden dört hedefe bir dakikada yirmi isabet."},
+	"hiraishingiri": {"type": "tend", "n": 8, "dwell": 1.0, "spots": "marks", "item": "işaret", "time": 50.0, "say": "Avluda sekiz işaret var. Elli saniyede her birine dokun, birer saniye chakranı bırak — işareti tanımayan ona sıçrayamaz."},
+	"hiraishin_ranbu": {"type": "hits", "n": 40, "time": 40.0, "say": "Işınlanan vurur, vuran ışınlanır. Kırk saniyede kırk darbe — hedef değiştir, durma!"},
+	"hiraishin_ni_no_dan": {"type": "survive", "n": 20, "time": 0.0, "rain": true, "say": "İkinci adım, gelen silahın arkasına geçmektir. Yirmi saniye çemberde kal; yağan kunailerin arasından sıyrıl."},
+	# Şimşek Kılıcı Yolu (kanon: Chidori hızla koşarak saplanır, kaya yarar; akım bedenden boşalır; iğne ve mızrak olur)
+	"raiton_chidori": {"type": "hits", "n": 30, "time": 40.0, "say": "Bin kuş kayayı yarar. Şu yarık kayalara kırk saniyede otuz vuruş!"},
+	"chidori_nagashi": {"type": "survive", "n": 20, "time": 0.0, "rain": true, "say": "Akım bedenden dışarı akar, içeri değil. Yirmi saniye çemberde dur; yağan çeliği üstünde taşı."},
+	"chidori_senbon": {"type": "throws", "n": 20, "time": 60.0, "min_d": 8.0, "say": "Şimşek iğne olunca uzaktan sokar. Sekiz adım geriden yarık kayalara bir dakikada yirmi isabet."},
+	"chidori_eiso": {"type": "laps", "n": 4, "time": 0.0, "say": "Mızrak uzar ama onu taşıyan bacaktır. Kayaların çevresinde dört tur — hızın düşerse şimşek söner."},
+	# Jashin Yolu (kanon: ayin kanla çizilen çemberde yapılır; tırpan ve geri çekilen kazık; bedeni ölmez)
+	"jashin_sanjin_kama": {"type": "hits", "n": 30, "time": 45.0, "say": "Üç ağız tek savuruşta üç yara açar. Şu kuklalara kırk beş saniyede otuz darbe."},
+	"jashin_kazik": {"type": "throws", "n": 20, "time": 60.0, "min_d": 8.0, "say": "Kazık atılır, saplanır, geri çekilir. Sekiz adım geriden bir dakikada yirmi isabet."},
+	"jashin_ketsueki": {"type": "collect", "n": 6, "time": 90.0, "item": "kan şişesi", "color": Color(0.75, 0.08, 0.1), "say": "Ayin kansız olmaz. Çevreye bıraktığım altı kan şişesini doksan saniyede getir."},
+	"jashin_fumetsu": {"type": "survive", "n": 20, "time": 0.0, "say": "Acı, Jashin-sama'ya duadır. Çemberdeki lanet sisinin içinde yirmi saniye dur — kaçan inançsızdır."},
+	# Sekiz Kuyruk Yolu (kanon: Gerçekler Şelalesi'nin önünde meditasyon; lariat; yedi kılıç; ritim)
+	"hachibi_murekkep": {"type": "tend", "n": 1, "dwell": 6.0, "spots": "island", "item": "meditasyon", "say": "Şelalenin önündeki adaya otur, yo! Altı saniye kıpırdama; içindeki sesi duymadan mürekkep akmaz, yeah!"},
+	"hachibi_lariat": {"type": "hits", "n": 30, "time": 40.0, "say": "Lariat kolun değil, tüm bedenin vuruşu! Kırk saniyede otuz darbe, bakayım ritmine!"},
+	"hachibi_yedi_kilic": {"type": "collect", "n": 7, "time": 90.0, "item": "kılıç", "look": "weapon", "say": "Yedi kılıcım talimde etrafa saplandı. Doksan saniyede yedisini de topla, aptal sersem!"},
+	"takoashi_bunshin_no_jutsu": {"type": "laps", "n": 3, "time": 0.0, "say": "Kopan kol kaçar, sen de kaç! Kuklaların çevresinde üç tur, ritmi bozma!"},
+	# Mürekkep Yolu (kanon: Sai her şeyi parşömene çizer; mürekkep sisi; Kök eğitimi duygusuz ve hassas)
+	"sumi_bunshin_no_jutsu": {"type": "tend", "n": 3, "dwell": 4.0, "spots": "desks", "item": "çizim", "say": "Üç masada yarım kalmış üç çizim var. Her birinin başına geç, dört saniye fırçayı chakranla yürüt. Elin titrerse mürekkep dağılır."},
+	"choju_giga": {"type": "hits", "n": 30, "time": 45.0, "say": "Çizdiğin canavar senin kadar hızlı vurur. Kırk beş saniyede otuz darbe."},
+	"sumigasumi_no_jutsu": {"type": "survive", "n": 20, "time": 0.0, "say": "Mürekkep sisi önce çizeni boğar. Yirmi saniye sisin içinde dur; nefesini tut, duygunu da."},
+	"hoki_sumi_ryu": {"type": "collect", "n": 6, "time": 90.0, "item": "mürekkep kabı", "color": Color(0.12, 0.12, 0.18), "say": "Büyük çizim çok mürekkep ister. Karakolun çevresine saklanmış altı mürekkep kabını doksan saniyede topla."},
+	# Akasuna Kukla Yolu (kanon: kukla parçaları elde birleştirilir; ağızdan iğne; zehir sisi)
+	"gishu_senbon": {"type": "throws", "n": 20, "time": 60.0, "min_d": 8.0, "say": "Kuklanın kolundaki iğne uzaktan öldürür. Sekiz adım geriden bir dakikada yirmi isabet."},
+	"shikomi_shinshin_happa": {"type": "tend", "n": 3, "dwell": 4.0, "spots": "benches", "item": "kukla parçası", "say": "Üç tezgâhta yarım kuklalar bekliyor. Her birinin gizli haznesini dört saniyede chakra ipliğinle kur; ipliğin koparsa baştan."},
+	"sasori_doku_kemuri": {"type": "survive", "n": 20, "time": 0.0, "say": "Zehrini tanımayan kuklacı kendi sisinde ölür. Yirmi saniye zehir sisinin içinde kal."},
+	"kugutsu_hiruko": {"type": "hits", "n": 40, "time": 50.0, "say": "Zırh kuklanın kuyruğu durmaz. Elli saniyede kırk darbe."},
 	"tekkosen": {"type": "survive", "n": 20, "time": 0.0, "rain": true, "say": "Demir yelpaze ancak gelen silahı gören göze yarar. Şu çemberin içinde yirmi saniye dur; yağdıracağım kunailerden kaçarken çemberden çıkma!"},
 }
 var drill := {}   # aktif antrenman: {pid, jid, type, n, c, t, time, center, ang, dummies}

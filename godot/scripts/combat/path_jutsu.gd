@@ -1801,115 +1801,17 @@ func p_ten_no_juin(c: Node3D, _t: Node3D) -> void:
 			a.emitting = false)
 
 
-## 2. aşama: ten grileşir, sırttan el biçimli kanatlar açılır, uçabilirsin; güç patlar, can hızla erir
-func hand_wing(right: bool) -> MeshInstance3D:
-	var mesh = cached("handwing2", func():
-		var b = MB.new()
-		var sk = Color(0.52, 0.48, 0.58)
-		b.add_grad("cyl", Vector3(0, 0.45, 0), Vector3(0.2, 0.9, 0.2), sk.lightened(0.1), sk.darkened(0.25), Vector3.ZERO, 8)   # bilek
-		b.add_grad("sphere", Vector3(0, 1.15, 0), Vector3(0.78, 0.7, 0.2), sk.lightened(0.05), sk.darkened(0.3), Vector3.ZERO, 12)   # avuç
-		for f in 5:
-			var a = deg_to_rad(-62.0 + f * 31.0)
-			var L = [0.95, 1.5, 1.7, 1.5, 1.1][f]
-			var base = Vector3(sin(a) * 0.3, 1.3 + cos(a) * 0.3, 0)
-			var dir = Vector3(sin(a), cos(a), 0)
-			b.add_grad("cyl", base + dir * L * 0.25, Vector3(0.13, L * 0.5, 0.11), sk.lightened(0.05), sk.darkened(0.25), Vector3(0, 0, -rad_to_deg(a)), 6)
-			b.add_grad("cone", base + dir * L * 0.72, Vector3(0.12, L * 0.48, 0.1), sk, sk.darkened(0.35), Vector3(0, 0, -rad_to_deg(a)), 6)
-			b.add("cone", base + dir * (L * 0.98), Vector3(0.06, 0.16, 0.05), Color(0.12, 0.08, 0.14), Vector3(0, 0, -rad_to_deg(a)), 4)   # tırnak
-		return b)
-	var mi = mi_of(mesh)
-	mi.scale = Vector3(-1 if not right else 1, 1, 1)
-	return mi
-
-
+## 2. aşama: ten kararır, beden biçim değiştirir (JuinForms: her parça bedenin kendi kemiğinden); güç patlar, can hızla erir
 const JUIN_FORMS := {
-	"kanat": {"name": "Kanatlı Form", "skin": Color(0.56, 0.52, 0.6), "desc": "Sırttan el kanatlar: uçabilirsin (Space/Ctrl)",
+	"kanat": {"name": "Kanatlı Form", "skin": Color(0.46, 0.42, 0.45), "desc": "Sırttan dev el kanatlar: uçabilirsin (Space/Ctrl)",
 		"mods": {"melee": 1.25, "jutsu": 1.2, "speed": 1.15}},
-	"boynuz": {"name": "Boynuzlu Form", "skin": Color(0.8, 0.46, 0.38), "desc": "Alnından boynuzlar: jutsu ve genjutsu çok güçlü",
+	"boynuz": {"name": "Boynuzlu Form", "skin": Color(0.56, 0.46, 0.4), "desc": "Başından boynuzlar: jutsu ve genjutsu çok güçlü",
 		"mods": {"jutsu": 1.4, "melee": 1.12, "speed": 1.07}},
-	"kaya": {"name": "Kaya Deri", "skin": Color(0.86, 0.56, 0.3), "desc": "Sırtta kaya yumruları: darbelere dayanıklı, yumrukların ağır",
+	"kaya": {"name": "Dev Gövde", "skin": Color(0.74, 0.43, 0.36), "desc": "Beden irileşir, deri yumrularla kaplanır: darbelere dayanıklı, yumrukların ağır",
 		"mods": {"melee": 1.45, "armor": 0.78, "speed": 1.02}},
-	"orumcek": {"name": "Örümcek Formu", "skin": Color(0.46, 0.33, 0.26), "desc": "Sırttan iki çift ek kol: çok hızlı ve uzun erimli",
+	"orumcek": {"name": "Örümcek Formu", "skin": Color(0.58, 0.27, 0.26), "desc": "Böğründen iki çift ek kol: çok hızlı ve uzun erimli",
 		"mods": {"melee": 1.3, "speed": 1.23, "reach": 1.4}},
 }
-
-
-## Lanetli mühür II beden parçaları: kemiğe (sırt/baş) bağlı, büyüyerek çıkar. Döner: silinecek düğümler
-func juin_parts(c: Node3D, form: String) -> Array:
-	var m = c.get("model")
-	var out = []
-	if m == null or m.skel == null:
-		return out
-	var sk: Skeleton3D = m.skel
-	var chest_b = "UpperChest" if sk.find_bone("UpperChest") >= 0 else "Chest"
-	var p_ch: Vector3 = m._grest(sk.find_bone(chest_b)).origin
-	var skin_c: Color = JUIN_FORMS[form]["skin"]
-	var dark = skin_c.darkened(0.35)
-	var grow = func(node: Node3D, sc: Vector3):
-		node.scale = sc * 0.05
-		node.create_tween().tween_property(node, "scale", sc, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	match form:
-		"kanat":
-			for right in [true, false]:
-				var sx = -1.0 if right else 1.0   # model uzayı: +X karakterin solu, -Z sırt
-				var ba = m._attach(chest_b, Transform3D(Basis.IDENTITY, p_ch + Vector3(sx * 0.12, 0.08, -0.14)))
-				var w = hand_wing(right)
-				ba.get_child(0).add_child(w)
-				w.rotation_degrees = Vector3(18, 180, 62 * sx)   # dışa-yukarı açılır, avuç geriye
-				grow.call(w, Vector3(-0.62 if not right else 0.62, 0.62, 0.62))   # animedeki gibi: sırttan çıkan, gövdeyi aşmayan el kanatlar
-				out.append(ba)
-		"boynuz":
-			var hb = sk.find_bone("Head")
-			var p_h: Vector3 = m._grest(hb).origin
-			var top = maxf(float(m.head_ab.end.y) - 0.03, p_h.y + 0.15) if m.head_ab.size != Vector3.ZERO else p_h.y + 0.2
-			var mb = MB.new()
-			for sx in [-1.0, 1.0]:
-				for k in 2:
-					var b0 = Vector3(sx * (0.045 + k * 0.05), top - 0.04 * k, 0.05 - k * 0.04)
-					Loft.tube(mb, [b0, b0 + Vector3(sx * 0.03, 0.09, -0.02), b0 + Vector3(sx * 0.07, 0.16 - k * 0.04, -0.07)], [0.028 - k * 0.006, 0.018, 0.004], [dark, skin_c, Color(0.15, 0.1, 0.1)], 8, 3, true, false)
-			var ba = m._attach("Head", Transform3D.IDENTITY)
-			var mi = mesh_of(mb)
-			ba.get_child(0).add_child(mi)
-			out.append(ba)
-		"kaya":
-			var mb = MB.new()
-			var rng = RandomNumberGenerator.new()
-			rng.seed = 77
-			for k in 9:
-				var a = rng.randf_range(-1.2, 1.2)
-				var q = p_ch + Vector3(sin(a) * 0.14, rng.randf_range(-0.18, 0.12), -0.12 - cos(a) * 0.04)
-				mb.add("boulder", q, Vector3.ONE * rng.randf_range(0.07, 0.12), skin_c.darkened(rng.randf_range(0.1, 0.3)), Vector3(0, rng.randf() * 360, 0), k)
-			for sx in [-1.0, 1.0]:   # omuz yumruları
-				mb.add("boulder", p_ch + Vector3(sx * 0.17, 0.12, -0.02), Vector3(0.12, 0.1, 0.12), dark, Vector3.ZERO, 3)
-			var ba = m._attach(chest_b, Transform3D.IDENTITY)
-			var holder = Node3D.new()
-			holder.position = p_ch
-			ba.get_child(0).add_child(holder)
-			var mi = mesh_of(mb)
-			mi.position = -p_ch
-			holder.add_child(mi)
-			grow.call(holder, Vector3.ONE)
-			out.append(ba)
-		"orumcek":
-			var mb = MB.new()
-			for sx in [-1.0, 1.0]:
-				for k in 2:
-					var s0 = p_ch + Vector3(sx * 0.1, 0.02 - k * 0.12, -0.12)
-					var s1 = s0 + Vector3(sx * 0.3, 0.12 - k * 0.15, -0.12)
-					var s2 = s1 + Vector3(sx * 0.18, -0.25, 0.22)
-					Loft.tube(mb, [s0, s1, s2], [0.045, 0.04, 0.035], skin_c, 10, 3, true, false)
-					mb.add("sphere", s2 + Vector3(0, -0.03, 0.03), Vector3(0.08, 0.06, 0.1), skin_c.darkened(0.1), Vector3.ZERO, 8)
-					mb.add("sphere", s1, Vector3(0.06, 0.06, 0.06), dark, Vector3.ZERO, 8)
-			var ba = m._attach(chest_b, Transform3D.IDENTITY)
-			var holder = Node3D.new()
-			holder.position = p_ch
-			ba.get_child(0).add_child(holder)
-			var mi = mesh_of(mb)
-			mi.position = -p_ch
-			holder.add_child(mi)
-			grow.call(holder, Vector3.ONE)
-			out.append(ba)
-	return out
 
 
 func p_juin_ni_no_dankai(c: Node3D, _t: Node3D) -> void:
@@ -1943,8 +1845,8 @@ func p_juin_ni_no_dankai(c: Node3D, _t: Node3D) -> void:
 				skin_mats.append(sm)
 				sm.set_shader_parameter("tint", F["skin"])
 	# beden parçaları: kemiğe bağlı (gövdeyle hareket eder)
-	var parts = juin_parts(c, form) if m and is_instance_valid(m) else []
-	var wings = parts
+	var built = preload("res://scripts/combat/juin_forms.gd").build(c, form, F["skin"])
+	var wings: Array = built["nodes"]
 	if c is Player:
 		var mods: Dictionary = (F["mods"] as Dictionary).duplicate()
 		mods["_name"] = "Lanetli Mühür II — %s" % F["name"]
@@ -1965,6 +1867,8 @@ func p_juin_ni_no_dankai(c: Node3D, _t: Node3D) -> void:
 		for w in wings:
 			if is_instance_valid(w):
 				w.queue_free()
+		if (built["undo"] as Callable).is_valid():
+			(built["undo"] as Callable).call()
 		if c is Player and is_instance_valid(c) and c.flight_source() == "juin":
 			c.stop_flight())
 

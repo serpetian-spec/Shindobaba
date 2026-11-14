@@ -21,7 +21,23 @@ static func build(kind: String, b: Builder, pid: String, p: Vector2, base: float
 			return _paper(b, pid, p, base)
 		"toad":
 			return _toad(b, pid, p, base)
-		"clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
+		"clay":
+			return _clay(b, pid, p, base)
+		"thread":
+			return _thread(b, pid, p, base)
+		"thunder":
+			return _thunder(b, pid, p, base)
+		"chidori":
+			return _chidori(b, pid, p, base)
+		"jashin":
+			return _jashin(b, pid, p, base)
+		"octo":
+			return _octo(b, pid, p, base)
+		"ink":
+			return _ink(b, pid, p, base)
+		"puppet":
+			return _puppet(b, pid, p, base)
+		"_eski":
 			return _hall(b, pid, p, base, kind)
 	return 0.0
 
@@ -513,6 +529,734 @@ static func _toad(b: Builder, pid: String, p: Vector2, base: float) -> float:
 	LegendPaths._mentor(b, pid, Vector3(dx, dy + 0.05, dn + 0.9), PI)
 	b.interact(Vector3(dx, dy, dn - 1.2), 5.0, "path_mentor", "[F] Kurbağa Bilgesi ile konuş", {"path": pid})
 	return 5.0
+
+
+## Kil Atölyesi (Patlayıcı Kil Yolu, Toprak Ülkesi kanyonu): kanyon duvarının dibinde açık hava atölyesi — tuğla kubbe fırın (ağzı kor),
+## tente altında yoğurma tezgâhı ve kil figür rafları, yarım kalmış dev kil ejder (iskeleli), üç kil teknesi, tırmanılan kaya kulesi
+## (tepesinde kalkışa hazır kil kuş), önde yanık kraterli atış alanı ve hedef tahtaları. Antrenman noktaları LegendPaths.drill_spots'a.
+static func _clay_bird(b: Builder, at: Vector3, s: float, yaw: float, clay: Color) -> void:
+	var f = Vector3(sin(yaw), 0, cos(yaw))
+	var r = Vector3(f.z, 0, -f.x)
+	b.sphere(at + Vector3(0, 0.5 * s, 0), Vector3(0.7, 0.6, 1.1) * s, clay, 8)                       # gövde
+	b.sphere(at + f * 0.62 * s + Vector3(0, 0.82 * s, 0), Vector3(0.42, 0.4, 0.46) * s, clay.lightened(0.04), 8)   # baş
+	b.cone(at + f * 0.98 * s + Vector3(0, 0.78 * s, 0), 0.16 * s, 0.34 * s, clay.darkened(0.12), 6)          # gaga
+	for sx in [-1.0, 1.0]:
+		b.box(at + r * sx * 0.62 * s + Vector3(0, 0.62 * s, -0.05 * s), Vector3(0.95, 0.07, 0.5) * s, clay.darkened(0.05), yaw, false, Vector3(0, 0, -18.0 * sx))   # kanat
+		b.sphere(at + f * 0.76 * s + r * sx * 0.16 * s + Vector3(0, 0.9 * s, 0), Vector3.ONE * 0.07 * s, Color(0.1, 0.1, 0.12), 6)   # göz
+	b.box(at - f * 0.7 * s + Vector3(0, 0.5 * s, 0), Vector3(0.36, 0.06, 0.6) * s, clay.darkened(0.08), yaw, false)   # kuyruk
+
+
+static func _clay(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var rock = Color(0.6, 0.47, 0.36)
+	var brick = Color(0.62, 0.33, 0.24)
+	var wood = Color(0.42, 0.29, 0.18)
+	var clay = Color(0.93, 0.91, 0.84)
+	var wet = Color(0.74, 0.72, 0.66)
+	var soot = Color(0.16, 0.14, 0.13)
+	var spots: Dictionary = {}
+	var RM = preload("res://scripts/world/road_map.gd")
+	for k in 12:   # atölye ve atış alanı zemini: çıplak toprak
+		var zz = -16.0 + k * 3.0
+		var wa = b.w(Vector3(-15.0, 0, zz)); var wb = b.w(Vector3(15.0, 0, zz))
+		RM.add_lane(Vector2(wa.x, wa.z), Vector2(wb.x, wb.z), 1.8, true)
+	# ---- kanyon duvarı (arka): katmanlı kaya blokları, ortada fırını örten saçak
+	for k in 13:   # arka sıra: yüksek, geniş, birbirine geçen bloklar; ön sıra: alçak döküntü
+		var x = -19.0 + k * 3.2 + sin(k * 2.3) * 0.8
+		var n = 21.0 + cos(k * 1.7) * 1.2
+		var h = 9.0 + fmod(k * 3.7, 5.0)
+		b.boulder(Vector3(x, _g(p, base, x, n) + h * 0.32, n), Vector3(7.5 + fmod(k * 1.9, 3.0), h, 6.0), rock.darkened(0.05 * (k % 4)), k * 5 + 3, true, k * 1.3)
+	for k in 9:
+		var x = -17.0 + k * 4.3 + cos(k * 3.1)
+		if absf(x + 5.0) < 4.0:
+			continue   # fırının arkası açık kalsın
+		var n = 17.6 + sin(k * 2.9) * 0.8
+		var h = 2.6 + fmod(k * 2.3, 2.4)
+		b.boulder(Vector3(x, _g(p, base, x, n) + h * 0.3, n), Vector3(4.2 + fmod(k * 1.3, 1.6), h, 3.4), rock.lightened(0.04 * (k % 3)), k * 7 + 1, true, k * 0.9)
+	var fy = _g(p, base, 0, 12)
+	# ---- tuğla kubbe fırın: kaide, kubbe, kor ağız, baca, odun yığını
+	var kx = -5.0; var kn = 13.5
+	var ky = _g(p, base, kx, kn)
+	b.cyl(Vector3(kx, ky + 0.4, kn), 5.2, 0.8, brick.darkened(0.25), true, 16)
+	b.sphere(Vector3(kx, ky + 0.8, kn), Vector3(4.6, 5.6, 4.6), brick, 14, true)
+	for r in 4:   # tuğla sıraları
+		b.cyl(Vector3(kx, ky + 1.2 + r * 0.62, kn), 4.66 - r * r * 0.22, 0.07, brick.darkened(0.3), false, 16)
+	b.box(Vector3(kx, ky + 1.35, kn - 2.2), Vector3(1.5, 1.3, 0.5), soot, 0.0, false)                 # ağız
+	b.box(Vector3(kx, ky + 1.0, kn - 2.25), Vector3(1.2, 0.5, 0.42), Color(1.0, 0.5, 0.12), 0.0, false)   # kor
+	b.box(Vector3(kx, ky + 2.1, kn - 2.3), Vector3(1.9, 0.25, 0.5), brick.darkened(0.2), 0.0, false)    # lento
+	b.cyl(Vector3(kx + 0.6, ky + 4.6, kn + 0.6), 0.9, 2.6, brick.darkened(0.15), true, 10)
+	b.cyl(Vector3(kx + 0.6, ky + 5.95, kn + 0.6), 1.1, 0.2, soot, false, 10)
+	light(b, b.w(Vector3(kx, ky + 1.2, kn - 3.0)), Color(1.0, 0.55, 0.2), 2.2, 9.0)
+	for k in 9:   # odun yığını
+		b.cyl(Vector3(kx - 3.6 + (k % 3) * 0.42, ky + 0.25 + (k / 3) * 0.4, kn - 1.0), 0.38, 1.6, wood.darkened(0.1 * (k % 2)), k < 3, 6, -1.0)
+	b.kanji(Vector3(kx, ky + 3.3, kn - 2.05), "爆", 1.1, Color(0.12, 0.1, 0.1), 0.0)
+	# ---- tente altında tezgâh + figür rafı (sağ arka)
+	var tx = 6.0; var tn = 12.0
+	var ty = _g(p, base, tx, tn)
+	for q in 4:
+		b.box(Vector3(tx + (3.4 if q % 2 else -3.4), ty + 1.7, tn + (2.0 if q < 2 else -2.0)), Vector3(0.2, 3.4 if q < 2 else 2.9, 0.2), wood)
+	b.box(Vector3(tx, ty + 3.3, tn), Vector3(7.6, 0.08, 4.8), Color(0.82, 0.74, 0.58), 0.0, false, Vector3(-6.0, 0, 0))   # bez tente
+	b.box(Vector3(tx, ty + 0.9, tn), Vector3(5.0, 0.12, 1.5), wood)                                     # tezgâh
+	for q in 4:
+		b.box(Vector3(tx + (2.3 if q % 2 else -2.3), ty + 0.45, tn + (0.6 if q < 2 else -0.6)), Vector3(0.14, 0.9, 0.14), wood.darkened(0.2), 0.0, false)
+	for k in 5:   # tezgâhta: kil topakları ve yarım figürler
+		var lx = tx - 2.0 + k * 1.0
+		if k % 2 == 0:
+			b.sphere(Vector3(lx, ty + 1.12, tn), Vector3(0.42, 0.3, 0.38), wet if k == 2 else clay, 8)
+		else:
+			_clay_bird(b, Vector3(lx, ty + 0.96, tn), 0.34, PI + (k - 2) * 0.4, clay)
+	b.cyl(Vector3(tx + 2.1, ty + 1.02, tn - 0.3), 0.6, 0.1, wood.lightened(0.15), false, 12)             # çömlekçi çarkı
+	# raf: üç katta kil kuşlar ve örümcekler
+	b.box(Vector3(tx, ty + 1.5, tn + 1.9), Vector3(5.4, 3.0, 0.12), wood.darkened(0.15))
+	for row in 3:
+		b.box(Vector3(tx, ty + 0.7 + row * 0.9, tn + 1.6), Vector3(5.4, 0.08, 0.6), wood)
+		for k in 6:
+			var sxp = tx - 2.25 + k * 0.9
+			if (k + row) % 2 == 0:
+				_clay_bird(b, Vector3(sxp, ty + 0.74 + row * 0.9, tn + 1.6), 0.28, PI, clay)
+			else:   # kil örümcek: gövde + sekiz bacak
+				b.sphere(Vector3(sxp, ty + 0.9 + row * 0.9, tn + 1.6), Vector3(0.26, 0.2, 0.3), clay, 6)
+				for j in 8:
+					var la = (j + 0.5) * TAU / 8.0
+					b.box(Vector3(sxp + cos(la) * 0.2, ty + 0.84 + row * 0.9, tn + 1.6 + sin(la) * 0.2), Vector3(0.04, 0.04, 0.22), clay.darkened(0.1), -la + PI * 0.5, false, Vector3(22.0, 0, 0))
+	# ---- yarım kalmış dev kil ejder (sağda): boğum boğum gövde, baş, kanat taslakları, iskele
+	var ex = 10.5; var en = 2.5
+	var ey = _g(p, base, ex, en)
+	var prev = Vector3.ZERO
+	for k in 12:   # gövde: baştan kuyruğa incelen, kıvrılan boğumlar; sırtta diken sırası
+		var u = k / 11.0
+		var bx = ex + sin(u * 3.0) * 2.0; var bn = en + 4.2 - u * 10.0
+		var sz = lerpf(2.3, 0.45, pow(u, 0.8))
+		var by = _g(p, base, bx, bn) + sz * 0.46 + maxf(0.0, 1.0 - u * 3.0) * 2.4   # boyun yukarı kalkar
+		b.sphere(Vector3(bx, by, bn), Vector3(sz, sz * 0.92, sz * 1.5), clay.darkened(0.025 * (k % 2)), 10, sz > 1.5)
+		b.cone(Vector3(bx, by + sz * 0.5 + 0.12, bn), sz * 0.28, sz * 0.5, clay.darkened(0.1), 5)
+		prev = Vector3(bx, by, bn)
+	var hy = ey + 3.9
+	b.sphere(Vector3(ex, hy, en + 5.6), Vector3(1.7, 1.35, 2.0), clay, 10, true)                          # kafa
+	b.sphere(Vector3(ex, hy - 0.2, en + 6.9), Vector3(1.15, 0.8, 1.6), clay.lightened(0.03), 10)           # burun
+	b.box(Vector3(ex, hy - 0.5, en + 6.9), Vector3(1.0, 0.07, 1.4), soot, 0.0, false)                       # ağız yarığı
+	for sx in [-1.0, 1.0]:
+		b.sphere(Vector3(ex + sx * 0.62, hy + 0.42, en + 6.1), Vector3(0.3, 0.3, 0.3), Color(0.1, 0.1, 0.12), 6)
+		b.cone(Vector3(ex + sx * 0.6, hy + 1.0, en + 4.9), 0.36, 1.3, clay.darkened(0.08), 6)              # boynuz
+		for j in 2:   # ön ve arka ayak
+			var lx = ex + sx * 1.5; var ln = en + 2.6 - j * 3.4
+			b.sphere(Vector3(lx, _g(p, base, lx, ln) + 0.55, ln), Vector3(0.9, 1.1, 1.1), clay.darkened(0.04), 8)
+		for j in 2:   # iskele direkleri
+			b.box(Vector3(ex + sx * 4.6, ey + 2.6, en + 0.4 + j * 4.6), Vector3(0.14, 5.2, 0.14), wood, 0.0, false)
+	b.box(Vector3(ex, ey + 5.1, en + 5.0), Vector3(9.4, 0.1, 0.14), wood, 0.0, false)
+	b.box(Vector3(ex, ey + 5.1, en + 0.4), Vector3(9.4, 0.1, 0.14), wood, 0.0, false)
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(ex + sx * 4.6, ey + 3.0, en + 2.7), Vector3(0.1, 0.1, 4.6), wood, 0.0, false)
+	# ---- kil tekneleri (solda): ıslak kil dolu üç tekne (yoğurma antrenmanı)
+	var vats: Array = []
+	for k in 3:
+		var vx = -10.0 + (k % 2) * 3.2; var vn = 4.0 + k * 2.6
+		var vy = _g(p, base, vx, vn)
+		b.cyl(Vector3(vx, vy + 0.35, vn), 2.2, 0.7, wood.darkened(0.1), true, 12)
+		b.cyl(Vector3(vx, vy + 0.68, vn), 1.95, 0.08, wet, false, 12)
+		b.sphere(Vector3(vx + 0.3, vy + 0.78, vn - 0.2), Vector3(0.7, 0.3, 0.6), clay, 8)
+		vats.append(b.w(Vector3(vx, vy, vn - 1.75)))
+	spots["vats"] = vats
+	for k in 4:   # kil çuvalları
+		b.sphere(Vector3(-13.0 + (k % 2) * 0.9, _g(p, base, -13, 9) + 0.3 + (k / 2) * 0.5, 9.0), Vector3(0.9, 0.55, 0.7), Color(0.72, 0.64, 0.5), 8, k < 2)
+	# ---- kaya kulesi (sol önde): sarmal basamak kayalar, tepede kalkışa hazır kil kuş
+	var sx0 = -12.0; var sn0 = -5.0
+	var sy0 = _g(p, base, sx0, sn0)
+	b.cyl(Vector3(sx0, sy0 + 4.6, sn0), 4.0, 9.2, rock, true, 9)
+	b.cyl(Vector3(sx0, sy0 + 9.3, sn0), 4.6, 0.3, rock.lightened(0.08), true, 9)
+	for k in 5:
+		var a = PI * 0.5 + k * 1.15
+		var hx = sx0 + cos(a) * 3.0; var hn = sn0 + sin(a) * 3.0
+		var hh = 1.7 + k * 1.75
+		b.cyl(Vector3(hx, sy0 + hh * 0.5, hn), 2.3, hh, rock.darkened(0.05 + 0.03 * (k % 2)), true, 7)
+	_clay_bird(b, Vector3(sx0, sy0 + 9.45, sn0 + 0.6), 1.5, PI, clay)
+	spots["top"] = [b.w(Vector3(sx0, sy0 + 9.5, sn0 - 1.2))]
+	# ---- atış alanı (önde): yanık kraterler + hedef tahtaları
+	var posts: Array = []
+	for k in 4:
+		var px = -4.5 + k * 3.0; var pn = -13.0
+		var pyy = _g(p, base, px, pn)
+		b.box(Vector3(px, pyy + 1.0, pn), Vector3(0.18, 2.0, 0.18), wood)
+		b.sphere(Vector3(px, pyy + 1.9, pn + 0.12), Vector3(1.4, 1.4, 0.14), Color(0.9, 0.86, 0.75), 14)
+		b.sphere(Vector3(px, pyy + 1.9, pn + 0.2), Vector3(0.8, 0.8, 0.1), Color(0.75, 0.2, 0.15), 12)
+		b.sphere(Vector3(px, pyy + 1.9, pn + 0.26), Vector3(0.3, 0.3, 0.08), Color(0.9, 0.86, 0.75), 10)
+		posts.append(b.w(Vector3(px, pyy, pn)))
+	for k in 6:
+		var cx = -6.0 + fmod(k * 5.3, 13.0); var cn = -6.0 - fmod(k * 3.1, 5.0)
+		var cy = _g(p, base, cx, cn)
+		b.sphere(Vector3(cx, cy + 0.03, cn), Vector3(2.6 + (k % 2), 0.08, 2.4 + (k % 3) * 0.4), soot, 10)
+		for j in 5:
+			var ra = j * 1.3 + k
+			b.boulder(Vector3(cx + cos(ra) * 1.5, cy + 0.12, cn + sin(ra) * 1.4), Vector3(0.5, 0.3, 0.45), rock.darkened(0.3), j + k, false)
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, -5), -5))
+	b.lantern(tx - 4.2, tn - 2.4)
+	b.lantern(-8.5, 10.0)
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(tx - 1.0, ty + 0.05, tn - 1.6), PI)
+	b.interact(Vector3(tx - 1.0, ty, tn - 3.2), 5.0, "path_mentor", "[F] Kil Sanatçısı ile konuş", {"path": pid})
+	return 8.5
+
+
+static func _dirt(b: Builder, hx: float, n0: float, n1: float) -> void:
+	var RM = preload("res://scripts/world/road_map.gd")
+	var n = n0
+	while n <= n1:
+		var wa = b.w(Vector3(-hx, 0, n)); var wb = b.w(Vector3(hx, 0, n))
+		RM.add_lane(Vector2(wa.x, wa.z), Vector2(wb.x, wb.z), 1.8, true)
+		n += 3.0
+
+
+## Saman kukla (vuruş talimi): direk + gövde + baş; döner: dünya konumu
+static func _straw(b: Builder, p: Vector2, base: float, x: float, n: float, col := Color(0.85, 0.75, 0.45)) -> Vector3:
+	var y = _g(p, base, x, n)
+	b.box(Vector3(x, y + 0.9, n), Vector3(0.18, 1.8, 0.18), Color(0.4, 0.28, 0.17))
+	b.cyl(Vector3(x, y + 1.5, n), 0.6, 1.0, col, false, 10)
+	b.sphere(Vector3(x, y + 2.3, n), Vector3(0.5, 0.5, 0.5), col.lightened(0.05))
+	return b.w(Vector3(x, y, n))
+
+
+## Kara İplik Mezarlığı (Toprak Kini Yolu, Şelale Ülkesi): eğik mezar taşları, ölü ağaçlar; arkada taş ödül morgu (kefenli
+## bedenlerin yattığı taş sedirler, defter masası, para sandıkları); meydanda dört kalbin maskesi direklerde, aralarında kara iplikler.
+static func _thread(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var stone = Color(0.4, 0.4, 0.43)
+	var dark = Color(0.07, 0.07, 0.09)
+	var wood = Color(0.3, 0.22, 0.16)
+	var spots: Dictionary = {}
+	_dirt(b, 14.0, -15.0, 9.0)
+	# ---- taş morg (arka): alçak, kalın duvarlı, kapısı açık; içeride üç sedir
+	var my = maxf(_g(p, base, -6, 15), _g(p, base, 6, 15))
+	b.box(Vector3(0, my + 0.25, 15), Vector3(17, 0.5, 9), stone.darkened(0.2))
+	b.box(Vector3(0, my + 2.4, 19.3), Vector3(17, 4.3, 0.6), stone)
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(8.2 * sx, my + 2.4, 15), Vector3(0.6, 4.3, 9), stone)
+		b.box(Vector3(5.6 * sx, my + 2.4, 10.8), Vector3(5.6, 4.3, 0.6), stone.lightened(0.04))
+	b.box(Vector3(0, my + 4.1, 10.8), Vector3(5.8, 0.9, 0.7), stone.darkened(0.1))
+	b.box(Vector3(0, my + 4.8, 15), Vector3(18, 0.5, 10), stone.darkened(0.25))
+	b.kanji(Vector3(0, my + 4.1, 10.4), "賞", 0.8, Color(0.75, 0.7, 0.55), 0.0)
+	var slabs: Array = []
+	for k in 3:
+		var sx2 = -5.0 + k * 5.0
+		b.box(Vector3(sx2, my + 0.95, 16.6), Vector3(1.3, 0.9, 2.6), stone.lightened(0.08))
+		b.sphere(Vector3(sx2, my + 1.6, 16.6), Vector3(0.9, 0.5, 2.2), Color(0.82, 0.8, 0.74), 8)        # kefenli beden
+		b.sphere(Vector3(sx2, my + 1.68, 17.5), Vector3(0.5, 0.42, 0.5), Color(0.82, 0.8, 0.74), 8)
+		for j in 4:   # dikiş izleri
+			b.box(Vector3(sx2, my + 1.86, 16.0 + j * 0.35), Vector3(0.5, 0.03, 0.05), dark, 0.5, false)
+		slabs.append(b.w(Vector3(sx2, my + 0.5, 14.6)))
+	spots["slabs"] = slabs
+	light(b, b.w(Vector3(0, my + 3.4, 15)), Color(0.6, 0.85, 0.6), 1.2, 11.0)
+	# defter masası + para sandıkları (kapının sağında, dışarıda)
+	var dx = 5.5; var dn = 8.2
+	var dy = _g(p, base, dx, dn)
+	b.box(Vector3(dx, dy + 0.8, dn), Vector3(2.4, 0.1, 1.1), wood)
+	for q in 4:
+		b.box(Vector3(dx + (1.05 if q % 2 else -1.05), dy + 0.4, dn + (0.4 if q < 2 else -0.4)), Vector3(0.12, 0.8, 0.12), wood.darkened(0.2), 0.0, false)
+	b.box(Vector3(dx - 0.4, dy + 0.9, dn), Vector3(0.7, 0.08, 0.5), Color(0.9, 0.86, 0.72), 0.2, false)     # ödül defteri
+	for k in 3:
+		b.box(Vector3(dx + 2.2 + k * 0.2, dy + 0.35 + k * 0.62, dn + 0.3), Vector3(1.1, 0.6, 0.75), Color(0.22, 0.2, 0.18), k * 0.15)
+		b.box(Vector3(dx + 2.2 + k * 0.2, dy + 0.35 + k * 0.62, dn - 0.08), Vector3(0.2, 0.2, 0.04), Color(0.8, 0.65, 0.2), k * 0.15, false)
+	# ---- dört maske direği (ateş, rüzgâr, şimşek, su) ve aralarındaki kara iplik ağı
+	var masks = [Color(0.75, 0.2, 0.15), Color(0.5, 0.7, 0.55), Color(0.85, 0.75, 0.25), Color(0.3, 0.45, 0.75)]
+	var tops: Array = []
+	for k in 4:
+		var a = PI * 0.25 + k * PI * 0.5
+		var px = cos(a) * 8.5; var pn = 1.0 + sin(a) * 5.5
+		var py = _g(p, base, px, pn)
+		b.cyl(Vector3(px, py + 2.3, pn), 0.34, 4.6, wood, true, 7)
+		b.sphere(Vector3(px, py + 4.5, pn - 0.2), Vector3(1.0, 1.25, 0.5), Color(0.9, 0.88, 0.82), 10)        # maske
+		b.sphere(Vector3(px, py + 4.95, pn - 0.42), Vector3(0.7, 0.3, 0.12), masks[k], 8)                      # alın boyası
+		for ex in [-1.0, 1.0]:
+			b.sphere(Vector3(px + ex * 0.22, py + 4.55, pn - 0.44), Vector3(0.2, 0.1, 0.08), dark, 6)
+		b.box(Vector3(px, py + 4.1, pn - 0.44), Vector3(0.42, 0.05, 0.05), dark, 0.0, false)
+		tops.append(Vector3(px, py + 3.9, pn))
+	for k in 4:
+		var t0: Vector3 = tops[k]; var t1: Vector3 = tops[(k + 1) % 4]
+		for j in 3:   # sarkan üç iplik
+			var prev = t0 - Vector3(0, j * 0.5, 0)
+			for q in range(1, 9):
+				var u = q / 8.0
+				var cur = t0.lerp(t1, u) - Vector3(0, j * 0.5 + sin(u * PI) * (0.5 + j * 0.25), 0)
+				rod(b, prev, cur, 0.05, dark, 4)
+				prev = cur
+	for k in 5:   # yerde kara iplik yumakları
+		var hx2 = -7.0 + k * 3.4; var hn2 = 1.0 + sin(k * 2.2) * 3.0
+		b.sphere(Vector3(hx2, _g(p, base, hx2, hn2) + 0.22, hn2), Vector3(1.1, 0.42, 0.9), dark, 8)
+	# ---- mezar taşları ve ölü ağaçlar (iki yanda)
+	for k in 14:
+		var gx = (-12.5 if k % 2 == 0 else 12.5) + sin(k * 1.9) * 1.4
+		var gn = -11.0 + (k / 2) * 3.4
+		var gyy = _g(p, base, gx, gn)
+		b.box(Vector3(gx, gyy + 0.75, gn), Vector3(0.9, 1.5 + fmod(k * 0.37, 0.6), 0.28), stone.lightened(0.05 * (k % 3)), sin(k * 3.3) * 0.35, true, Vector3(sin(k * 2.1) * 7.0, 0, cos(k * 1.3) * 6.0))
+		b.sphere(Vector3(gx, gyy + 0.1, gn + 0.9), Vector3(1.1, 0.3, 1.9), Color(0.3, 0.27, 0.24), 8)      # mezar tümseği
+	for k in 4:
+		var tx2 = [-15.0, 15.0, -14.0, 14.5][k]; var tn2 = [-6.0, -3.0, 9.0, 7.0][k]
+		dead_tree(b, tx2, _g(p, base, tx2, tn2), tn2, 1.2, k * 1.7)
+	fog(b, b.w(Vector3(0, _g(p, base, 0, -4) + 0.4, -4)), 12.0, Color(0.55, 0.6, 0.6), 12)
+	# ---- talim: iplikle dikilmiş kuklalar (önde)
+	var posts: Array = []
+	for k in 3:
+		posts.append(_straw(b, p, base, -3.0 + k * 3.0, -10.0, Color(0.6, 0.55, 0.45)))
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, -3), -3))
+	b.lantern(-3.6, 9.4)
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(dx, dy + 0.05, dn - 1.1), PI)
+	b.interact(Vector3(dx, dy, dn - 2.6), 5.0, "path_mentor", "[F] İplik Ustası ile konuş", {"path": pid})
+	return 5.5
+
+
+## Üç kollu işaret kunaisi (yere saplı): sap + mühür kâğıdı + üç ağız
+static func _mark_kunai(b: Builder, at: Vector3, s: float) -> void:
+	var steel = Color(0.74, 0.76, 0.8)
+	b.cyl(at + Vector3(0, 0.55 * s, 0), 0.1 * s, 0.7 * s, Color(0.92, 0.88, 0.7), false, 6)       # mühürlü sap
+	b.cyl(at + Vector3(0, 0.95 * s, 0), 0.22 * s, 0.06 * s, Color(0.3, 0.3, 0.33), false, 8)     # halka
+	b.box(at + Vector3(0, 0.12 * s, 0), Vector3(0.1, 0.5, 0.03) * s, steel, 0.0, false)          # orta ağız (toprakta)
+	for sx in [-1.0, 1.0]:
+		b.box(at + Vector3(sx * 0.14 * s, 0.24 * s, 0), Vector3(0.07, 0.3, 0.03) * s, steel, 0.0, false, Vector3(0, 0, 28.0 * sx))
+
+
+## Yıldırım Mührü Tapınağı (Uçan Yıldırım Yolu, Girdap harabeleri): yıkık Uzumaki tapınağı — kırık sütunlar, yarısı çökmüş torii,
+## yerde girdap arması taş kürsü, ışınlanma formülü kazılı mühür taşı, avluya halka halka saplı üç kollu işaret kunaileri.
+static func _thunder(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var stone = Color(0.62, 0.6, 0.55)
+	var red = Color(0.7, 0.2, 0.15)
+	var moss = Color(0.32, 0.46, 0.26)
+	var spots: Dictionary = {}
+	_dirt(b, 13.0, -15.0, 6.0)
+	# ---- yıkık tapınak kürsüsü (arka): basamaklı taş zemin, ayakta kalan ve devrilmiş sütunlar, çatısız arka duvar
+	var ty = maxf(_g(p, base, -7, 15), _g(p, base, 7, 15))
+	b.box(Vector3(0, ty + 0.3, 15), Vector3(20, 0.6, 11), stone.darkened(0.12))
+	b.box(Vector3(0, ty + 0.75, 15.5), Vector3(17, 0.3, 9), stone)
+	b.box(Vector3(0, ty + 0.15, 8.9), Vector3(8, 0.3, 1.2), stone.darkened(0.05))
+	for k in 6:
+		var cx = -7.0 + (k % 3) * 7.0; var cn = 12.0 + (k / 3) * 6.5
+		var h = [5.2, 2.2, 5.2, 3.4, 5.2, 1.4][k]
+		b.cyl(Vector3(cx, ty + 0.9 + h * 0.5, cn), 1.0, h, stone.lightened(0.05), true, 10)
+		b.cyl(Vector3(cx, ty + 1.0, cn), 1.4, 0.3, stone.darkened(0.1), false, 10)
+		if h > 5.0:
+			b.box(Vector3(cx, ty + 0.9 + h + 0.2, cn), Vector3(1.5, 0.4, 1.5), stone.darkened(0.08))
+		else:
+			b.sphere(Vector3(cx, ty + 0.95 + h, cn), Vector3(1.05, 0.3, 1.0), moss, 8)
+	b.box(Vector3(-3.5, ty + 1.4, 13.5), Vector3(1.0, 1.0, 3.4), stone.lightened(0.03), 0.5, true, Vector3(0, 0, 8.0))   # devrik sütun parçası
+	b.box(Vector3(3.0, ty + 3.2, 19.6), Vector3(11, 5.0, 0.7), stone.darkened(0.06))
+	b.boulder(Vector3(-6.5, ty + 1.6, 19.4), Vector3(4.0, 2.6, 2.4), stone.darkened(0.15), 4, true)
+	# mühür taşı: ışınlanma formülü
+	b.box(Vector3(3.0, ty + 2.6, 19.1), Vector3(2.6, 3.4, 0.4), Color(0.25, 0.25, 0.28))
+	for k in 4:
+		b.kanji(Vector3(3.0, ty + 3.9 - k * 0.72, 18.85), ["飛", "雷", "神", "術"][k], 0.6, Color(0.98, 0.85, 0.3), 0.0)
+	light(b, b.w(Vector3(3.0, ty + 2.6, 17.8)), Color(1.0, 0.85, 0.35), 1.6, 9.0)
+	# girdap arması (kürsünün ortasında): iç içe halkalar + kıvrım
+	for k in 4:
+		b.cyl(Vector3(0, ty + 0.92 + k * 0.01, 14.5), 4.6 - k * 1.1, 0.04, red if k % 2 == 0 else stone.lightened(0.12), false, 24)
+	# ---- yarısı çökmüş torii (girişte)
+	var gy = _g(p, base, 0, -4)
+	b.cyl(Vector3(-4.0, gy + 3.2, -4), 0.6, 6.4, red, true, 10)
+	b.cyl(Vector3(4.0, gy + 1.4, -4), 0.6, 2.8, red.darkened(0.1), true, 10)
+	b.box(Vector3(-1.2, gy + 6.3, -4), Vector3(7.4, 0.5, 0.8), red.darkened(0.2), 0.0, true, Vector3(0, 0, -9.0))
+	b.box(Vector3(5.6, gy + 0.4, -3.2), Vector3(4.0, 0.5, 0.7), red.darkened(0.25), 0.7, true, Vector3(0, 0, 4.0))   # düşmüş kiriş
+	shimenawa(b, Vector3(-4.0, gy + 5.2, -4.2), Vector3(3.6, gy + 2.6, -4.2), 0.9)
+	# ---- işaret kunaileri: avluda sekiz işaret (ışınlanma talimi) + hedef direkleri
+	var marks: Array = []
+	for k in 8:
+		var a = TAU * k / 8.0 + 0.3
+		var mx = cos(a) * 10.0; var mn = 1.0 + sin(a) * 6.0
+		var myy = _g(p, base, mx, mn)
+		b.cyl(Vector3(mx, myy + 0.06, mn), 1.7, 0.12, stone.darkened(0.1), false, 10)
+		_mark_kunai(b, Vector3(mx, myy + 0.1, mn), 1.5)
+		marks.append(b.w(Vector3(mx, myy, mn)))
+	spots["marks"] = marks
+	var posts: Array = []
+	for k in 4:
+		var px = -4.5 + k * 3.0; var pn = -12.0
+		var pyy = _g(p, base, px, pn)
+		b.box(Vector3(px, pyy + 1.0, pn), Vector3(0.18, 2.0, 0.18), Color(0.4, 0.28, 0.17))
+		b.sphere(Vector3(px, pyy + 1.9, pn + 0.12), Vector3(1.4, 1.4, 0.14), Color(0.9, 0.86, 0.75), 14)
+		b.sphere(Vector3(px, pyy + 1.9, pn + 0.2), Vector3(0.7, 0.7, 0.1), Color(0.98, 0.8, 0.2), 12)
+		posts.append(b.w(Vector3(px, pyy, pn)))
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, 1), 1))
+	for k in 6:
+		mossy_rock(b, [-13.0, 13.0, -12.0, 12.5, -14.0, 14.0][k], _g(p, base, [-13.0, 13.0, -12.0, 12.5, -14.0, 14.0][k], -9.0 + k * 3.6), -9.0 + k * 3.6, 1.2 + (k % 3) * 0.5, k)
+	b.lantern(-5.0, 8.4)
+	b.lantern(5.0, 8.4)
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(0, ty + 0.95, 11.0), PI)
+	b.interact(Vector3(0, ty + 0.3, 8.6), 5.5, "path_mentor", "[F] Sarı Şimşek ile konuş", {"path": pid})
+	return 8.0
+
+
+## Bin Kuş Uçurumu (Şimşek Kılıcı Yolu, Demir Ülkesi): yıldırımın düştüğü kayalık — bakır sargılı paratoner direkleri, ortadan
+## yarılmış yanık kayalar (Chidori talimi), delinmiş kaya sırası, taş sığınak ve kılıç askısı, arkada sivri zirve.
+static func _chidori(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var rock = Color(0.42, 0.44, 0.5)
+	var metal = Color(0.3, 0.31, 0.35)
+	var copper = Color(0.75, 0.45, 0.25)
+	var burn = Color(0.12, 0.12, 0.14)
+	var wood = Color(0.36, 0.26, 0.18)
+	var spots: Dictionary = {}
+	_dirt(b, 13.0, -15.0, 9.0)
+	# ---- sivri zirve ve kayalık (arka)
+	for k in 9:
+		var x = -16.0 + k * 4.0 + sin(k * 2.1)
+		var h = 7.0 + fmod(k * 4.3, 6.0) + (9.0 if k == 4 else 0.0)
+		b.boulder(Vector3(x, _g(p, base, x, 20.0) + h * 0.33, 20.0 + cos(k * 1.9)), Vector3(5.6, h, 5.0), rock.darkened(0.05 * (k % 3)), k * 3 + 2, true, k * 1.1)
+	# ---- paratoner direkleri: beş direk, bakır sargı, tepede top; diplerinde yanık halka
+	for k in 5:
+		var a = PI * 0.15 + k * PI * 0.175
+		var lx = cos(a) * 11.5; var ln = 4.0 + sin(a) * 9.0
+		var ly = _g(p, base, lx, ln)
+		b.cyl(Vector3(lx, ly + 4.5, ln), 0.26, 9.0, metal, true, 7)
+		for j in 5:
+			b.cyl(Vector3(lx, ly + 2.0 + j * 0.42, ln), 0.42, 0.16, copper, false, 8)
+		b.cone(Vector3(lx, ly + 9.5, ln), 0.3, 1.0, metal.lightened(0.2), 6)
+		b.cyl(Vector3(lx, ly + 0.04, ln), 2.6, 0.06, burn, false, 12)
+		if k % 2 == 0:
+			light(b, b.w(Vector3(lx, ly + 9.0, ln)), Color(0.6, 0.8, 1.0), 1.4, 8.0)
+	# ---- taş sığınak (sol arka): üç duvar, taş çatı, içinde kılıç askısı ve ocak
+	var hx = -8.0; var hn = 13.0
+	var hy = _g(p, base, hx, hn)
+	b.box(Vector3(hx, hy + 1.4, hn + 2.2), Vector3(6.0, 2.8, 0.6), rock.lightened(0.06))
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(hx + sx * 2.7, hy + 1.4, hn), Vector3(0.6, 2.8, 4.4), rock.lightened(0.03))
+	b.box(Vector3(hx, hy + 3.0, hn - 0.2), Vector3(7.0, 0.5, 5.4), rock.darkened(0.12), 0.0, true, Vector3(-5.0, 0, 0))
+	b.box(Vector3(hx, hy + 1.5, hn + 1.8), Vector3(3.4, 0.1, 0.2), wood, 0.0, false)                       # kılıç askısı
+	for k in 3:
+		b.box(Vector3(hx - 1.1 + k * 1.1, hy + 1.0, hn + 1.7), Vector3(0.07, 1.5, 0.05), Color(0.78, 0.8, 0.86), 0.0, false, Vector3(0, 0, 6.0))
+		b.box(Vector3(hx - 1.1 + k * 1.1, hy + 1.75, hn + 1.7), Vector3(0.24, 0.06, 0.1), burn, 0.0, false)
+	b.cyl(Vector3(hx + 1.2, hy + 0.15, hn - 0.4), 1.0, 0.3, rock.darkened(0.2), false, 8)                 # ocak
+	light(b, b.w(Vector3(hx + 1.2, hy + 0.6, hn - 0.4)), Color(1.0, 0.6, 0.25), 1.6, 7.0)
+	# ---- yarılmış yanık kayalar (Chidori talimi): iki yarım + ortada yanık yarık
+	var posts: Array = []
+	for k in 3:
+		var rx = -5.0 + k * 5.0; var rn = -9.0
+		var ry = _g(p, base, rx, rn)
+		for sx in [-1.0, 1.0]:
+			b.boulder(Vector3(rx + sx * 0.95, ry + 1.2, rn), Vector3(1.7, 2.8, 2.4), rock.lightened(0.04 * k), k * 4 + int(sx) + 3, true, sx * 0.3)
+			b.box(Vector3(rx + sx * 0.2, ry + 0.9, rn), Vector3(0.08, 1.5, 1.5), burn, 0.0, false)
+		b.cyl(Vector3(rx, ry + 0.04, rn - 1.6), 2.2, 0.06, burn, false, 10)
+		posts.append(b.w(Vector3(rx, ry, rn - 1.4)))
+	spots["posts"] = posts
+	# delinmiş kaya sırası (sağda): Chidori Eisō ile delinen levhalar
+	for k in 4:
+		var sx3 = 9.0; var sn3 = -6.0 + k * 2.6
+		var sy3 = _g(p, base, sx3, sn3)
+		b.box(Vector3(sx3, sy3 + 1.3, sn3), Vector3(2.4, 2.6, 0.5), rock.lightened(0.08), 0.1 * k)
+		b.sphere(Vector3(sx3, sy3 + 1.5, sn3), Vector3(0.7, 0.7, 0.56), burn, 8)
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, 0), 0))
+	b.lantern(-4.0, 10.0)
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(hx + 0.2, hy + 0.05, hn - 3.6), PI)
+	b.interact(Vector3(hx + 0.2, hy, hn - 5.0), 5.0, "path_mentor", "[F] Şimşek Kılıcı ile konuş", {"path": pid})
+	return 8.0
+
+
+## Kanlı Ayin Tapınağı (Jashin Yolu, Sıcak Su Ülkesi): kara taş basamaklı sunak, arkasında dik duran dev Jashin halkası (çember + ters
+## üçgen), yerde kan çemberi, kazıklar, kor mangallar, kemik yığınları, kızıl flamalar, üç ağızlı tırpan anıtı.
+static func _jashin(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var stone = Color(0.2, 0.19, 0.21)
+	var blood = Color(0.55, 0.05, 0.06)
+	var bone = Color(0.86, 0.83, 0.74)
+	var iron = Color(0.3, 0.3, 0.33)
+	var spots: Dictionary = {}
+	_dirt(b, 13.0, -15.0, 8.0)
+	# ---- basamaklı sunak + dik Jashin halkası
+	var ay = maxf(_g(p, base, -6, 15), _g(p, base, 6, 15))
+	for k in 3:
+		b.box(Vector3(0, ay + 0.3 + k * 0.6, 15.0 + k * 0.9), Vector3(16.0 - k * 3.0, 0.6, 9.0 - k * 1.8), stone.lightened(0.03 * k))
+	b.box(Vector3(0, ay + 2.3, 16.5), Vector3(3.4, 1.0, 1.6), stone.lightened(0.1))                     # sunak taşı
+	b.box(Vector3(0, ay + 2.82, 16.5), Vector3(3.0, 0.05, 1.2), blood, 0.0, false)
+	var rc = Vector3(0, ay + 6.6, 19.0)
+	for k in 24:   # halka
+		var a0 = TAU * k / 24.0; var a1 = TAU * (k + 1) / 24.0
+		rod(b, rc + Vector3(cos(a0), sin(a0), 0) * 3.4, rc + Vector3(cos(a1), sin(a1), 0) * 3.4, 0.5, stone.lightened(0.12), 6)
+	for k in 3:   # ters üçgen
+		var a0 = -PI * 0.5 + k * TAU / 3.0; var a1 = -PI * 0.5 + (k + 1) * TAU / 3.0
+		rod(b, rc + Vector3(cos(a0), sin(a0), 0) * 3.3, rc + Vector3(cos(a1), sin(a1), 0) * 3.3, 0.4, stone.lightened(0.12), 6)
+	b.box(Vector3(0, ay + 2.6, 19.0), Vector3(1.2, 2.2, 1.0), stone)                                  # halkanın ayağı
+	for sx in [-1.0, 1.0]:   # mangallar + flamalar
+		b.cyl(Vector3(sx * 5.0, ay + 2.5, 14.2), 0.9, 1.4, iron, true, 8)
+		b.sphere(Vector3(sx * 5.0, ay + 3.3, 14.2), Vector3(0.8, 0.5, 0.8), Color(1.0, 0.35, 0.1), 8)
+		light(b, b.w(Vector3(sx * 5.0, ay + 3.8, 14.2)), Color(1.0, 0.3, 0.15), 2.0, 10.0)
+		b.cyl(Vector3(sx * 7.6, ay + 3.6, 18.6), 0.2, 7.2, iron, true, 6)
+		b.box(Vector3(sx * 7.6, ay + 5.0, 18.4), Vector3(1.3, 3.6, 0.05), blood.darkened(0.1), 0.0, false)
+	# ---- yerde kan çemberi + üçgen (ayin alanı)
+	var cy = _g(p, base, 0, 2) + 0.05
+	for k in 36:   # çember: zemine oturan kan izi (eğimli arazide yarısı toprağa gömülmesin)
+		var a0 = TAU * k / 36.0; var a1 = TAU * (k + 1) / 36.0
+		var q0 = Vector3(cos(a0) * 6.0, 0, 2 + sin(a0) * 6.0); var q1 = Vector3(cos(a1) * 6.0, 0, 2 + sin(a1) * 6.0)
+		q0.y = _g(p, base, q0.x, q0.z) + 0.07; q1.y = _g(p, base, q1.x, q1.z) + 0.07
+		rod(b, q0, q1, 0.3, blood, 4)
+	for k in 3:
+		var a1 = -PI * 0.5 + k * TAU / 3.0
+		var a2 = -PI * 0.5 + (k + 1) * TAU / 3.0
+		var prev = Vector3.ZERO
+		for q in 9:
+			var u = q / 8.0
+			var cur = Vector3(lerpf(cos(a1), cos(a2), u) * 5.8, 0, 2 + lerpf(sin(a1), sin(a2), u) * 5.8)
+			cur.y = _g(p, base, cur.x, cur.z) + 0.07
+			if q > 0:
+				rod(b, prev, cur, 0.24, blood, 4)
+			prev = cur
+	# ---- kazıklar (çemberin çevresinde) ve kemik yığınları
+	for k in 8:
+		var a = TAU * k / 8.0 + 0.2
+		var kx = cos(a) * 9.5; var kn = 2.0 + sin(a) * 8.0
+		if kn < -4.5 or kn > 9.0:
+			continue
+		var kyy = _g(p, base, kx, kn)
+		b.cyl(Vector3(kx, kyy + 1.4, kn), 0.14, 2.8, Color(0.25, 0.2, 0.18), false, 6)
+		b.cone(Vector3(kx, kyy + 3.0, kn), 0.14, 0.5, iron.lightened(0.3), 6)
+		if k % 2 == 0:
+			bones(b, kx + 0.8, kyy, kn + 0.4, 1.0)
+	# üç ağızlı tırpan anıtı (sağda)
+	var sx2 = 11.0; var sn2 = 9.0
+	var sy2 = _g(p, base, sx2, sn2)
+	b.box(Vector3(sx2, sy2 + 0.4, sn2), Vector3(2.0, 0.8, 2.0), stone.lightened(0.06))
+	rod(b, Vector3(sx2 - 1.2, sy2 + 0.8, sn2), Vector3(sx2 + 1.0, sy2 + 7.0, sn2), 0.22, iron, 6)
+	for j in 3:
+		b.box(Vector3(sx2 + 0.2 + j * 0.3, sy2 + 5.6 + j * 0.55 - 0.3, sn2 - 0.6 - j * 0.05), Vector3(0.1, 0.45, 2.2 - j * 0.3), blood.lightened(0.15), 0.0, false, Vector3(-18.0, 0, 0))
+	# ---- talim kuklaları (önde) + atış için ikinci sıra
+	var posts: Array = []
+	for k in 4:
+		posts.append(_straw(b, p, base, -4.5 + k * 3.0, -11.0, Color(0.7, 0.6, 0.42)))
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, cy, 2))
+	fog(b, b.w(Vector3(0, cy + 0.3, 2)), 10.0, Color(0.5, 0.2, 0.2), 10)
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(0, ay + 1.85, 14.4), PI)
+	b.interact(Vector3(0, ay + 0.7, 11.6), 5.5, "path_mentor", "[F] Ayin Rahibi ile konuş", {"path": pid})
+	return 10.0
+
+
+## Hileler ve Gerçekler Şelalesi (Sekiz Kuyruk Yolu, Yıldırım Ülkesi): şelale kayalığı ve göleti, gölün ortasında shimenawa ile çevrili
+## meditasyon adası, başsız taş bekçi heykelleri, yedi kılıçlı askı, ritim davulları ve kafiye defteri.
+static func _octo(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var rock = Color(0.5, 0.48, 0.5)
+	var moss = Color(0.3, 0.45, 0.28)
+	var wood = Color(0.4, 0.27, 0.17)
+	var spots: Dictionary = {}
+	_dirt(b, 13.0, -15.0, 3.0)
+	var PN = 13.0
+	var py = _g(p, base, 0, PN)
+	# ---- şelale kayalığı (arka) + dökülen su + gölet
+	for k in 9:
+		var x = -14.0 + k * 3.5
+		var h = 10.0 + fmod(k * 3.3, 4.0)
+		b.boulder(Vector3(x, py + h * 0.34, PN + 8.5 + cos(k * 1.7)), Vector3(5.4, h, 5.0), rock.darkened(0.06 * (k % 3)), k * 3 + 5, true, k * 0.8)
+		b.sphere(Vector3(x, py + h * 0.82, PN + 7.6), Vector3(3.6, 0.6, 2.4), moss, 6)
+	Waterfalls.add(b.w(Vector3(0, py + 0.3, PN + 6.0)), 9.0, 4.2, 0.0)
+	AcademyGrounds._oval_water(b, Vector3(0, py + 0.3, PN), 24.0, 12.0)
+	for k in 22:   # kıyı kayaları
+		var a = TAU * k / 22.0
+		if sin(a) < -0.6 and absf(cos(a)) < 0.45:
+			continue
+		var rx = cos(a) * 12.6; var rn = PN + sin(a) * 6.6
+		b.boulder(Vector3(rx, _g(p, base, rx, rn) + 0.3, rn), Vector3(1.8, 0.9, 1.5), rock.darkened(0.08 * (k % 3)), k, true)
+	# ---- meditasyon adası: yassı taş, dört direk ve shimenawa
+	b.cyl(Vector3(0, py + 0.35, PN - 0.5), 4.6, 0.7, rock.lightened(0.08), true, 12)
+	b.cyl(Vector3(0, py + 0.75, PN - 0.5), 1.6, 0.12, Color(0.82, 0.76, 0.6), false, 12)                 # hasır minder
+	var corners = []
+	for k in 4:
+		var a = PI * 0.25 + k * PI * 0.5
+		var q = Vector3(cos(a) * 1.9, py + 0.7, PN - 0.5 + sin(a) * 1.9)
+		b.cyl(q + Vector3(0, 0.8, 0), 0.14, 1.6, wood, false, 6)
+		corners.append(q + Vector3(0, 1.5, 0))
+	for k in 4:
+		shimenawa(b, corners[k], corners[(k + 1) % 4], 0.25)
+	for k in 3:   # adaya basma taşları
+		b.cyl(Vector3(0, py + 0.3, PN - 3.6 - k * 1.5), 1.2, 0.5, rock, true, 8)
+	spots["island"] = [b.w(Vector3(0, py + 0.75, PN - 0.5))]
+	# ---- başsız taş bekçiler (göletin iki yanında)
+	for sx in [-1.0, 1.0]:
+		var gx = sx * 10.0; var gn = 4.0
+		var gy = _g(p, base, gx, gn)
+		b.box(Vector3(gx, gy + 0.4, gn), Vector3(2.4, 0.8, 2.4), rock.darkened(0.1))
+		b.sphere(Vector3(gx, gy + 2.3, gn), Vector3(2.0, 3.2, 1.6), rock.lightened(0.05), 10, true)       # gövde
+		for ex in [-1.0, 1.0]:
+			b.sphere(Vector3(gx + ex * 1.05, gy + 2.5, gn - 0.2), Vector3(0.7, 2.2, 0.8), rock, 8)        # kollar
+		b.cyl(Vector3(gx, gy + 3.95, gn), 0.9, 0.2, rock.darkened(0.2), false, 8)                          # kırık boyun
+		b.sphere(Vector3(gx + sx * 1.6, gy + 0.45, gn - 1.6), Vector3(1.0, 0.9, 1.0), rock.lightened(0.02), 8, true)   # düşmüş baş
+		b.sphere(Vector3(gx, gy + 3.2, gn + 0.3), Vector3(1.6, 0.4, 1.2), moss, 6)
+	# ---- yedi kılıçlı askı + ritim davulları + kafiye defteri (sol önde)
+	var rx2 = -8.0; var rn2 = -3.0
+	var ry2 = _g(p, base, rx2, rn2)
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(rx2 + sx * 2.2, ry2 + 0.9, rn2), Vector3(0.16, 1.8, 0.16), wood)
+	b.box(Vector3(rx2, ry2 + 1.7, rn2), Vector3(4.6, 0.12, 0.16), wood)
+	for k in 7:
+		b.box(Vector3(rx2 - 1.8 + k * 0.6, ry2 + 1.0, rn2), Vector3(0.07, 1.3, 0.03), Color(0.78, 0.8, 0.85), 0.0, false, Vector3(0, 0, 4.0))
+		b.box(Vector3(rx2 - 1.8 + k * 0.6, ry2 + 1.72, rn2), Vector3(0.09, 0.3, 0.06), Color(0.15, 0.12, 0.12), 0.0, false)
+	for k in 3:
+		var dx = 6.5 + k * 1.9; var dn = -3.0
+		var dy = _g(p, base, dx, dn)
+		b.cyl(Vector3(dx, dy + 0.5, dn), 1.3, 1.0, Color(0.55, 0.2, 0.18), true, 12)
+		b.cyl(Vector3(dx, dy + 1.02, dn), 1.25, 0.05, Color(0.9, 0.86, 0.75), false, 12)
+	b.box(Vector3(5.0, _g(p, base, 5, -3) + 0.5, -3.0), Vector3(0.7, 1.0, 0.5), wood)                     # rahle
+	b.box(Vector3(5.0, _g(p, base, 5, -3) + 1.04, -3.0), Vector3(0.6, 0.05, 0.42), Color(0.92, 0.9, 0.8), 0.0, false, Vector3(-14.0, 0, 0))
+	var posts: Array = []
+	for k in 3:
+		posts.append(_straw(b, p, base, -3.0 + k * 3.0, -11.0))
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, -5), -5))
+	b.lantern(-3.0, 3.6)
+	b.lantern(3.0, 3.6)
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(5.0, _g(p, base, 5, -1.6) + 0.05, -1.6), PI)
+	b.interact(Vector3(5.0, _g(p, base, 5, -4.4), -4.4), 5.0, "path_mentor", "[F] Ritim Ustası ile konuş", {"path": pid})
+	return -1.0
+
+
+## Yıkık Kök Karakolu (Mürekkep Yolu, Ateş Ülkesi ormanı): yarısı çökmüş beton sığınak (kök armalı), çizim masaları ve açık parşömenler,
+## iplere asılı mürekkep canavar resimleri, mürekkep küpleri, yere saplı dev fırça.
+static func _ink(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var conc = Color(0.46, 0.46, 0.44)
+	var ink = Color(0.05, 0.05, 0.07)
+	var paper = Color(0.93, 0.91, 0.84)
+	var wood = Color(0.33, 0.24, 0.17)
+	var spots: Dictionary = {}
+	_dirt(b, 12.0, -15.0, 8.0)
+	# ---- yıkık sığınak (arka): kalın duvarlar, yarısı çökmüş çatı, moloz
+	var by = maxf(_g(p, base, -6, 15), _g(p, base, 6, 15))
+	b.box(Vector3(0, by + 0.2, 15), Vector3(18, 0.4, 9), conc.darkened(0.2))
+	b.box(Vector3(0, by + 2.2, 19.2), Vector3(18, 4.0, 0.8), conc)
+	b.box(Vector3(-8.6, by + 2.2, 15), Vector3(0.8, 4.0, 9), conc.darkened(0.05))
+	b.box(Vector3(8.6, by + 1.2, 16.5), Vector3(0.8, 2.0, 6), conc.darkened(0.08))                    # yıkık yan duvar
+	b.box(Vector3(-6.0, by + 2.2, 10.8), Vector3(5.0, 4.0, 0.8), conc.lightened(0.03))
+	b.box(Vector3(-3.8, by + 4.4, 15), Vector3(10.4, 0.6, 9.4), conc.darkened(0.15))                  # ayakta kalan çatı
+	b.box(Vector3(4.6, by + 2.1, 14.6), Vector3(7.4, 0.6, 6.0), conc.darkened(0.18), 0.15, true, Vector3(0, 0, -32.0))   # çökmüş çatı levhası
+	for k in 7:
+		b.boulder(Vector3(3.0 + fmod(k * 2.3, 6.0), by + 0.5, 10.0 + fmod(k * 1.7, 4.0)), Vector3(1.4, 0.9, 1.2), conc.darkened(0.05 * (k % 3)), k, false)
+	b.kanji(Vector3(-6.0, by + 3.0, 10.35), "根", 1.5, ink, 0.0)
+	light(b, b.w(Vector3(-4.0, by + 3.2, 15)), Color(0.75, 0.8, 0.95), 1.0, 9.0)
+	# ---- çizim masaları (içeride, çatı altında): alçak masa, açık parşömen, mürekkep taşı, fırçalık
+	var desks: Array = []
+	for k in 3:
+		var dx = -6.6 + k * 2.6; var dn = 15.8
+		b.box(Vector3(dx, by + 0.75, dn), Vector3(1.8, 0.1, 1.0), wood)
+		for q in 4:
+			b.box(Vector3(dx + (0.8 if q % 2 else -0.8), by + 0.55, dn + (0.4 if q < 2 else -0.4)), Vector3(0.1, 0.35, 0.1), wood.darkened(0.2), 0.0, false)
+		b.box(Vector3(dx, by + 0.81, dn), Vector3(1.3, 0.02, 0.7), paper, 0.0, false)
+		b.box(Vector3(dx - 0.2 + k * 0.1, by + 0.83, dn), Vector3(0.6, 0.02, 0.36), ink, 0.3 * k, false)       # yarım çizim
+		b.cyl(Vector3(dx + 0.7, by + 0.9, dn + 0.3), 0.14, 0.2, Color(0.5, 0.35, 0.2), false, 6)
+		desks.append(b.w(Vector3(dx, by + 0.4, dn - 1.3)))
+	spots["desks"] = desks
+	# ---- iplere asılı canavar resimleri (avluda, iki direk arasında iki sıra)
+	for row in 2:
+		var hn = 6.0 - row * 4.5
+		var hy = _g(p, base, 0, hn)
+		for sx in [-1.0, 1.0]:
+			b.cyl(Vector3(sx * 9.0, hy + 2.2, hn), 0.2, 4.4, wood, true, 6)
+		rod(b, Vector3(-9.0, hy + 4.2, hn), Vector3(9.0, hy + 4.2, hn), 0.05, Color(0.2, 0.18, 0.15), 4)
+		for k in 6:
+			var sx3 = -7.5 + k * 3.0
+			b.box(Vector3(sx3, hy + 3.0, hn), Vector3(1.6, 2.3, 0.04), paper, 0.0, false)
+			b.kanji(Vector3(sx3, hy + 3.1, hn - 0.05), ["虎", "鳥", "龍", "獅", "蛇", "鼠"][(k + row * 3) % 6], 1.25, ink, 0.0)   # fırça yazısı: canavarın adı
+			b.box(Vector3(sx3, hy + 4.18, hn), Vector3(1.7, 0.08, 0.08), wood, 0.0, false)
+			b.box(Vector3(sx3, hy + 1.84, hn), Vector3(1.7, 0.08, 0.08), wood, 0.0, false)
+	# ---- mürekkep küpleri ve dev fırça (sağda)
+	for k in 4:
+		var vx = 9.5 + (k % 2) * 1.8; var vn = -1.0 + (k / 2) * 2.0
+		var vy = _g(p, base, vx, vn)
+		b.cyl(Vector3(vx, vy + 0.6, vn), 1.4, 1.2, Color(0.28, 0.22, 0.18), true, 12)
+		b.cyl(Vector3(vx, vy + 1.22, vn), 1.2, 0.05, ink, false, 12)
+	var fx = -10.5; var fn = 1.0
+	var fyy = _g(p, base, fx, fn)
+	rod(b, Vector3(fx, fyy + 0.9, fn), Vector3(fx + 1.2, fyy + 5.2, fn + 0.3), 0.3, wood.lightened(0.2), 8)
+	b.cone(Vector3(fx - 0.12, fyy + 0.5, fn - 0.03), 0.6, 1.2, ink, 8)
+	b.sphere(Vector3(fx - 0.3, fyy + 0.04, fn), Vector3(2.4, 0.06, 1.8), ink, 10)                        # mürekkep lekesi
+	var posts: Array = []
+	for k in 3:
+		posts.append(_straw(b, p, base, -3.0 + k * 3.0, -11.0, Color(0.8, 0.78, 0.7)))
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, -5), -5))
+	b.lantern(-2.4, 9.6)
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(0.6, by + 0.45, 12.4), PI)
+	b.interact(Vector3(0.6, by + 0.2, 10.4), 5.5, "path_mentor", "[F] Mürekkep Ustası ile konuş", {"path": pid})
+	return 8.5
+
+
+## Askıdaki kukla: gövde, baş, sarkan kollar ve bacaklar, chakra ipleri
+static func _hung_puppet(b: Builder, at: Vector3, col: Color, cloak: Color) -> void:
+	b.box(at + Vector3(0, -0.9, 0), Vector3(0.6, 0.9, 0.36), cloak, 0.0, false)
+	b.sphere(at + Vector3(0, -0.2, 0), Vector3(0.42, 0.46, 0.4), col, 8)
+	b.box(at + Vector3(0, -0.3, -0.2), Vector3(0.26, 0.05, 0.04), Color(0.2, 0.12, 0.1), 0.0, false)     # ağız yarığı
+	for sx in [-1.0, 1.0]:
+		b.box(at + Vector3(sx * 0.42, -1.0, 0), Vector3(0.12, 0.9, 0.12), col.darkened(0.1), 0.0, false, Vector3(0, 0, 10.0 * sx))
+		b.box(at + Vector3(sx * 0.16, -1.85, 0), Vector3(0.14, 1.0, 0.14), col.darkened(0.15), 0.0, false)
+		b.cyl(at + Vector3(sx * 0.14, 0.35, 0), 0.02, 0.7, Color(0.6, 0.8, 1.0), false, 4)
+
+
+## Kızıl Kum Atölyesi (Akasuna Kukla Yolu, Rüzgâr Ülkesi): kumtaşı kubbeli atölye, tentenin altında askıda kuklalar, parça tezgâhları
+## (kollar, başlar, zehir iğneleri), mor zehir kazanları, akrep kuyruğu parçası.
+static func _puppet(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var sand = Color(0.82, 0.68, 0.48)
+	var wood = Color(0.5, 0.36, 0.24)
+	var pup = Color(0.62, 0.48, 0.34)
+	var red = Color(0.55, 0.14, 0.12)
+	var spots: Dictionary = {}
+	# ---- kumtaşı kubbeli atölye (arka): silindir gövde, kubbe, kemerli kapı, yuvarlak pencereler
+	var wy = maxf(_g(p, base, -5, 15), _g(p, base, 5, 15))
+	b.cyl(Vector3(0, wy + 2.4, 16.0), 12.0, 4.8, sand, true, 16)
+	b.sphere(Vector3(0, wy + 4.6, 16.0), Vector3(12.0, 6.4, 12.0), sand.lightened(0.05), 16)
+	b.box(Vector3(0, wy + 1.5, 10.1), Vector3(2.4, 3.0, 0.5), Color(0.18, 0.13, 0.1), 0.0, false)        # kapı
+	b.box(Vector3(0, wy + 3.15, 10.0), Vector3(3.0, 0.4, 0.6), sand.darkened(0.15), 0.0, false)
+	for sx in [-1.0, 1.0]:
+		b.sphere(Vector3(sx * 3.6, wy + 3.0, 10.95), Vector3(1.0, 1.0, 0.5), Color(0.15, 0.12, 0.1), 8)
+	b.kanji(Vector3(0, wy + 4.3, 10.3), "傀", 1.0, red, 0.0)
+	# ---- tente + askıdaki kuklalar (kapının iki yanında)
+	for sx in [-1.0, 1.0]:
+		var tx = sx * 7.5; var tn = 7.0
+		var ty = _g(p, base, tx, tn)
+		for q in 4:
+			b.box(Vector3(tx + (2.6 if q % 2 else -2.6), ty + 1.9, tn + (1.6 if q < 2 else -1.6)), Vector3(0.2, 3.8, 0.2), wood)
+		b.box(Vector3(tx, ty + 3.8, tn), Vector3(6.0, 0.08, 4.0), red, 0.0, false, Vector3(-5.0, 0, 0))
+		b.box(Vector3(tx, ty + 3.5, tn), Vector3(5.2, 0.12, 0.12), wood, 0.0, false)
+		for k in 3:
+			_hung_puppet(b, Vector3(tx - 1.7 + k * 1.7, ty + 3.2, tn), pup.lightened(0.06 * k), [Color(0.2, 0.18, 0.2), red.darkened(0.2), Color(0.3, 0.26, 0.2)][k])
+	# ---- parça tezgâhları (ortada üç tezgâh): kollar, başlar, iğne demetleri
+	var benches: Array = []
+	for k in 3:
+		var bx = -5.0 + k * 5.0; var bn = 1.5
+		var byy = _g(p, base, bx, bn)
+		b.box(Vector3(bx, byy + 0.85, bn), Vector3(2.6, 0.12, 1.2), wood)
+		for q in 4:
+			b.box(Vector3(bx + (1.15 if q % 2 else -1.15), byy + 0.42, bn + (0.45 if q < 2 else -0.45)), Vector3(0.12, 0.85, 0.12), wood.darkened(0.2), 0.0, false)
+		b.box(Vector3(bx - 0.6, byy + 0.98, bn), Vector3(0.9, 0.13, 0.13), pup, 0.3, false)                # kol
+		b.sphere(Vector3(bx - 1.1, byy + 0.99, bn + 0.12), Vector3(0.18, 0.16, 0.2), pup.darkened(0.1), 6)
+		b.sphere(Vector3(bx + 0.5, byy + 1.1, bn), Vector3(0.4, 0.42, 0.38), pup.lightened(0.05), 8)       # baş
+		for j in 5:
+			b.box(Vector3(bx + 0.95, byy + 0.94, bn - 0.3 + j * 0.08), Vector3(0.5, 0.015, 0.015), Color(0.75, 0.77, 0.8), 0.0, false)   # senbon
+		benches.append(b.w(Vector3(bx, byy, bn - 1.5)))
+	spots["benches"] = benches
+	# ---- zehir kazanları (solda) + akrep kuyruğu (sağda)
+	for k in 3:
+		var cx = -11.5; var cn = -4.0 + k * 2.6
+		var cy = _g(p, base, cx, cn)
+		b.cyl(Vector3(cx, cy + 0.5, cn), 1.5, 1.0, Color(0.2, 0.2, 0.22), true, 12)
+		b.cyl(Vector3(cx, cy + 1.02, cn), 1.3, 0.05, Color(0.55, 0.2, 0.7), false, 12)
+	light(b, b.w(Vector3(-11.5, _g(p, base, -11.5, -1.4) + 1.6, -1.4)), Color(0.7, 0.3, 0.9), 1.2, 7.0)
+	var sx4 = 11.0; var sn4 = -2.0
+	var sy4 = _g(p, base, sx4, sn4)
+	for k in 8:   # boğumlu kuyruk yukarı kıvrılır
+		var u = k / 7.0
+		b.sphere(Vector3(sx4, sy4 + 0.4 + sin(u * 2.4) * 2.6, sn4 - 2.0 + u * 3.4 - sin(u * 3.0) * 0.9), Vector3(1.25, 1.1, 1.3) * lerpf(1.0, 0.55, u), Color(0.3, 0.26, 0.24), 8, k == 0)
+	b.cone(Vector3(sx4, sy4 + 2.3, sn4 + 0.3), 0.3, 0.9, Color(0.7, 0.72, 0.76), 6)
+	var posts: Array = []
+	for k in 4:
+		var px = -4.5 + k * 3.0; var pn = -11.0
+		var pyy = _g(p, base, px, pn)
+		b.box(Vector3(px, pyy + 1.0, pn), Vector3(0.18, 2.0, 0.18), wood)
+		b.sphere(Vector3(px, pyy + 1.9, pn + 0.12), Vector3(1.4, 1.4, 0.14), Color(0.9, 0.86, 0.75), 14)
+		b.sphere(Vector3(px, pyy + 1.9, pn + 0.2), Vector3(0.7, 0.7, 0.1), red, 12)
+		posts.append(b.w(Vector3(px, pyy, pn)))
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, -5), -5))
+	b.lantern(-3.0, 8.6)
+	b.lantern(3.0, 8.6)
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(0, _g(p, base, 0, 8.4) + 0.05, 8.4), PI)
+	b.interact(Vector3(0, _g(p, base, 0, 6.6), 6.6), 5.5, "path_mentor", "[F] Kukla Ustası ile konuş", {"path": pid})
+	return 6.0
 
 
 ## Kâğıt Çiçek Kulesi (Kâğıt Yolu, Yağmur Ülkesi): Amegakure tarzı koyu metal 4 katlı kule (dış borular, 0.9 m kat çıkıntıları:

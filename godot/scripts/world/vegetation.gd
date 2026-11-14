@@ -18,7 +18,7 @@ const DMAX := 0.02            # aday yoğunluğu (m² başına)
 ## Kullanıcı kararı 2026-11-14: ağaç sayısı yarıya iner ve düzenli yayılır (öbek öbek sıkışık değil).
 ## Ağaç türleri yarı olasılıkla kabul edilir + her ızgara hücresine en çok bir ağaç (dev ağaç 14 m, diğerleri 7 m hücre).
 const TREE_T := [0, 1, 2, 3, 5, 6, 7, 9]
-const TREE_KEEP := 0.5
+const TREE_KEEP := 0.25
 
 ## biyom -> [yoğunluk / m², tipler]  (0 geniş ağaç, 1 çam, 2 kuru ağaç, 3 kaktüs, 4 kaya, 5 dev ağaç, 6 bambu,
 ## 7 palmiye, 8 çalı, 9 Konoha orman ağacı (dev, dallı), 10 eğrelti, 11 büyük kaya kümesi, 12 çiçek öbeği)
@@ -303,7 +303,7 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 				continue
 			vi = int(Game._wh_vn(x / 90.0, z / 90.0, 40 + t) * 7.0) % nv
 		if t in TREE_T:
-			var cs := 14.0 if t in [9, 5] else 7.0
+			var cs := 24.0 if t in [9, 5] else 11.0
 			var ock := Vector3i(floori(x / cs), floori(z / cs), 1 if t in [9, 5] else 0)
 			if occ.has(ock):
 				continue
