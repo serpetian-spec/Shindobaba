@@ -318,6 +318,7 @@ void fragment() {
 	if (scalp && scalp_col.a < 0.5) discard;
 	if (palette_mode) {
 		int slot = slot_ov > 0.5 ? int(slot_ov + 0.5) : cloth_slot(rest);
+		slot = clamp(slot, 0, 11);   // kenar yumuşatmada uzak (piksel altı) üçgenlerde değer üçgenin dışına taşar: renk tablosunun dışından okuma bazı kartlarda çöp / siyah verir
 		if (layer == 2) {
 			if (rest.y < rig_b.x + 0.03 || rest.y > rig_a.w - 0.01 || abs(rest.x) > rig_a.x * 1.08) discard;
 			// Kumo: sağ omuz açık (tek askı)
@@ -1111,11 +1112,11 @@ void fragment() {
 	} else if (cloth_mode) {
 		float sl = dot(tx.rgb, vec3(0.3, 0.59, 0.11));
 		c.rgb = tint.rgb * (0.55 + sl * 1.5);
-		vec3 vc = COLOR.rgb;
+		vec3 vc = clamp(COLOR.rgb, vec3(0.0), vec3(1.0));   // taşan (eksi) değerin kuvveti geçersiz sayı üretir
 		vc = mix(vc / 12.92, pow((vc + 0.055) / 1.055, vec3(2.4)), step(0.04045, vc));
 		c.rgb = mix(c.rgb, vc, COLOR.a);
 	} else if (use_vertex_color) {
-		vec3 vc = COLOR.rgb;
+		vec3 vc = clamp(COLOR.rgb, vec3(0.0), vec3(1.0));   // taşan (eksi) değerin kuvveti geçersiz sayı üretir
 		vc = mix(vc / 12.92, pow((vc + 0.055) / 1.055, vec3(2.4)), step(0.04045, vc));  // sRGB -> lineer
 		c *= vec4(vc, COLOR.a);
 	}
@@ -1177,6 +1178,10 @@ void fragment() {
 		float red = step(distance(vc0, vec3(0.9, 0.2, 0.15)), 0.012);
 		EMISSION += g_night * (win * vec3(1.0, 0.7, 0.32) * 1.5 + red * vec3(1.0, 0.28, 0.12) * 1.8);
 	}
+	// bozuk piksel güvenliği: geçersiz (NaN / sonsuz) renk ya da sıfır normal ekran efektlerinde (ortam gölgesi, bulanıklık) siyah karelere büyür
+	if (any(isnan(ALBEDO)) || any(isinf(ALBEDO))) ALBEDO = vec3(0.4);
+	if (any(isnan(EMISSION)) || any(isinf(EMISSION))) EMISSION = vec3(0.0);
+	if (!(dot(NORMAL, NORMAL) > 1e-8)) NORMAL = vec3(0.0, 0.0, 1.0);
 }
 
 void light() {

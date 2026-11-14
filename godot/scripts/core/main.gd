@@ -12,6 +12,7 @@ var preview: CharacterModel
 var preview_yaw = 0.0
 var actors: Node3D
 var test_script = ""
+var void_busy := false
 var shot_dir = ""
 
 
@@ -422,6 +423,11 @@ func _route(e: InputEvent) -> void:
 			KEY_F3: perf_panel.toggle()
 			KEY_F4: perf_panel.next_test()
 			KEY_F5: perf_panel.toggle_vsync()
+		return
+	if e is InputEventKey and e.pressed and not e.echo and e.keycode == KEY_F8 and player != null and not void_busy:   # siyah leke teşhisi (oyuncu raporu)
+		void_busy = true
+		await preload("res://scripts/core/void_check.gd").run(self)
+		void_busy = false
 		return
 	if e is InputEventKey and e.pressed and not e.echo and e.keycode == KEY_F9 and player != null:   # görünmez yapı teşhisi (oyuncu raporu)
 		preload("res://scripts/core/inv_check.gd").run(get_tree(), player.global_position)

@@ -148,7 +148,7 @@ void fragment() {
 		float dith = fract(dot(FRAGCOORD.xy, vec2(0.0671, 0.00583)) * 52.98);
 		if (k < 0.85 && dith > k * 0.9 + 0.1) { discard; }
 	}
-	vec3 c = COLOR.rgb;
+	vec3 c = clamp(COLOR.rgb, vec3(0.0), vec3(1.0));
 	c = mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));  // sRGB -> lineer
 	if (use_tint) c = tint.rgb;
 	if (use_tex) { vec3 tx = texture(tex, UV).rgb; c = tex_luma ? tint.rgb * (0.55 + 0.6 * dot(tx, vec3(0.3, 0.59, 0.11))) : tx * tint.rgb; }

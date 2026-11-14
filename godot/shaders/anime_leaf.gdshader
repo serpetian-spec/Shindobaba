@@ -35,7 +35,7 @@ void fragment() {
 	ALPHA_SCISSOR_THRESHOLD = alpha_cut;
 	// yaprak parlaklığı tona çarpılır: açık yapraklar canlı sarı-yeşile, koyular derin yeşile kayar
 	float b = t.r;
-	vec3 vc = COLOR.rgb;
+	vec3 vc = clamp(COLOR.rgb, vec3(0.0), vec3(1.0));   // taşan (eksi) değerin kuvveti geçersiz sayı üretir (siyah kare)
 	vc = mix(vc / 12.92, pow((vc + 0.055) / 1.055, vec3(2.4)), step(0.04045, vc));   // sRGB -> lineer (yoksa soluk/beyazımsı)
 	vec3 c = vc * mix(0.55, 1.2, b);
 	c = mix(c, c * vec3(1.06, 1.08, 0.86), smoothstep(0.75, 1.0, b) * 0.6);

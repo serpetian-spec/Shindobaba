@@ -50,6 +50,10 @@ void fragment() {
 	}
 	float rim = pow(1.0 - clamp(abs(dot(NORMAL, VIEW)), 0.0, 1.0), 3.0);
 	EMISSION = rim * rim_amount * 0.3 * ALBEDO;
+	// bozuk piksel güvenliği: geçersiz (NaN / sonsuz) renk ya da sıfır normal ekran efektlerinde (ortam gölgesi, bulanıklık) siyah karelere büyür
+	if (any(isnan(ALBEDO)) || any(isinf(ALBEDO))) ALBEDO = vec3(0.4);
+	if (any(isnan(EMISSION)) || any(isinf(EMISSION))) EMISSION = vec3(0.0);
+	if (!(dot(NORMAL, NORMAL) > 1e-8)) NORMAL = vec3(0.0, 0.0, 1.0);
 }
 
 void light() {
