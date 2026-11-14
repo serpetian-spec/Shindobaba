@@ -83,6 +83,7 @@ func _ready() -> void:
 	var hp0 = e.hp
 	var pend := ""
 	var php: float = pl.hp
+	var shots := 0
 	var ehp: float = e.hp
 	print("MASH kullanilabilir jutsu: %d  %s" % [ids.size(), str(ids)])
 	while t < 60.0 and is_instance_valid(e) and not e.dead and not pl.is_dead():
@@ -119,6 +120,21 @@ func _ready() -> void:
 			hit_t = t
 			print("MASH     oyuncu -%.0f (dusman durum=%s teknik=%s uzaklik=%.0f) oyuncu durum=%s" % [php - pl.hp, e.state, str(e.get_meta("cast_id", "")), dir.length(), str(pl.statuses.keys())])
 		php = pl.hp
+		if OS.get_environment("CHG") == "1" and t > 2.0 and t < 2.15 and is_instance_valid(e):
+			e.chakra = 0.0   # görüntü denemesi: chakrası bitmiş düşman
+		if is_instance_valid(e) and e.state == "charge" and shots < 2 and e.state_t > 0.5:
+			shots += 1
+			var c3 = Camera3D.new()
+			main.add_child(c3)
+			var off = Vector3(3.5, 1.6, 3.5) if shots == 1 else Vector3(-1.5, 1.2, -5.0)
+			c3.global_position = e.global_position + off
+			c3.look_at(e.global_position + Vector3.UP * 1.0)
+			c3.current = true
+			await get_tree().create_timer(0.15).timeout
+			await main.shot("npc_chakra_%d" % shots)
+			pl.cam.make_current()
+			c3.queue_free()
+			print("MASH     dusman chakra topluyor (chakra %.0f / %.0f)" % [e.chakra, e.max_chakra])
 		states[e.state] = float(states.get(e.state, 0.0)) + 0.1
 		for st in ["stun", "bind", "freeze", "slow"]:
 			if e.has_status(st):

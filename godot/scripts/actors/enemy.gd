@@ -27,6 +27,9 @@ func note_jutsu_dmg(jid: String, dmg: float) -> void:
 		return
 	_jdmg[jid] = float(_jdmg.get(jid, 0.0)) + dmg
 	jcd[jid] = maxf(float(jcd.get(jid, 0.0)), t0 + Combat.dmg_cd(float(_jdmg[jid]), power))
+var chg_cd := 0.0    # chakra toplama arası
+var _chg_aura: Node3D = null
+var _jhold := 0.0   # jutsu hazırken yumruğa girmeden beklediği süre
 var jgap := 0.0    # iki jutsu arası en kısa ara
 ## Chakra (AI eşitliği): oyuncuyla aynı kural — her jutsu chakra harcar (oyuncunun jutsu_cost formülü, seviyeyle),
 ## saniyede 1.5 taban yenilenir; yetmezse jutsu yok, kunai/yakın dövüş. Eskiden düşmanın chakrası yoktu: 3-4 sn'de bir jutsu yağdırıyordu.
@@ -378,6 +381,25 @@ func _on_someone_cast(caster: Node, _id: String) -> void:
 		_dodge(caster, true)
 
 
+func _charge_begin() -> void:
+	state = "charge"
+	state_t = 0.0
+	chg_cd = 6.0
+	model.play("idle", 0.1)
+	model.overlay.set_pose("seal", 1.0)
+	if _chg_aura == null:
+		_chg_aura = FX.chakra_aura(self, Color(0.3, 0.62, 1.0), float(arch.get("size", 1.0)))
+	Sfx.play("wind", global_position, 0.8, 0.6)
+
+
+func _charge_end() -> void:
+	if _chg_aura != null and is_instance_valid(_chg_aura):
+		_chg_aura.queue_free()
+	_chg_aura = null
+	if model and model.get("overlay"):
+		model.overlay.set_pose("seal", 0.0)
+
+
 ## Kaçınma atılışı: yana (ya da geriye) hızlı chakra adımı
 func _dodge(from: Node3D, side := true) -> void:
 	if state in ["hitstun", "knockdown", "cast", "attack"] or has_status("stun") or has_status("bind"):
@@ -421,12 +443,24 @@ func _physics_process(dt: float) -> void:
 	attack_cd -= dt
 	ranged_cd -= dt
 	sub_cd -= dt
+	chg_cd -= dt
 	guard_cd -= dt
 	dodge_cd -= dt
 	blind_t -= dt
 	nameplate.modulate.a = 1.0 if global_position.distance_to(pl.global_position) < 30 else 0.0
 	_update_hp_bar(dt, pl)
+	if state != "charge" and _chg_aura != null:   # toplama kesildi (darbe, bağ...)
+		_charge_end()
 	match state:
+		"charge":
+			# chakra toplama (AI eşitliği: oyuncunun [C] ile yaptığı): mühürde durur, oyuncuyla aynı hız formülü; darbe yerse ya da rakip dibine girerse keser
+			step_move(Vector3.ZERO, dt, false)
+			chakra = minf(max_chakra, chakra + 32.0 * (1.0 + Stats.npc_chakra_mastery(level) * 0.03) * dt)
+			var near = target != null and is_instance_valid(target) and target.global_position.distance_to(global_position) < 2.6
+			if state_t > 3.0 or chakra >= max_chakra * 0.7 or near or has_status("sealed"):
+				_charge_end()
+				state = "chase"
+			return
 		"hitstun":
 			step_move(Vector3.ZERO, dt, false)
 			if state_t > 0.45:
@@ -655,11 +689,21 @@ func _chase(dt: float) -> void:
 	if d > 16.0 and leap_cd <= 0.0 and _is_ninja() and global_position.y - Game.ground_height(global_position.x, global_position.z) < 0.5:
 		_ninja_leap(v.normalized(), d)
 		return
+	# chakrası biten jutsucu: araya mesafe koyup chakra toplar (oyuncuyla aynı kural); dibindeyse önce geri sıçrar
+	if chg_cd <= 0.0 and _is_ninja() and not has_status("sealed"):
+		var costs = (arch.get("jutsu", []) as Array).filter(func(id): return Data.jutsu.has(id) and not Stats.is_taijutsu(Data.jutsu[id])).map(func(id): return jutsu_cost(id))
+		if not costs.is_empty() and chakra < float(costs.min()):
+			if d > 3.6:
+				_charge_begin()
+				return
+			elif dodge_cd <= 0.0:
+				_dodge(target, false)
+				return
 	# menzilli: jutsu ya da kunai
 	# jutsu kullanan düşman: uzaktan ve sık atar, yakında da arada bir (eskiden 5-24 m, %30)
 	var jl: Array = arch.get("jutsu", [])
 	var far_ok = (d > 4.0 or elevated) and d < 42.0   # yüksekteki hedefe dibinden de atar
-	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < (0.55 if (has_meta("kage_of") or has_meta("elite_boss")) else 0.15 + skill * 0.45)   # usta ninja dibinde de jutsu atar (Güç 80: %42)
+	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < (0.55 if (has_meta("kage_of") or has_meta("elite_boss")) else 1.0)   # jutsusu olan ninja dibinde de jutsu atar
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
 		ranged_cd = randf_range(1.6, 3.2) / (float(arch["aggr"]) * (1.0 + skill))   # usta ninja daha sık jutsu atar
 		# her jutsu oyuncudakiyle aynı bekleme süresine tabi (aynı dalga jutsusu 15 sn'de 6 kez gelmez)
@@ -693,6 +737,7 @@ func _chase(dt: float) -> void:
 			jcd[pick] = nowj + Combat.jutsu_cd(Data.jutsu.get(pick, {})) * randf_range(1.0, 1.25)
 			_jdmg[pick] = 0.0
 			_jcast_t[pick] = nowj
+			_jhold = 0.0
 			jgap = nowj + randf_range(2.5, 4.0) / (1.0 + skill * 1.5)   # usta ninja mühürü hızlı dizer: Güç 30 1.7-2.8 sn, Güç 80 1.3-2.1 sn
 			set_meta("cast_id", pick)
 			state = "cast"
@@ -748,7 +793,15 @@ func _chase(dt: float) -> void:
 	else:
 		step_move(Vector3.ZERO, dt, false)
 		model.play("idle", 0.2)
+		# jutsusu hazır ninja yumruğa girmez: chakrası ve bekleme süresi dolmuş tekniği varsa (ve sıradaki jutsuya 1.2 sn'den az kaldıysa)
+		# kombo başlatmak yerine mühüre geçer. Şartı tutmayan teknik yüzünden takılmasın diye en çok 1.5 sn bekler.
+		var j_wait = jgap - nowr
+		if _is_ninja() and j_wait < 1.2 and _jhold < 1.5 and not has_status("sealed") and jl.any(func(id): return nowr >= float(jcd.get(id, 0.0)) and not Stats.is_taijutsu(Data.jutsu.get(id, {})) and chakra >= jutsu_cost(id)):
+			_jhold += dt
+			ranged_cd = minf(ranged_cd, maxf(j_wait, 0.0))
+			return
 		if attack_cd <= 0.0 and (has_token or _tok_count() < _max_tokens()):
+			_jhold = 0.0
 			if not has_token:
 				has_token = true
 				_tok_add(1)
@@ -1246,6 +1299,8 @@ func take_hit(info: Dictionary) -> void:
 		has_token = false
 		_tok_add(-1)
 	super.take_hit(info)
+	if state == "charge":   # sersemlemese de darbe chakra toplamayı keser (oyuncuyla aynı)
+		state = "chase"
 	# yenilen kaçak pes eder: öldür / teslim et / bağışla (kaçak dostluğu)
 	if not dead and hp > 0.0 and hp < max_hp * (0.25 + Stats.skill(Game.profile, "persuade") * 0.3) and RogueBonds.spareable(self, info):   # Sosyal: İkna
 		set_physics_process(false)
