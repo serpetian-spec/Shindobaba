@@ -2,7 +2,7 @@ extends Node
 ## Jutsu görsel denetimi: her jutsu oyuncudan hedefe atılır, salınımdan 0.6 ve 1.3 sn sonra küçük kare (480x270) kaydedilir.
 ## JA_RANGE="baş:son" (sıralı jutsu listesinde), JA_ONLY="id1,id2"
 var main: Node
-var out := "D:/Naruto 3D Game/_tmp/audit"
+var out := (ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/audit")
 
 
 func _snap(name: String) -> void:

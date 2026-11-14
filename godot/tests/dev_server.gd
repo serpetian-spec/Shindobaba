@@ -3,7 +3,7 @@ extends Node
 ## Komut betiği: `extends Node` + `func run(main) -> void` (await kullanabilir). Bitince _tmp/dev/done.txt yazılır.
 ## DEV_SAVE boşsa yeni oyun açılır (Konoha); "quit" yazan komut sunucuyu kapatır.
 var main: Node
-const DIR := "D:/Naruto 3D Game/_tmp/dev"
+var DIR := (ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/dev")
 
 
 func _ready() -> void:

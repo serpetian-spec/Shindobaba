@@ -86,7 +86,7 @@ func _ready() -> void:
 				n.queue_free()
 		print("JDMG ", bi, "/", ids.size())
 	Engine.time_scale = 1.0
-	var f = FileAccess.open("D:/Naruto 3D Game/_tmp/jutsu_dmg.json", FileAccess.WRITE)
+	var f = FileAccess.open((ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/jutsu_dmg.json"), FileAccess.WRITE)
 	f.store_string(JSON.stringify(res, "\t"))
 	f.close()
 	print("JDMG done ", res.size())

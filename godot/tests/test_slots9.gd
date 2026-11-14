@@ -10,8 +10,8 @@ func _ready() -> void:
 	main._start_new_game()
 	await get_tree().create_timer(3.0).timeout
 	print("slots=", Game.profile["slots"].size(), " ekran=", get_viewport().get_visible_rect().size)
-	get_viewport().get_texture().get_image().save_png("D:/Naruto 3D Game/_tmp/kv/slots_hud.png")
+	get_viewport().get_texture().get_image().save_png((ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/kv/slots_hud.png"))
 	Menus.ninja_menu(main, "jutsu", "")
 	await get_tree().create_timer(1.0).timeout
-	get_viewport().get_texture().get_image().save_png("D:/Naruto 3D Game/_tmp/kv/slots_menu.png")
+	get_viewport().get_texture().get_image().save_png((ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/kv/slots_menu.png"))
 	get_tree().quit()

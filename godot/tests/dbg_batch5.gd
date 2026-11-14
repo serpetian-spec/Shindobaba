@@ -20,7 +20,7 @@ func _ready() -> void:
 			if after.get_pixel(x, y) != before.get_pixel(x, y):
 				diff += 1
 	print("BATCH map_fix ms=%d changed_px(1/4 sample)=%d" % [Time.get_ticks_msec() - t0, diff])
-	after.save_png("D:/Naruto 3D Game/_tmp/shots/map_fixed.png")
+	after.save_png((ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/shots/map_fixed.png"))
 	pl.model.apply_age("child")
 	var cl = ShadowClone.new()
 	cl.team = pl.team

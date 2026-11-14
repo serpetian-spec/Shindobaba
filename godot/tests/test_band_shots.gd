@@ -2,7 +2,7 @@ extends Node
 ## Alın koruyucu takılışları (önbellekli halka / saç işini beklemeyen kafa ölçümü kontrolü): her takılış iki kez kurulur
 ## (ikincisi önbellekten), önden ve arkadan çekilir. Sonra en yakın köylülerin yakın çekimi.
 var main: Node
-const OUT := "D:/Naruto 3D Game/_tmp/shots/bandchk/"
+var OUT := (ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/shots/bandchk/")
 func _ready() -> void:
 	await get_tree().process_frame
 	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": "none", "element": "katon", "hair_style": "s2", "hair": Color(0.1, 0.1, 0.1), "top": Color(0.2, 0.2, 0.3), "pants": Color(0.15, 0.15, 0.2), "village": "konoha"}

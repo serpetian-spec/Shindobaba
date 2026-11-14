@@ -36,7 +36,7 @@ func _ready() -> void:
 		cam.look_at(hp)
 		await get_tree().process_frame
 		await get_tree().process_frame
-		get_viewport().get_texture().get_image().save_png("D:/Naruto 3D Game/_tmp/shots/npchair/h%d.png" % k)
+		get_viewport().get_texture().get_image().save_png((ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/shots/npchair/h%d.png") % k)
 		k += 1
 	print("HEADS %d" % k)
 	get_tree().quit()

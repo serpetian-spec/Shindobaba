@@ -1,8 +1,9 @@
 #!/bin/sh
 # Çağrı referans karşılaştırması: sh tools/sref.sh toad_boss 17 17 v1 ref1.png ref2.png ref3.png
 M=$1; H=$2; LN=$3; V=$4; shift 4
-cd "/d/Naruto 3D Game/godot" || exit 1
-MODEL=$M H=$H LEN=$LN VER=$V timeout 400 ../tools/Godot_v4.7.2-stable_win64_console.exe --log-file "D:/Naruto 3D Game/_tmp/test_godot.log" --position -5000,-5000 --audio-driver Dummy --path . -- --test=res://tests/test_summon_ref.gd "--shots=D:/Naruto 3D Game/_tmp/kv" 2>&1 | grep -E "SCRIPT ERROR|Parse" -A3 | head
+ROOT="$(cd "$(dirname "$0")/.." && pwd -W)"
+cd "$ROOT/godot" || exit 1
+MODEL=$M H=$H LEN=$LN VER=$V timeout 400 ../tools/Godot_v4.7.2-stable_win64_console.exe --log-file "$ROOT/_tmp/test_godot.log" --position -5000,-5000 --audio-driver Dummy --path . -- --test=res://tests/test_summon_ref.gd "--shots=$ROOT/_tmp/kv" 2>&1 | grep -E "SCRIPT ERROR|Parse" -A3 | head
 cd ..
 ARGS=""
 i=0

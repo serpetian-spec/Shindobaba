@@ -1,11 +1,12 @@
 #!/bin/sh
 # Açık geliştirme sunucusuna komut gönder: tools/dev.sh komut.gd  (sunucu yoksa önce: tools/dev.sh start)
-D="/d/Naruto 3D Game/_tmp/dev"
-cd "/d/Naruto 3D Game"
+ROOT="$(cd "$(dirname "$0")/.." && pwd -W)"
+D="$ROOT/_tmp/dev"
+cd "$ROOT"
 case "$1" in
   start)
     mkdir -p "$D"; rm -f "$D/ready.txt" "$D/done.txt" "$D/cmd.gd"
-    nohup tools/Godot_v4.7.2-stable_win64_console.exe --log-file "D:/Naruto 3D Game/_tmp/test_godot.log" --path godot --audio-driver Dummy -- --test=res://tests/dev_server.gd "--shots=D:/Naruto 3D Game/_tmp/shots/dev" > "$D/log.txt" 2>&1 &
+    nohup tools/Godot_v4.7.2-stable_win64_console.exe --log-file "$ROOT/_tmp/test_godot.log" --path godot --audio-driver Dummy -- --test=res://tests/dev_server.gd "--shots=$ROOT/_tmp/shots/dev" > "$D/log.txt" 2>&1 &
     i=0; while [ ! -f "$D/ready.txt" ] && [ $i -lt 240 ]; do sleep 1; i=$((i+1)); done
     echo "sunucu hazir ($i sn)";;
   stop)

@@ -52,7 +52,7 @@ func _ready() -> void:
 						cam.look_at(tg)
 						await get_tree().process_frame
 						await get_tree().process_frame
-						get_viewport().get_texture().get_image().save_png("D:/Naruto 3D Game/_tmp/shots/garment/%s_g_%02d_%s.png" % [OS.get_environment("SHOT"), k, "on" if side > 0 else "arka"])
+						get_viewport().get_texture().get_image().save_png((ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/shots/garment/%s_g_%02d_%s.png") % [OS.get_environment("SHOT"), k, "on" if side > 0 else "arka"])
 				cm.queue_free()
 				k += 1
 	print("GCOST toplam %d ms" % total)

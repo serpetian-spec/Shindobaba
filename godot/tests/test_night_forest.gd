@@ -32,7 +32,7 @@ func _ready() -> void:
 			cam.look_at(pl.global_position + Vector3.UP * 1.0)
 			for fr in 3:
 				await get_tree().create_timer(0.7).timeout
-				get_viewport().get_texture().get_image().save_png("D:/Naruto 3D Game/_tmp/kv/nf_%d_%d_%d.png" % [n, k, fr])
+				get_viewport().get_texture().get_image().save_png((ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/kv/nf_%d_%d_%d.png") % [n, k, fr])
 		cam.queue_free()
 		n += 1
 	print("NF BITTI")

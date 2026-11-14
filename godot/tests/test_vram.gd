@@ -40,7 +40,7 @@ func _ready() -> void:
 		cam.global_position = pl.global_position + f * d[0] + Vector3.UP * d[1]
 		cam.look_at(pl.global_position + Vector3.UP * (1.55 if i == 0 else 1.0))
 		await get_tree().create_timer(0.6).timeout
-		get_viewport().get_texture().get_image().save_png("D:/Naruto 3D Game/_tmp/kv/tex_%d.png" % i)
+		get_viewport().get_texture().get_image().save_png((ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir() + "/_tmp/kv/tex_%d.png") % i)
 		i += 1
 	print("VRAM BITTI")
 	get_tree().quit()

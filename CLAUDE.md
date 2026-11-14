@@ -16,7 +16,7 @@ python build.py test                    # test exe
 python build.py main                    # ana exe (yalnız "güncelle" denince)
 
 # test koşusu (godot/ içinden; pencere ekran dışında, Konoha önbellekten)
-BAKE_ANY=1 timeout 200 ../tools/Godot_v4.7.2-stable_win64_console.exe --log-file "D:/Naruto 3D Game/_tmp/test_godot.log" --path . --resolution 2560x1380 \
+BAKE_ANY=1 timeout 200 ../tools/Godot_v4.7.2-stable_win64_console.exe --log-file "../_tmp/test_godot.log" --path . --resolution 2560x1380 \
   --position 9000,0 -- --test=res://tests/TEST.gd > ../_tmp/cikti.txt 2>&1
 
 # takılma ölçümü
@@ -33,7 +33,7 @@ TAG=X PROFV=1 bash _tmp/run_ht.sh       # 16 / 70 / 300 m/sn; 10 dakikayı aşar
   kullanıcının oynadığı oturumun FPS kaydını siler.
 
 ## "güncelle" = yayın
-`python build.py main` → `python tools/make_zip.py` → commit → `git push origin master:main` →
+`python build.py main` → `python tools/make_zip.py` → commit → `git push origin HEAD:main` →
 `python tools/github_release.py "notlar"`. Sürüm notu Türkçe, oyuncu gözüyle (iç değişken adı yok).
 "güncelle" denmeden yayınlama, commit atma.
 
